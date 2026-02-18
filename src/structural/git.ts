@@ -124,6 +124,37 @@ export function getDiff(
   return entries;
 }
 
+/**
+ * Staged diff (index vs HEAD). For CLI --staged mode. Same shape as getDiff.
+ */
+export function getDiffCached(repoRoot: string): DiffEntry[] {
+  try {
+    const out = spawnSync(
+      "git",
+      ["diff", "--cached", "--no-renames", "--name-status"],
+      {
+        encoding: "utf8",
+        cwd: repoRoot,
+        maxBuffer: 16 * 1024 * 1024,
+      },
+    );
+    if (out.status !== 0) return [];
+    const entries: DiffEntry[] = [];
+    const lines = (out.stdout ?? "").split("\n");
+    for (const line of lines) {
+      const m = line.match(/^([ADM])\s+(.+)$/);
+      if (!m) continue;
+      const status = m[1] as "A" | "D" | "M";
+      const normalized = m[2].replace(/\\/g, "/").trim();
+      if (!isTracked(normalized)) continue;
+      entries.push({ status, path: normalized } as DiffEntry);
+    }
+    return entries;
+  } catch {
+    return [];
+  }
+}
+
 export function getFileAtRevision(
   repoRoot: string,
   rev: string,

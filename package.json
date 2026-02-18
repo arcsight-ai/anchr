@@ -17,7 +17,8 @@
     "write-comment-body": "npx tsx scripts/write-production-comment-body.ts",
     "fix-suggestions": "npx tsx scripts/anchr-fix-suggestions.ts",
     "render-github-comment": "npx tsx scripts/render-github-comment.ts",
-    "pr-comment-convergent": "npx tsx scripts/arcsight-pr-comment.ts"
+    "pr-comment-convergent": "npx tsx scripts/arcsight-pr-comment.ts",
+    "anchr": "npx tsx scripts/cli.ts"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
@@ -29,5 +30,8 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "bin": {
+    "anchr": "scripts/cli.ts"
   }
 }

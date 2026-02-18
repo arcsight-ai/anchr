@@ -1,7 +1,7 @@
 import { mkdirSync, readdirSync, statSync, readFileSync } from "fs";
 import { dirname, join, resolve } from "path";
 import { canonicalPath } from "../src/structural/canonicalPath.js";
-import { getRepoRoot, getBaseHead, getDiff } from "../src/structural/git.js";
+import { getRepoRoot, getBaseHead, getDiff, getDiffCached } from "../src/structural/git.js";
 import { resolveSpecifierFrozen } from "../src/structural/frozenResolver.js";
 import { computePublicFiles } from "../src/structural/publicSurface.js";
 import { detectViolations } from "../src/structural/violations.js";
@@ -88,20 +88,25 @@ function main(): number {
     return runIncomplete(repoRoot);
   }
 
-  const diffEntries = getDiff(repoRoot, baseHead.base, baseHead.head);
+  const staged = process.env.ANCHR_STAGED === "1" || process.env.ANCHR_STAGED === "true";
+  const diffEntries = staged
+    ? getDiffCached(repoRoot)
+    : getDiff(repoRoot, baseHead.base, baseHead.head);
+  const baseSha = staged ? baseHead.head : baseHead.base;
+  const headSha = baseHead.head;
   const pkgDirByName = discoverPackages(repoRoot);
 
   if (pkgDirByName.size === 0) {
     const report = buildDeterministicReport(
       "VERIFIED",
       [],
-      baseHead.base,
-      baseHead.head,
+      baseSha,
+      headSha,
       collectCanonicalPaths(repoRoot, diffEntries),
     );
     const outPath = resolve(repoRoot, OUT_PATH);
     writeReport(
-      { ...report, headSha: baseHead.head, baseSha: baseHead.base },
+      { ...report, headSha, baseSha },
       outPath,
     );
     return 0;
@@ -113,7 +118,7 @@ function main(): number {
     diffEntries,
     pkgDirByName,
     publicFiles,
-    baseHead.base,
+    baseSha,
   );
 
   const hasBlock =
@@ -125,8 +130,8 @@ function main(): number {
   const report = buildDeterministicReport(
     status,
     violations,
-    baseHead.base,
-    baseHead.head,
+    baseSha,
+    headSha,
     canonicalPaths,
   );
 
@@ -152,8 +157,8 @@ function main(): number {
   writeReport(
     {
       ...report,
-      headSha: baseHead.head,
-      baseSha: baseHead.base,
+      headSha,
+      baseSha,
       ...(boundaryViolationDetails.length > 0 ? { boundaryViolationDetails } : {}),
     },
     outPath,
@@ -168,12 +173,12 @@ function main(): number {
     const fingerprints = computeBoundaryFingerprints(report.minimalCut);
     if (fingerprints.length > 0) {
       const store = loadPressureStore(artifactsDir);
-      addFingerprintsToStore(store, fingerprints, baseHead.head);
+      addFingerprintsToStore(store, fingerprints, headSha);
       savePressureStore(artifactsDir, store);
-      const signals = computeSignals(store, repoRoot, baseHead.head);
+      const signals = computeSignals(store, repoRoot, headSha);
       writePressureSignals(artifactsDir, {
         signals,
-        headSha: baseHead.head,
+        headSha,
       });
     }
   }

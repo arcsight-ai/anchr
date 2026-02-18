@@ -17,6 +17,8 @@ export type {
   DecisionLevel as ArcsightV5DecisionLevel,
   ParsedV5Meta,
 } from "./v5.js";
+export { renderPRComment } from "./canonicalPRComment.js";
+export type { RenderedComment } from "./canonicalPRComment.js";
 export type {
   CommentRenderInput,
   DecisionObject,
