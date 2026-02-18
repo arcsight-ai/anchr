@@ -97,7 +97,10 @@ function main(): number {
       collectCanonicalPaths(repoRoot, diffEntries),
     );
     const outPath = resolve(repoRoot, OUT_PATH);
-    writeReport(report, outPath);
+    writeReport(
+      { ...report, headSha: baseHead.head, baseSha: baseHead.base },
+      outPath,
+    );
     return 0;
   }
 
@@ -125,7 +128,10 @@ function main(): number {
   );
 
   const outPath = resolve(repoRoot, OUT_PATH);
-  writeReport(report, outPath);
+  writeReport(
+    { ...report, headSha: baseHead.head, baseSha: baseHead.base },
+    outPath,
+  );
 
   const exitCode = report.decision.level === "block" ? 1 : 0;
   return exitCode;
@@ -143,6 +149,8 @@ try {
     confidence: { coverageRatio: 0 },
     scope: { mode: "structural-audit" },
     run: { id: "incomplete" },
+    headSha: "",
+    baseSha: "",
   };
   const outPath = resolve(process.cwd(), OUT_PATH);
   writeReport(report, outPath);

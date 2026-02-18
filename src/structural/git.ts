@@ -1,5 +1,4 @@
-import { execSync, spawnSync } from "child_process";
-import { existsSync } from "fs";
+import { spawnSync } from "child_process";
 import { resolve } from "path";
 
 export interface BaseHead {

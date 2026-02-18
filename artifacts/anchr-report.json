@@ -1,1 +1,1 @@
-{"classification":{"primaryCause":null},"confidence":{"coverageRatio":0},"decision":{"level":"warn","reason":"git_unavailable"},"minimalCut":[],"run":{"id":"incomplete"},"scope":{"mode":"structural-audit"},"status":"INCOMPLETE"}
+{"classification":{"primaryCause":null},"confidence":{"coverageRatio":1},"decision":{"level":"allow","reason":"No architectural impact detected."},"minimalCut":[],"run":{"id":"de0b759cd9ef4ff692dfadde25b118ab0bc1ea952b54dda5bd8cc367eed8abd8"},"scope":{"mode":"structural-fast-path"},"status":"VERIFIED"}

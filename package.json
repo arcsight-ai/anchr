@@ -7,7 +7,9 @@
     "start": "node dist/index.js",
     "graph": "npm run build && node dist/scripts/anchr-graph.js --root . --out artifacts/anchr-graph.json",
     "graph:smoke": "npm run build && node dist/scripts/anchr-graph-smoke.js",
-    "structural": "npx tsx scripts/anchr-structural-audit.ts"
+    "structural": "npx tsx scripts/anchr-structural-audit.ts",
+    "repair": "npx tsx scripts/anchr-repair.ts",
+    "repair-comment": "npx tsx scripts/anchr-repair-comment.ts"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

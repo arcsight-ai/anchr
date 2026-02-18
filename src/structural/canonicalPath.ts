@@ -1,5 +1,3 @@
-import { sep } from "path";
-
 /**
  * Canonicalize path for deterministic cross-OS behavior.
  * - repo-relative
