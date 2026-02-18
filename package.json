@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "test": "jest",
     "build": "tsc",
     "start": "node dist/index.js",
     "graph": "npm run build && node dist/scripts/anchr-graph.js --root . --out artifacts/anchr-graph.json",
@@ -15,10 +16,14 @@
     "pr-comment": "npx tsx scripts/anchr-pr-comment.ts",
     "write-comment-body": "npx tsx scripts/write-production-comment-body.ts",
     "fix-suggestions": "npx tsx scripts/anchr-fix-suggestions.ts",
-    "render-github-comment": "npx tsx scripts/render-github-comment.ts"
+    "render-github-comment": "npx tsx scripts/render-github-comment.ts",
+    "pr-comment-convergent": "npx tsx scripts/arcsight-pr-comment.ts"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.0.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   },

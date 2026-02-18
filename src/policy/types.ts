@@ -9,12 +9,17 @@ export interface PolicyOutput {
   confidence: PolicyConfidence;
 }
 
-/** Report shape required by the policy engine. */
+/** Report shape required by the policy engine (action layer uses full report when present). */
 export interface PolicyReport {
   status?: string;
   run?: { id?: string };
   confidence?: { coverageRatio?: number };
   downgradeReasons?: string[];
+  decision?: { level?: string };
+  classification?: { primaryCause?: string | null };
+  violations?: Array<{ cause?: string }>;
+  minimalCut?: string[];
+  scope?: { mode?: string };
 }
 
 export interface PolicyInput {

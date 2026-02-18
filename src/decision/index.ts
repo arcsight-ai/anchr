@@ -3,6 +3,8 @@ import { deriveChangeType } from "./changeType.js";
 import { buildDecisionFromAnchRReport } from "./rules.js";
 
 export { buildDecisionFromAnchRReport } from "./rules.js";
+export { decide, normalizeReport } from "./actionLayer.js";
+export type { Decision, Action, Severity, ReasonCode, NormalizedReport } from "./actionLayer.js";
 export { deriveChangeType, deriveChangeSummary } from "./changeType.js";
 export type { DecisionOutput, DecisionInput, ChangeType, AnchRReport } from "./types.js";
 

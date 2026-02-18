@@ -6,6 +6,17 @@ export {
   parseProductionMarker,
 } from "./production.js";
 export type { ProductionCommentInput, ProductionReport } from "./production.js";
+export {
+  buildArcsightV5Comment,
+  normalizeComment,
+  isArcsightComment,
+  parseArcsightV5Meta,
+} from "./v5.js";
+export type {
+  ArcsightV5Input,
+  DecisionLevel as ArcsightV5DecisionLevel,
+  ParsedV5Meta,
+} from "./v5.js";
 export type {
   CommentRenderInput,
   DecisionObject,

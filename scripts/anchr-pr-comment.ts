@@ -34,10 +34,12 @@ function shortSha(sha: string): string {
   return typeof sha === "string" && sha.length >= 7 ? sha.slice(0, 7) : sha;
 }
 
-function readEvent(eventPath: string): { pull_request?: { number: number; head?: { sha?: string } } } | null {
+function readEvent(eventPath: string): {
+  pull_request?: { number: number; head?: { sha?: string }; base?: { sha?: string } };
+} | null {
   try {
     return JSON.parse(readFileSync(eventPath, "utf8")) as {
-      pull_request?: { number: number; head?: { sha?: string } };
+      pull_request?: { number: number; head?: { sha?: string }; base?: { sha?: string } };
     };
   } catch {
     return null;
@@ -158,8 +160,10 @@ async function main(): Promise<void> {
   } | null;
 
   const headSha = report?.headSha ?? pr.head.sha;
+  const baseSha = process.env.BASE_SHA ?? process.env.GITHUB_BASE_SHA ?? (pr as { base?: { sha?: string } }).base?.sha ?? "";
   const runId = report?.run?.id ?? "";
   const currentHeadSha = pr.head.sha;
+  const currentBaseSha = (pr as { base?: { sha?: string } }).base?.sha ?? process.env.BASE_SHA ?? process.env.GITHUB_BASE_SHA ?? "";
   const isOutdated =
     Boolean(report?.headSha && currentHeadSha) && report!.headSha !== currentHeadSha;
   const isNonDeterministic =
@@ -191,7 +195,7 @@ async function main(): Promise<void> {
     renderedComment = readText(join(cwd, COMMENT_BODY_PATH));
   }
 
-  const pullRequest = { currentHeadSha: pr.head.sha };
+  const pullRequest = { currentHeadSha: pr.head.sha, currentBaseSha };
   let existingComments: ExistingComment[] = await listComments(token, repo, pr.number);
 
   const decisionFromPolicy: "APPROVE" | "REVIEW" | "REWORK" | "INVESTIGATE" =
@@ -204,7 +208,7 @@ async function main(): Promise<void> {
           : "REVIEW";
   const input = {
     renderedComment,
-    runMetadata: { runId, headSha, decision: decisionFromPolicy },
+    runMetadata: { runId, headSha, baseSha, decision: decisionFromPolicy },
     pullRequest,
     existingComments,
   };

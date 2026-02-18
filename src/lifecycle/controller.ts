@@ -13,6 +13,7 @@ import {
   commentContainsMarker,
   parseMarker,
   ARCSIGHT_RUN_PREFIX,
+  ARCSIGHT_COMMENT_ANCHOR,
 } from "./marker.js";
 
 function findAnchrComments(comments: ExistingComment[]): ExistingComment[] {
@@ -40,22 +41,23 @@ export function getLifecycleInstruction(
 ): LifecycleInstruction {
   const {
     renderedComment,
-    runMetadata: { runId, headSha },
-    pullRequest: { currentHeadSha },
+    runMetadata: { runId, headSha, baseSha },
+    pullRequest: { currentHeadSha, currentBaseSha },
     existingComments,
   } = input;
 
-  // Step 0 — Stale run protection: only the run for current PR HEAD may update.
-  if (headSha !== currentHeadSha) {
+  // Step 0 — Authority: only the run for current (HEAD, BASE) may update.
+  if (headSha !== currentHeadSha || baseSha !== currentBaseSha) {
     return { kind: "NO_OP" };
   }
 
   const bodyAlreadyHasMarker =
     renderedComment.startsWith(ARCSIGHT_RUN_PREFIX) ||
+    renderedComment.includes(ARCSIGHT_COMMENT_ANCHOR) ||
     renderedComment.includes("<!-- ANCHR:REVIEW");
   const fullCommentBody = bodyAlreadyHasMarker
     ? renderedComment
-    : buildCommentWithMarker(renderedComment, runId, headSha);
+    : buildCommentWithMarker(renderedComment, runId, headSha, baseSha);
 
   const anchrComments = findAnchrComments(existingComments);
 
@@ -78,10 +80,12 @@ export function getLifecycleInstruction(
     return { kind: "DELETE", commentId: comment.id };
   }
 
-  const { runId: existingRunId, commitSha: existingCommitSha } = parsed;
+  const { runId: existingRunId, commitSha: existingCommitSha, baseSha: existingBaseSha } = parsed;
 
-  // Step 3 — Outdated comment: existing is for a different commit. Overwrite with this run's review (newest wins).
-  if (existingCommitSha !== headSha) {
+  // Step 3 — Outdated: existing is for a different (head, base). Overwrite with this run's result.
+  const headMismatch = existingCommitSha !== headSha;
+  const baseMismatch = currentBaseSha !== undefined && existingBaseSha !== undefined && existingBaseSha !== currentBaseSha;
+  if (headMismatch || baseMismatch) {
     return {
       kind: "UPDATE",
       commentId: comment.id,

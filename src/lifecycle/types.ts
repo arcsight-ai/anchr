@@ -1,11 +1,13 @@
 export interface RunMetadata {
   runId: string;
   headSha: string;
+  baseSha: string;
   decision: "APPROVE" | "REVIEW" | "REWORK" | "INVESTIGATE";
 }
 
 export interface PullRequest {
   currentHeadSha: string;
+  currentBaseSha: string;
 }
 
 export interface ExistingComment {

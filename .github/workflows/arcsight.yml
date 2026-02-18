@@ -100,55 +100,18 @@ jobs:
           echo "reason=$REASON" >> $GITHUB_OUTPUT
           echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
 
-      - name: Build comment body
-        id: body
+      - name: Post or update comment (convergent)
+        id: comment_ctrl
         if: steps.abort_updated.outputs.aborted != 'true' && steps.abort_closed.outputs.aborted != 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          REPORT_PATH: artifacts/anchr-report.json
         run: |
-          npx -y tsx@4 scripts/write-production-comment-body.ts 2>/dev/null || true
-          if [ -f artifacts/comment-body.txt ]; then
-            echo "body_path=artifacts/comment-body.txt" >> $GITHUB_OUTPUT
-          else
-            echo "body_path=" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Find previous comment
-        id: comment
-        if: steps.abort_updated.outputs.aborted != 'true' && steps.abort_closed.outputs.aborted != 'true'
-        run: |
-          COMMENTS=$(curl -sSf \
-            -H "Authorization: Bearer ${{ github.token }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments")
-          COMMENT_ID=$(echo "$COMMENTS" | jq -r '[.[] | select(.body != null and (.body | contains("<!-- arcsight:run:"))) | .id] | first // empty')
-          if [ -n "$COMMENT_ID" ]; then
-            echo "comment_id=$COMMENT_ID" >> $GITHUB_OUTPUT
-            echo "has_comment=true" >> $GITHUB_OUTPUT
-          else
-            echo "comment_id=" >> $GITHUB_OUTPUT
-            echo "has_comment=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Post or update comment (best effort)
-        if: steps.abort_updated.outputs.aborted != 'true' && steps.abort_closed.outputs.aborted != 'true' && steps.body.outputs.body_path != ''
-        run: |
-          BODY_FILE="${{ steps.body.outputs.body_path }}"
-          COMMENT_ID="${{ steps.comment.outputs.comment_id }}"
-          BODY_JSON=$(jq -Rs '{ body: . }' "$BODY_FILE")
-          if [ -n "$COMMENT_ID" ]; then
-            curl -sSf -X PATCH \
-              -H "Authorization: Bearer ${{ github.token }}" \
-              -H "Accept: application/vnd.github.v3+json" \
-              -H "Content-Type: application/json" \
-              -d "$BODY_JSON" \
-              "https://api.github.com/repos/${{ github.repository }}/issues/comments/$COMMENT_ID" || true
-          else
-            curl -sSf -X POST \
-              -H "Authorization: Bearer ${{ github.token }}" \
-              -H "Accept: application/vnd.github.v3+json" \
-              -H "Content-Type: application/json" \
-              -d "$BODY_JSON" \
-              "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" || true
-          fi
+          npx -y tsx@4 scripts/arcsight-pr-comment.ts || true
         continue-on-error: true
 
       - name: Find existing check run

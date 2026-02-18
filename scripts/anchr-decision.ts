@@ -100,12 +100,6 @@ function main(): void {
   const mode: RunMode =
     process.env.ANCHR_MODE === "FAST_PATH" ? "FAST_PATH" : "FULL_ANALYSIS";
 
-  const policyReport = {
-    status: report.status,
-    run: report.run,
-    confidence: report.confidence,
-    downgradeReasons: report.downgradeReasons,
-  };
   const previousPolicy = readJson(join(cwd, POLICY_PATH)) as
     | { runId: string; action: string; message: string; confidence: string }
     | null;
@@ -119,7 +113,7 @@ function main(): void {
         }
       : null;
   const policy = evaluatePolicy({
-    currentReport: policyReport,
+    currentReport: report,
     previousDecision,
   });
   const policyStore = { runId, ...policy };
