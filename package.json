@@ -9,7 +9,13 @@
     "graph:smoke": "npm run build && node dist/scripts/anchr-graph-smoke.js",
     "structural": "npx tsx scripts/anchr-structural-audit.ts",
     "repair": "npx tsx scripts/anchr-repair.ts",
-    "repair-comment": "npx tsx scripts/anchr-repair-comment.ts"
+    "repair-comment": "npx tsx scripts/anchr-repair-comment.ts",
+    "convergence": "npx tsx scripts/anchr-convergence.ts",
+    "decision": "npx tsx scripts/anchr-decision.ts",
+    "pr-comment": "npx tsx scripts/anchr-pr-comment.ts",
+    "write-comment-body": "npx tsx scripts/write-production-comment-body.ts",
+    "fix-suggestions": "npx tsx scripts/anchr-fix-suggestions.ts",
+    "render-github-comment": "npx tsx scripts/render-github-comment.ts"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

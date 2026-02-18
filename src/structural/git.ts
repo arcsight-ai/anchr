@@ -59,8 +59,8 @@ export function getBaseHead(repoRoot: string): BaseHead | null {
   const cliHeadIdx = process.argv.indexOf("--head");
   const cliHead = cliHeadIdx >= 0 ? process.argv[cliHeadIdx + 1] : undefined;
 
-  let base = cliBase ?? envBase;
-  let head = cliHead ?? envHead;
+  let base: string | null | undefined = cliBase ?? envBase;
+  let head: string | null | undefined = cliHead ?? envHead;
 
   if (base && head) return { base, head };
 
@@ -81,7 +81,7 @@ export function getBaseHead(repoRoot: string): BaseHead | null {
       });
       base = out.status === 0 ? out.stdout?.trim() ?? null : null;
     }
-    if (base && head) return { base, head };
+    if (typeof base === "string" && typeof head === "string") return { base, head };
   } catch {
     // fallback failed
   }
@@ -136,6 +136,54 @@ export function getFileAtRevision(
       maxBuffer: 2 * 1024 * 1024,
     });
     return out.status === 0 ? out.stdout ?? null : null;
+  } catch {
+    return null;
+  }
+}
+
+export function getFirstParentWindow(
+  repoRoot: string,
+  head: string,
+  n: number,
+): string[] {
+  try {
+    const out = spawnSync("git", ["rev-list", "--first-parent", "-n", String(n), head], {
+      encoding: "utf8",
+      cwd: repoRoot,
+      maxBuffer: 64 * 1024,
+    });
+    if (out.status !== 0) return [];
+    return (out.stdout ?? "").trim().split("\n").filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+export function listFilesAtRef(repoRoot: string, ref: string): string[] {
+  try {
+    const out = spawnSync("git", ["ls-tree", "-r", "--name-only", ref, "--", "packages/"], {
+      encoding: "utf8",
+      cwd: repoRoot,
+      maxBuffer: 2 * 1024 * 1024,
+    });
+    if (out.status !== 0) return [];
+    return (out.stdout ?? "")
+      .trim()
+      .split("\n")
+      .filter((p) => (p.endsWith(".ts") || p.endsWith(".tsx")) && /^packages\/[^/]+\/src\//.test(p));
+  } catch {
+    return [];
+  }
+}
+
+export function getMergeBase(repoRoot: string, head: string, baseRef: string): string | null {
+  try {
+    const out = spawnSync("git", ["merge-base", head, baseRef], {
+      encoding: "utf8",
+      cwd: repoRoot,
+      maxBuffer: 64 * 1024,
+    });
+    return out.status === 0 && out.stdout?.trim() ? out.stdout.trim() : null;
   } catch {
     return null;
   }

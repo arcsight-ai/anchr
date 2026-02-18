@@ -32,8 +32,8 @@ jobs:
       - name: Upload report
         uses: actions/upload-artifact@v4
         with:
-          name: anchr-report
-          path: artifacts/anchr-report.json
+          name: anchr-artifacts
+          path: artifacts/
 
   comment:
     needs: certify
@@ -48,13 +48,13 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Download report
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: anchr-report
+          name: anchr-artifacts
 
-      - name: Place report
-        run: mkdir -p artifacts && cp anchr-report/anchr-report.json artifacts/
+      - name: Place artifacts
+        run: mkdir -p artifacts && cp -r anchr-artifacts/* artifacts/ 2>/dev/null || cp anchr-artifacts/anchr-report.json artifacts/ 2>/dev/null || true
 
       - name: Install (base branch)
         run: npm ci

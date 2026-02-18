@@ -6,7 +6,7 @@ import { resolveSpecifierFrozen, type ResolverContext } from "./frozenResolver.j
 const STOP_DIRS = new Set(["internal", "private", "impl"]);
 
 function isStopPath(relFromSrc: string): boolean {
-  return STOP_DIRS.some((d) => relFromSrc === d || relFromSrc.startsWith(d + "/"));
+  return [...STOP_DIRS].some((d: string) => relFromSrc === d || relFromSrc.startsWith(d + "/"));
 }
 
 export function computePublicFiles(

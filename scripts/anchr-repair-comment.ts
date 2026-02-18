@@ -5,8 +5,14 @@
  */
 
 import { readFileSync } from "fs";
-import { resolve } from "path";
+import { resolve, join } from "path";
 import { buildCommentBody, parseExistingCommentBody } from "../src/repair/commentBody.js";
+import {
+  getDirectionForSignals,
+  type BoundaryViolationDetail,
+} from "../src/direction/index.js";
+import { readPressureSignals, loadPressurePRMemory, savePressurePRMemory, mergeSignalsWithPRMemory } from "../src/pressure/store.js";
+import { formatSignalsSection } from "../src/pressure/signals.js";
 
 const REPORT_PATH = "artifacts/anchr-report.json";
 const COMMENT_MARKER = "ArcSight Certification Result";
@@ -174,7 +180,7 @@ async function main(): Promise<void> {
   const decisionLabel = level === "block" ? "BLOCK" : level === "warn" ? "WARN" : "ALLOW";
   const includeRepair = level === "block";
 
-  const body = buildCommentBody(
+  let body = buildCommentBody(
     decisionLabel,
     runId,
     primaryCause,
@@ -182,6 +188,33 @@ async function main(): Promise<void> {
     reportHeadShort || currentHeadShort,
     includeRepair,
   );
+
+  const artifactsDir = join(cwd, "artifacts");
+  const pressureData = readPressureSignals(artifactsDir);
+  const headSha = reportHeadSha || pr.head.sha;
+  if (pressureData && pressureData.signals.length > 0) {
+    const memory = loadPressurePRMemory(artifactsDir);
+    const { signalsToShow, updatedMemory } = mergeSignalsWithPRMemory(
+      headSha,
+      pressureData.signals,
+      memory,
+    );
+    if (signalsToShow.length > 0) {
+      body = body + "\n\n" + formatSignalsSection(signalsToShow);
+
+      const boundaryViolationDetails = Array.isArray(report?.boundaryViolationDetails)
+        ? (report.boundaryViolationDetails as BoundaryViolationDetail[])
+        : [];
+      const directionMessages = getDirectionForSignals(
+        signalsToShow,
+        boundaryViolationDetails,
+      );
+      for (const msg of directionMessages) {
+        body = body + "\n\n" + msg;
+      }
+    }
+    savePressurePRMemory(artifactsDir, updatedMemory);
+  }
 
   if (existing) {
     await updateComment(token, repo, existing.id, body);

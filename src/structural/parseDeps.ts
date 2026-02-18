@@ -1,7 +1,12 @@
 import ts from "typescript";
 
+export interface ValueImport {
+  specifier: string;
+  identifiers: string[];
+}
+
 export interface ParsedDeps {
-  valueImports: string[];
+  valueImports: ValueImport[];
   typeOnlyImports: string[];
   reExports: string[];
 }
@@ -12,6 +17,23 @@ function getSpecifier(node: ts.ImportDeclaration | ts.ExportDeclaration): string
   return spec.text;
 }
 
+function getImportedIdentifiers(node: ts.ImportDeclaration): string[] {
+  const ids: string[] = [];
+  const clause = node.importClause;
+  if (!clause) return ids;
+  if (clause.name) ids.push(clause.name.text);
+  if (clause.namedBindings) {
+    if (ts.isNamedImports(clause.namedBindings)) {
+      for (const e of clause.namedBindings.elements) {
+        ids.push(e.propertyName?.text ?? e.name.text);
+      }
+    } else if (ts.isNamespaceImport(clause.namedBindings)) {
+      ids.push(clause.namedBindings.name.text);
+    }
+  }
+  return ids;
+}
+
 export function parseDeps(fileText: string): ParsedDeps {
   const sourceFile = ts.createSourceFile(
     "file.ts",
@@ -20,7 +42,7 @@ export function parseDeps(fileText: string): ParsedDeps {
     true,
   );
 
-  const valueImports: string[] = [];
+  const valueImports: ValueImport[] = [];
   const typeOnlyImports: string[] = [];
   const reExports: string[] = [];
 
@@ -31,7 +53,10 @@ export function parseDeps(fileText: string): ParsedDeps {
       if (node.importClause?.isTypeOnly) {
         typeOnlyImports.push(spec);
       } else {
-        valueImports.push(spec);
+        valueImports.push({
+          specifier: spec,
+          identifiers: getImportedIdentifiers(node),
+        });
       }
     } else if (ts.isExportDeclaration(node)) {
       const spec = getSpecifier(node);

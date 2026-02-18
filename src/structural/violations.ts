@@ -22,7 +22,7 @@ function isInPackageSrc(absPath: string, pkgDir: string): boolean {
 }
 
 function isStopPath(relFromSrc: string): boolean {
-  return STOP_DIRS.some((d) => relFromSrc === d || relFromSrc.startsWith(d + "/"));
+  return [...STOP_DIRS].some((d: string) => relFromSrc === d || relFromSrc.startsWith(d + "/"));
 }
 
 export function detectViolations(
@@ -68,7 +68,7 @@ export function detectViolations(
         .replace(/\r/g, "\n");
       const deps = parseDeps(content);
 
-      for (const spec of deps.valueImports) {
+      for (const { specifier: spec, identifiers } of deps.valueImports) {
         const res = resolveSpecifierFrozen(absPath, spec, ctx);
 
         if (res.kind === "forbidden") {
@@ -77,6 +77,7 @@ export function detectViolations(
             path: canPath,
             cause: "boundary_violation",
             specifier: spec,
+            identifiers,
           });
           continue;
         }
@@ -101,6 +102,7 @@ export function detectViolations(
                 path: canPath,
                 cause: "boundary_violation",
                 specifier: spec,
+                identifiers,
               });
             }
           }

@@ -8,6 +8,9 @@ import { detectViolations } from "../src/structural/violations.js";
 import { buildDeterministicReport } from "../src/structural/buildReport.js";
 import { stableStringify } from "../src/structural/report.js";
 import { writeFileSync } from "fs";
+import { computeBoundaryFingerprints } from "../src/pressure/fingerprint.js";
+import { loadPressureStore, savePressureStore, writePressureSignals } from "../src/pressure/store.js";
+import { addFingerprintsToStore, computeSignals } from "../src/pressure/signals.js";
 
 const OUT_PATH = "artifacts/anchr-report.json";
 
@@ -127,11 +130,53 @@ function main(): number {
     canonicalPaths,
   );
 
+  const boundaryViolationDetails =
+    report.decision.level === "block"
+      ? violations
+          .filter((v) => v.cause === "boundary_violation" && v.specifier)
+          .map((v) => {
+            const targetPkg = v.specifier!.startsWith("@market-os/")
+              ? v.specifier!.slice("@market-os/".length).split("/")[0]
+              : "";
+            return {
+              sourcePkg: v.package,
+              targetPkg,
+              specifier: v.specifier,
+              path: v.path,
+              identifiers: v.identifiers ?? [],
+            };
+          })
+      : [];
+
   const outPath = resolve(repoRoot, OUT_PATH);
   writeReport(
-    { ...report, headSha: baseHead.head, baseSha: baseHead.base },
+    {
+      ...report,
+      headSha: baseHead.head,
+      baseSha: baseHead.base,
+      ...(boundaryViolationDetails.length > 0 ? { boundaryViolationDetails } : {}),
+    },
     outPath,
   );
+
+  if (
+    report.decision.level === "block" &&
+    report.classification.primaryCause === "boundary_violation" &&
+    report.minimalCut.length > 0
+  ) {
+    const artifactsDir = join(repoRoot, "artifacts");
+    const fingerprints = computeBoundaryFingerprints(report.minimalCut);
+    if (fingerprints.length > 0) {
+      const store = loadPressureStore(artifactsDir);
+      addFingerprintsToStore(store, fingerprints, baseHead.head);
+      savePressureStore(artifactsDir, store);
+      const signals = computeSignals(store, repoRoot, baseHead.head);
+      writePressureSignals(artifactsDir, {
+        signals,
+        headSha: baseHead.head,
+      });
+    }
+  }
 
   const exitCode = report.decision.level === "block" ? 1 : 0;
   return exitCode;

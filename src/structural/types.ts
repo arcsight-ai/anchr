@@ -9,6 +9,7 @@ export interface Violation {
   path: string;
   cause: ViolationKind;
   specifier?: string;
+  identifiers?: string[];
 }
 
 export type DecisionLevel = "allow" | "block" | "warn";
