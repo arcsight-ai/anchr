@@ -1,0 +1,15 @@
+{
+  "repoRoot": "/Users/fionatynan/anchr",
+  "nodes": [],
+  "edges": [],
+  "metadata": {},
+  "stats": {
+    "nodeCount": 0,
+    "edgeCount": 0,
+    "kindsBreakdown": {
+      "value-import": 0,
+      "reexport": 0,
+      "public-surface": 0
+    }
+  }
+}

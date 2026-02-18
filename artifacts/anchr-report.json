@@ -1,0 +1,1 @@
+{"classification":{"primaryCause":null},"confidence":{"coverageRatio":0},"decision":{"level":"warn","reason":"git_unavailable"},"minimalCut":[],"run":{"id":"incomplete"},"scope":{"mode":"structural-audit"},"status":"INCOMPLETE"}
