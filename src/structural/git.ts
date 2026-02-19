@@ -236,3 +236,58 @@ export function getTreeAtRef(repoRoot: string, ref: string): string | null {
     return null;
   }
 }
+
+/** rev-list --reverse; either since..HEAD or -n maxCount HEAD. Stops at maxCount. */
+export function getRevListReverse(
+  repoRoot: string,
+  opts: { since?: string; maxCount: number },
+): string[] {
+  try {
+    const args = ["rev-list", "--first-parent", "--reverse", "-n", String(opts.maxCount)];
+    if (opts.since) {
+      args.push(`${opts.since}..HEAD`);
+    } else {
+      args.push("HEAD");
+    }
+    const out = spawnSync("git", args, {
+      encoding: "utf8",
+      cwd: repoRoot,
+      maxBuffer: 512 * 1024,
+    });
+    if (out.status !== 0) return [];
+    return (out.stdout ?? "").trim().split("\n").filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+export function getParentCommit(repoRoot: string, commit: string): string | null {
+  try {
+    const out = spawnSync("git", ["rev-parse", `${commit}^`], {
+      encoding: "utf8",
+      cwd: repoRoot,
+      maxBuffer: 64 * 1024,
+    });
+    return out.status === 0 && out.stdout?.trim() ? out.stdout.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+export function getCommitMeta(
+  repoRoot: string,
+  commit: string,
+): { date: string; author: string; email: string } | null {
+  try {
+    const out = spawnSync(
+      "git",
+      ["log", "-1", "--format=%aI%n%an%n%ae", commit],
+      { encoding: "utf8", cwd: repoRoot, maxBuffer: 4096 },
+    );
+    if (out.status !== 0 || !out.stdout?.trim()) return null;
+    const [date, author, email] = (out.stdout ?? "").trim().split("\n");
+    return date && author && email ? { date, author, email } : null;
+  } catch {
+    return null;
+  }
+}

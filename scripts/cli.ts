@@ -355,6 +355,82 @@ async function main(): Promise<void> {
   }
   ensureRepo();
 
+  if (args[0] === "history") {
+    const repoRoot = safeExec("git rev-parse --show-toplevel") ?? process.cwd();
+    const base = getFlagValue(args, "--base") ?? undefined;
+    const since = getFlagValue(args, "--since") ?? undefined;
+    const limitRaw = getFlagValue(args, "--limit");
+    const limit = limitRaw ? Math.min(200, Math.max(1, parseInt(limitRaw, 10) || 30)) : 30;
+    const withBlame = hasFlag(args, "--blame");
+    const boundaryFilter = getFlagValue(args, "--boundary") ?? undefined;
+    const asJson = hasFlag(args, "--json");
+    const { runHistoryForensics } = await import("../src/history/forensics.js");
+    const result = runHistoryForensics({
+      repoRoot,
+      base,
+      since,
+      limit,
+      withBlame,
+      boundaryFilter,
+    });
+    if (asJson) {
+      const out = JSON.stringify(
+        {
+          mode: result.mode,
+          commitsAnalyzed: result.commitsAnalyzed,
+          debtScore: result.debtScore,
+          responsibility: result.responsibility,
+          incidents: result.incidents.map((i) => ({
+            id: i.id,
+            type: i.type,
+            from: i.from,
+            to: i.to,
+            introducedCommit: i.introducedCommit,
+            introducedBy: i.introducedBy,
+            fixedCommit: i.fixedCommit,
+            fixedBy: i.fixedBy,
+            active: i.active,
+            ageCommits: i.ageCommits,
+          })),
+          confidence: result.confidence,
+          ...(result.incomplete ? { incomplete: true, incompleteReason: result.incompleteReason } : {}),
+        },
+        null,
+        2,
+      );
+      console.log(out);
+    } else {
+      console.log("ANCHR ARCHITECTURE HISTORY");
+      console.log("");
+      console.log(`Commits analyzed: ${result.commitsAnalyzed}`);
+      if (result.incomplete && result.incompleteReason) {
+        console.log(`Status: INCOMPLETE (${result.incompleteReason})`);
+      }
+      console.log("");
+      console.log("INCIDENTS");
+      result.incidents.slice(0, 50).forEach((inc, idx) => {
+        console.log(`\t${idx + 1}.\t${inc.from} → ${inc.to}`);
+        console.log(`\tType: ${inc.type}`);
+        console.log(`\tIntroduced: ${inc.introducedCommit}${inc.introducedBy ? ` (${inc.introducedBy})` : ""}`);
+        if (inc.active) {
+          console.log(`\tStatus: ACTIVE`);
+          console.log(`\tAge: ${inc.ageCommits} commits`);
+        } else {
+          console.log(`\tLived: ${inc.ageCommits} commits`);
+          if (inc.fixedCommit) console.log(`\tFixed: ${inc.fixedCommit}${inc.fixedBy ? ` (${inc.fixedBy})` : ""}`);
+        }
+      });
+      console.log("");
+      console.log("CURRENT BRANCH RESPONSIBILITY");
+      console.log(`Introduced by this branch: ${result.responsibility.introduced}`);
+      console.log(`Fixed by this branch: ${result.responsibility.fixed}`);
+      console.log(`Inherited: ${result.responsibility.inherited}`);
+      console.log("");
+      console.log(`Architectural Debt Score: ${result.debtScore}`);
+    }
+    process.exit(0);
+  }
+
   if (args[0] === "foresee") {
     const mode = getMode(args);
     const refs = getRefs(args, mode);
