@@ -1,5 +1,6 @@
 import { existsSync, statSync } from "fs";
 import { dirname, join, resolve } from "path";
+import type { IFileSystem } from "../virtual/virtualFs.js";
 
 const WORKSPACE_PREFIX = "@market-os/";
 const STOP_DIRS = new Set(["internal", "private", "impl"]);
@@ -8,21 +9,17 @@ const CANDIDATES = ["", ".ts", ".tsx", "/index.ts", "/index.tsx"];
 export interface ResolverContext {
   repoRoot: string;
   pkgDirByName: Map<string, string>;
+  fileSystem?: IFileSystem;
 }
 
-function tryResolveFile(baseDir: string, spec: string): string | null {
+function tryResolveFile(baseDir: string, spec: string, ctx: ResolverContext): string | null {
   const norm = spec.replace(/\\/g, "/");
+  const fs = ctx.fileSystem;
   for (const suffix of CANDIDATES) {
     const candidate = suffix ? join(baseDir, norm + suffix) : join(baseDir, norm);
     const abs = resolve(candidate);
-    if (existsSync(abs)) {
-      try {
-        const st = statSync(abs, { throwIfNoEntry: false });
-        if (st?.isFile()) return abs;
-      } catch {
-        return null;
-      }
-    }
+    const exists = fs ? fs.fileExists(abs) : (() => { try { return existsSync(abs) && statSync(abs, { throwIfNoEntry: false })?.isFile(); } catch { return false; } })();
+    if (exists) return abs;
   }
   return null;
 }
@@ -41,7 +38,7 @@ export function resolveSpecifierFrozen(
 
   if (spec.startsWith(".")) {
     const baseDir = dirname(fromFileAbs);
-    const resolved = tryResolveFile(baseDir, spec);
+    const resolved = tryResolveFile(baseDir, spec, ctx);
     if (!resolved) return { resolvedAbs: null, kind: "unresolved" };
 
     const match = resolved.match(
@@ -76,11 +73,11 @@ export function resolveSpecifierFrozen(
 
     let resolved: string | null;
     if (!subpath) {
-      resolved = tryResolveFile(srcDir, "index");
-      if (!resolved) resolved = tryResolveFile(srcDir, "index.ts");
-      if (!resolved) resolved = tryResolveFile(srcDir, "index.tsx");
+      resolved = tryResolveFile(srcDir, "index", ctx);
+      if (!resolved) resolved = tryResolveFile(srcDir, "index.ts", ctx);
+      if (!resolved) resolved = tryResolveFile(srcDir, "index.tsx", ctx);
     } else {
-      resolved = tryResolveFile(srcDir, subpath);
+      resolved = tryResolveFile(srcDir, subpath, ctx);
     }
 
     if (!resolved) return { resolvedAbs: null, kind: "unresolved" };

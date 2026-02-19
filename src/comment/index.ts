@@ -19,6 +19,10 @@ export type {
 } from "./v5.js";
 export { renderPRComment } from "./canonicalPRComment.js";
 export type { RenderedComment } from "./canonicalPRComment.js";
+export {
+  formatArchitecturalExplanation,
+} from "./architecturalExplanation.js";
+export type { ArchitecturalExplanationInput } from "./architecturalExplanation.js";
 export type {
   CommentRenderInput,
   DecisionObject,

@@ -18,6 +18,16 @@
     "fix-suggestions": "npx tsx scripts/anchr-fix-suggestions.ts",
     "render-github-comment": "npx tsx scripts/render-github-comment.ts",
     "pr-comment-convergent": "npx tsx scripts/arcsight-pr-comment.ts",
+    "update-pr-comment": "npx tsx scripts/update-pr-comment.ts",
+    "set-pr-status": "npx tsx scripts/set-pr-status.ts",
+    "post-inline-review": "npx tsx scripts/post-inline-review.ts",
+    "demo": "bash scripts/demo.sh",
+    "demo-report": "npx tsx scripts/demo-report.ts",
+    "report-render": "npx tsx scripts/report-renderer.ts",
+    "share": "npx tsx scripts/anchr-share.ts",
+    "install:hook": "npx tsx scripts/anchr-install.ts",
+    "uninstall:hook": "npx tsx scripts/anchr-uninstall.ts",
+    "doctor": "npx tsx scripts/anchr-doctor.ts",
     "anchr": "npx tsx scripts/cli.ts"
   },
   "devDependencies": {
@@ -32,6 +42,10 @@
     "node": ">=20"
   },
   "bin": {
-    "anchr": "scripts/cli.ts"
+    "anchr": "bin/anchr.cjs",
+    "arcsight": "bin/anchr.cjs"
+  },
+  "dependencies": {
+    "@octokit/rest": "^22.0.1"
   }
 }

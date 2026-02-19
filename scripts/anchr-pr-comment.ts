@@ -146,11 +146,13 @@ async function main(): Promise<void> {
     headSha?: string;
     run?: { id?: string };
     status?: string;
+    decision?: { level?: string };
     scope?: { mode?: string };
     classification?: { primaryCause?: string | null };
     minimalCut?: string[];
     downgradeReasons?: string[];
     timestamp?: string;
+    confidence?: { coverageRatio?: number };
   } | null;
   const policy = readJson(join(cwd, POLICY_PATH)) as {
     runId: string;
@@ -174,12 +176,14 @@ async function main(): Promise<void> {
     renderedComment = renderProductionComment({
       report: {
         status: report.status,
+        decision: report.decision,
         scope: report.scope,
         run: report.run,
         classification: report.classification,
         minimalCut: report.minimalCut,
         downgradeReasons: report.downgradeReasons,
         timestamp: report.timestamp,
+        confidence: report.confidence,
       },
       decision: {
         action: policy.action as "merge" | "block" | "review" | "retry",

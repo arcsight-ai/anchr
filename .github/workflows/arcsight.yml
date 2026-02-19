@@ -47,6 +47,29 @@ jobs:
           GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 
+      - name: Publish ArcSight status
+        if: always() && github.event_name == 'pull_request_target'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          ANCHR_REPORT_PATH: ${{ github.workspace }}/artifacts/anchr-report.json
+        run: |
+          echo "Publishing ArcSight status for commit: $GITHUB_HEAD_SHA"
+          if [ ! -f "$ANCHR_REPORT_PATH" ]; then
+            echo "No ArcSight report found — publishing neutral status"
+            npm run set-pr-status || true
+            exit 0
+          fi
+          echo "ArcSight report found — publishing decision"
+          npm run set-pr-status || true
+        continue-on-error: true
+
       - name: Abort if PR updated
         id: abort_updated
         run: |
@@ -112,6 +135,16 @@ jobs:
           REPORT_PATH: artifacts/anchr-report.json
         run: |
           npx -y tsx@4 scripts/arcsight-pr-comment.ts || true
+        continue-on-error: true
+
+      - name: Post ArcSight inline review
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: npm run post-inline-review || true
         continue-on-error: true
 
       - name: Find existing check run

@@ -1,27 +1,25 @@
 /**
  * Production PR comment generator (Prompt 13). Lifecycle-safe, identity marker,
  * outdated and non-determinism handling. Byte-stable output.
+ * Shareable architectural explanation layer: human review comment, 900-char cap.
  */
 
 import type { PolicyOutput } from "../policy/types.js";
+import { formatArchitecturalExplanation } from "./architecturalExplanation.js";
+import type { ArchitecturalExplanationInput } from "./architecturalExplanation.js";
 
 const IDENTITY_MARKER_PREFIX = "<!-- arcsight:run:";
 
-const ACTION_DISPLAY: Record<string, { emoji: string; word: string }> = {
-  merge: { emoji: "🟢", word: "ALLOW" },
-  block: { emoji: "🔴", word: "BLOCK" },
-  review: { emoji: "🟡", word: "REVIEW" },
-  retry: { emoji: "🟠", word: "RETRY" },
-};
-
 export interface ProductionReport {
   status?: string;
+  decision?: { level?: string };
   scope?: { mode?: string };
   run?: { id?: string };
   classification?: { primaryCause?: string | null };
   minimalCut?: string[];
   downgradeReasons?: string[];
   timestamp?: string;
+  confidence?: { coverageRatio?: number };
 }
 
 export interface ProductionCommentInput {
@@ -35,13 +33,6 @@ export interface ProductionCommentInput {
 
 function runIdShort(runId: string): string {
   return typeof runId === "string" && runId.length >= 12 ? runId.slice(0, 12) : runId;
-}
-
-function sortedList(items: string[], limit: number): { lines: string[]; more: number } {
-  const sorted = [...items].filter((x) => typeof x === "string").sort((a, b) => a.localeCompare(b, "en"));
-  const more = Math.max(0, sorted.length - limit);
-  const lines = sorted.slice(0, limit);
-  return { lines, more };
 }
 
 /**
@@ -78,73 +69,23 @@ export function renderProductionComment(input: ProductionCommentInput): string {
     ].join("\n");
   }
 
-  const display = ACTION_DISPLAY[decision.action] ?? { emoji: "🟡", word: "REVIEW" };
-  const primaryCause = report.classification?.primaryCause ?? "none";
-  const minimalCut = report.minimalCut ?? [];
-  const { lines: boundaryLines, more: boundaryMore } = sortedList(minimalCut, 8);
-
-  const sections: string[] = [
-    firstLine,
-    "",
-    `ArcSight Result: ${display.emoji} ${display.word}`,
-    "",
-    `Message: ${decision.message}`,
-    "",
-    `Confidence: (${decision.confidence})`,
-    "",
-    `Primary Cause: ${primaryCause}`,
-    "",
-    "Affected Boundaries:",
-  ];
-
-  for (const id of boundaryLines) {
-    sections.push(`- ${id}`);
-  }
-  if (boundaryMore > 0) {
-    sections.push(`+${boundaryMore} more`);
-  }
-
-  const status = report.status ?? "—";
-  const scopeMode = report.scope?.mode ?? "—";
-  const timestamp = report.timestamp ?? "";
-  const downgradeReasons = report.downgradeReasons ?? [];
-  const violationItems = minimalCut;
-
-  const detailParts: string[] = [
-    `Status: ${status}`,
-    `Scope: ${scopeMode}`,
-    `Run ID: ${runIdShort(runId)}`,
-    `Commit: ${commitSha}`,
-    `Timestamp: ${timestamp}`,
-  ];
-
-  if (downgradeReasons.length > 0) {
-    const { lines: reasonLines } = sortedList(downgradeReasons, 999);
-    detailParts.push("", "Downgrade Reasons:");
-    for (const r of reasonLines) {
-      detailParts.push(`- ${r}`);
-    }
-  }
-
-  if (violationItems.length > 0) {
-    const { lines: violationLines } = sortedList(violationItems, 999);
-    detailParts.push("", "Violations:");
-    for (const v of violationLines) {
-      detailParts.push(`- ${v}`);
-    }
-  }
-
-  sections.push(
-    "",
-    "<details>",
-    "<summary>Details (click to expand)</summary>",
-    "",
-    ...detailParts,
-    "",
-    "</details>",
-  );
-
-  return sections.join("\n");
+  const levelFromPolicy =
+    decision.action === "merge" ? "allow" : decision.action === "block" ? "block" : "warn";
+  const coverageFromPolicy =
+    decision.confidence === "high" ? 0.95 : decision.confidence === "medium" ? 0.85 : 0;
+  const shareableInput: ArchitecturalExplanationInput = {
+    status: report.status,
+    decision: report.decision?.level ? { level: report.decision.level } : { level: levelFromPolicy },
+    classification: report.classification,
+    minimalCut: report.minimalCut,
+    scope: report.scope,
+    confidence:
+      report.confidence?.coverageRatio != null
+        ? { coverageRatio: report.confidence.coverageRatio }
+        : { coverageRatio: coverageFromPolicy },
+  };
+  const architecturalBody = formatArchitecturalExplanation(shareableInput);
+  return [firstLine, "", architecturalBody].join("\n");
 }
 
 /** Returns true if body contains the production identity marker. */

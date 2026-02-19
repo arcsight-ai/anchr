@@ -30,29 +30,48 @@ export function buildDeterministicReport(
   const primaryCause: ViolationKind | null =
     violations.length > 0 ? violations[0].cause : null;
 
+  /** Causal Proof Contract: no BLOCKED without every violation having a proof. */
+  const allHaveProof = sortedViolations.every((v) => v.proof != null);
+  const effectiveStatus: Report["status"] =
+    status === "BLOCKED" && !allHaveProof ? "INDETERMINATE" : status;
+
   let decisionLevel: "allow" | "block" | "warn" = "allow";
   let reason = "No architectural impact detected.";
 
   if (status === "INCOMPLETE") {
     decisionLevel = "warn";
     reason = "git_unavailable";
-  } else if (status === "BLOCKED") {
+  } else if (effectiveStatus === "INDETERMINATE") {
+    decisionLevel = "warn";
+    reason = "Proof object could not be produced for all violations.";
+  } else if (effectiveStatus === "BLOCKED") {
     decisionLevel = "block";
     reason = primaryCause ?? "boundary_violation";
-  } else if (status === "VERIFIED") {
+  } else if (effectiveStatus === "VERIFIED") {
     decisionLevel = "allow";
     reason = "No architectural impact detected.";
   }
 
-  const coverageRatio = status === "VERIFIED" ? 1 : 0;
+  const coverageRatio = effectiveStatus === "VERIFIED" ? 1 : 0;
+
+  const proofs =
+    effectiveStatus === "BLOCKED" && allHaveProof
+      ? sortedViolations.map((v) => v.proof!)
+      : undefined;
 
   return {
-    status,
+    status: effectiveStatus,
     classification: { primaryCause },
     minimalCut,
+    ...(proofs != null && proofs.length > 0 ? { proofs } : {}),
     decision: { level: decisionLevel, reason },
     confidence: { coverageRatio },
-    scope: { mode: status === "VERIFIED" ? "structural-fast-path" : "structural-audit" },
+    scope: {
+      mode:
+        effectiveStatus === "VERIFIED"
+          ? "structural-fast-path"
+          : "structural-audit",
+    },
     run: { id: runId },
   };
 }

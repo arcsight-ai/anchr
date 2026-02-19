@@ -11,8 +11,9 @@ import { writeFileSync } from "fs";
 import { computeBoundaryFingerprints } from "../src/pressure/fingerprint.js";
 import { loadPressureStore, savePressureStore, writePressureSignals } from "../src/pressure/store.js";
 import { addFingerprintsToStore, computeSignals } from "../src/pressure/signals.js";
+import { computeRepoHash } from "../src/repair/repoHash.js";
 
-const OUT_PATH = "artifacts/anchr-report.json";
+const OUT_PATH = process.env.ANCHR_REPORT_PATH ?? "artifacts/anchr-report.json";
 
 function discoverPackages(repoRoot: string): Map<string, string> {
   const pkgDirByName = new Map<string, string>();
@@ -105,8 +106,9 @@ function main(): number {
       collectCanonicalPaths(repoRoot, diffEntries),
     );
     const outPath = resolve(repoRoot, OUT_PATH);
+    const runWithHash = { ...report.run, repoHash: computeRepoHash(repoRoot) };
     writeReport(
-      { ...report, headSha, baseSha },
+      { ...report, run: runWithHash, headSha, baseSha },
       outPath,
     );
     return 0;
@@ -154,9 +156,11 @@ function main(): number {
       : [];
 
   const outPath = resolve(repoRoot, OUT_PATH);
+  const runWithHash = { ...report.run, repoHash: computeRepoHash(repoRoot) };
   writeReport(
     {
       ...report,
+      run: runWithHash,
       headSha,
       baseSha,
       ...(boundaryViolationDetails.length > 0 ? { boundaryViolationDetails } : {}),

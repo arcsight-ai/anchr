@@ -3,7 +3,8 @@ import { join, resolve } from "path";
 import { canonicalPath } from "./canonicalPath.js";
 import { resolveSpecifierFrozen, type ResolverContext } from "./frozenResolver.js";
 import { parseDeps } from "./parseDeps.js";
-import type { Violation, ViolationKind } from "./types.js";
+import type { Proof, ProofType, Violation, ViolationKind } from "./types.js";
+import type { IFileSystem } from "../virtual/virtualFs.js";
 
 const PKG_SRC_RE = /^packages\/([^/]+)\/src\//;
 const STOP_DIRS = new Set(["internal", "private", "impl"]);
@@ -25,15 +26,35 @@ function isStopPath(relFromSrc: string): boolean {
   return [...STOP_DIRS].some((d: string) => relFromSrc === d || relFromSrc.startsWith(d + "/"));
 }
 
+function proofTypeForRule(rule: ViolationKind): ProofType {
+  if (rule === "deleted_public_api") return "deleted_file";
+  if (rule === "relative_escape") return "relative_escape_path";
+  return "import_path";
+}
+
+function makeProof(
+  source: string,
+  target: string,
+  rule: ViolationKind,
+): Proof {
+  return {
+    type: proofTypeForRule(rule),
+    source,
+    target,
+    rule,
+  };
+}
+
 export function detectViolations(
   repoRoot: string,
   diffEntries: { status: string; path: string }[],
   pkgDirByName: Map<string, string>,
   publicFiles: Map<string, Set<string>>,
   baseSha: string,
+  fileSystem?: IFileSystem,
 ): Violation[] {
   const violations: Violation[] = [];
-  const ctx: ResolverContext = { repoRoot, pkgDirByName };
+  const ctx: ResolverContext = { repoRoot, pkgDirByName, fileSystem };
 
   const absRoot = resolve(repoRoot);
 
@@ -57,15 +78,16 @@ export function detectViolations(
           package: pkg,
           path: canPath,
           cause: "deleted_public_api",
+          proof: makeProof(absPath, canPath, "deleted_public_api"),
         });
       }
       continue;
     }
 
     try {
-      const content = readFileSync(absPath, "utf8")
-        .replace(/\r\n/g, "\n")
-        .replace(/\r/g, "\n");
+      const raw = fileSystem ? fileSystem.readFile(absPath) : readFileSync(absPath, "utf8");
+      if (raw == null) continue;
+      const content = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
       const deps = parseDeps(content);
 
       for (const { specifier: spec, identifiers } of deps.valueImports) {
@@ -78,6 +100,7 @@ export function detectViolations(
             cause: "boundary_violation",
             specifier: spec,
             identifiers,
+            proof: makeProof(absPath, spec, "boundary_violation"),
           });
           continue;
         }
@@ -93,6 +116,7 @@ export function detectViolations(
               path: canPath,
               cause: "relative_escape",
               specifier: spec,
+              proof: makeProof(absPath, spec, "relative_escape"),
             });
           } else if (targetPkg && targetPkg !== pkg) {
             const pub = publicFiles.get(targetPkg);
@@ -103,6 +127,7 @@ export function detectViolations(
                 cause: "boundary_violation",
                 specifier: spec,
                 identifiers,
+                proof: makeProof(absPath, res.resolvedAbs ?? spec, "boundary_violation"),
               });
             }
           }
@@ -123,6 +148,7 @@ export function detectViolations(
                 path: canPath,
                 cause: "type_import_private_target",
                 specifier: spec,
+                proof: makeProof(absPath, res.resolvedAbs ?? spec, "type_import_private_target"),
               });
             }
           }
