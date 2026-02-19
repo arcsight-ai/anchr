@@ -4,6 +4,8 @@ export {
   renderProductionComment,
   productionCommentContainsMarker,
   parseProductionMarker,
+  parseInitialHeadFromComment,
+  parseConsequenceFromComment,
 } from "./production.js";
 export type { ProductionCommentInput, ProductionReport } from "./production.js";
 export {

@@ -6,9 +6,11 @@
 
 import { readFileSync } from "fs";
 import { join } from "path";
+import { execSync } from "child_process";
 import { getLifecycleInstruction } from "../src/lifecycle/index.js";
 import type { LifecycleInstruction, ExistingComment } from "../src/lifecycle/types.js";
-import { renderProductionComment } from "../src/comment/index.js";
+import { renderProductionComment, productionCommentContainsMarker, parseProductionMarker, parseInitialHeadFromComment, parseConsequenceFromComment } from "../src/comment/index.js";
+import { parseArchitecturalCommentSummary } from "../src/formatters/architecturalComment.js";
 
 const REPORT_PATH = "artifacts/anchr-report.json";
 const POLICY_PATH = "artifacts/anchr-policy.json";
@@ -166,10 +168,43 @@ async function main(): Promise<void> {
   const runId = report?.run?.id ?? "";
   const currentHeadSha = pr.head.sha;
   const currentBaseSha = (pr as { base?: { sha?: string } }).base?.sha ?? process.env.BASE_SHA ?? process.env.GITHUB_BASE_SHA ?? "";
+  let changedFiles: string[] = [];
+  try {
+    if (currentBaseSha && currentHeadSha && currentBaseSha !== currentHeadSha) {
+      const out = execSync(`git diff --name-only ${currentBaseSha}..${currentHeadSha}`, { encoding: "utf8", cwd: cwd });
+      changedFiles = out.split("\n").map((s) => s.trim()).filter(Boolean);
+    }
+  } catch {
+    changedFiles = [];
+  }
   const isOutdated =
     Boolean(report?.headSha && currentHeadSha) && report!.headSha !== currentHeadSha;
   const isNonDeterministic =
     policy?.message === "Analysis inconsistent across runs — manual review required.";
+
+  let existingComments: ExistingComment[] = await listComments(token, repo, pr.number);
+  let previousRunId: string | undefined;
+  let previousStructuralSummary: string | undefined;
+  let hasExistingArcSightComment = false;
+  let initialHeadShaForPR: string | undefined = currentHeadSha;
+  let previouslyEmittedStructuralKey: string | undefined;
+  let previouslyEmittedRelationKey: string | undefined;
+  let previousConsequenceText: string | undefined;
+  const existingArcSight = existingComments.find((c) => productionCommentContainsMarker(c.body));
+  if (existingArcSight?.body) {
+    hasExistingArcSightComment = true;
+    const parsed = parseProductionMarker(existingArcSight.body);
+    if (parsed?.runId) previousRunId = parsed.runId;
+    previousStructuralSummary = parseArchitecturalCommentSummary(existingArcSight.body) ?? undefined;
+    const initialHead = parseInitialHeadFromComment(existingArcSight.body);
+    if (initialHead) initialHeadShaForPR = initialHead;
+    const consequence = parseConsequenceFromComment(existingArcSight.body);
+    if (consequence) {
+      previouslyEmittedStructuralKey = consequence.structuralKey;
+      previouslyEmittedRelationKey = consequence.relationKey;
+      previousConsequenceText = consequence.text;
+    }
+  }
 
   let renderedComment: string;
   if (report && policy && runId) {
@@ -194,13 +229,20 @@ async function main(): Promise<void> {
       runId,
       isOutdated,
       isNonDeterministic,
+      previousRunId,
+      previousStructuralSummary,
+      hasExistingArcSightComment,
+      changedFiles,
+      initialHeadShaForPR,
+      previouslyEmittedStructuralKey,
+      previouslyEmittedRelationKey,
+      previousConsequenceText,
     });
   } else {
     renderedComment = readText(join(cwd, COMMENT_BODY_PATH));
   }
 
   const pullRequest = { currentHeadSha: pr.head.sha, currentBaseSha };
-  let existingComments: ExistingComment[] = await listComments(token, repo, pr.number);
 
   const decisionFromPolicy: "APPROVE" | "REVIEW" | "REWORK" | "INVESTIGATE" =
     policy?.action === "merge"
