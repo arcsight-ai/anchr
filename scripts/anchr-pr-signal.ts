@@ -1,7 +1,6 @@
 /**
- * ANCHR PR Signal (Human Reviewer Final v5) — Merge-Proximity Intelligence.
- * Runs on PRs; posts a single human-like risk note only when meaningful.
- * Stage-based thresholds; human discussion suppression; cooldown. Never blocks.
+ * ANCHR PR Signal (vFinal++ Social Reliability Lock).
+ * One human-style risk note per PR. Drift protection. Human priority. Never blocks.
  */
 
 import { execSync, spawnSync } from "child_process";
@@ -11,6 +10,7 @@ import { join } from "path";
 import { parseMinimalCut } from "../src/repair/parseReport.js";
 import { renderFailurePrediction } from "../src/prediction/render-failure.js";
 import type { ViolationKind } from "../src/structural/types.js";
+import type { FailureKind } from "../src/prediction/render-failure.js";
 
 const ANCHR_MARKER = "<!-- anchr:prediction -->";
 const NOISE_PATTERNS = [
@@ -38,19 +38,31 @@ const TRIGGER_KEYWORDS = [
   "fallback",
   "error",
   "invariant",
+  "concurrency",
 ];
-const REASONING_MAP: Record<string, string> = {
-  retry: "retry behavior changed",
-  cache: "depends on cache timing",
-  async: "crosses async boundary",
-  "optional/null": "nullable invariant relied upon",
-  ordering: "execution order now matters",
-  state: "state updated earlier than before",
-  branch: "branch behavior changed",
-  error: "failure path altered",
-  data: "data origin changed",
-};
-const COOLDOWN_MS = 6 * 60 * 60 * 1000;
+const ADVICE_PHRASES = [
+  "consider adding",
+  "you should",
+  "maybe handle",
+  "instead do",
+  "should",
+  "consider",
+  "maybe",
+  "instead",
+  "you can",
+  " add ",
+  "ensure",
+  "handle by",
+];
+const ALLOWED_FAILURE_KINDS: FailureKind[] = [
+  "timeout_cascade",
+  "duplicate_effect",
+  "stale_read",
+  "partial_initialization",
+  "silent_corruption",
+  "version_mismatch_crash",
+];
+const MAX_SENTENCE_CHARS = 110;
 
 type PRStage = "EARLY" | "ACTIVE_REVIEW" | "PRE_MERGE";
 
@@ -62,6 +74,11 @@ interface PredictionPayload {
   confidence: "low" | "medium" | "high";
   trigger: string;
   evidence: string[];
+  impact: "low" | "medium" | "high";
+  novelty: "low" | "medium" | "high";
+  check: string;
+  runtime_symptom: string;
+  failure_kind: FailureKind;
 }
 
 function readEvent(eventPath: string): {
@@ -128,13 +145,22 @@ function getChangedFiles(cwd: string, base: string, head: string): string[] {
   }
 }
 
+function computeDiffHash(cwd: string, base: string, head: string): string {
+  try {
+    const out = execSync(`git diff ${base}..${head}`, { encoding: "utf8", cwd, maxBuffer: 2 * 1024 * 1024 });
+    return createHash("sha256").update(out).digest("hex").slice(0, 16);
+  } catch {
+    return "";
+  }
+}
+
 async function getPRStage(
   token: string,
   repo: string,
   prNumber: number,
   createdAt: string,
 ): Promise<PRStage> {
-  const pr = await gh<{ mergeable: boolean | null; commits?: number }>(token, repo, `/pulls/${prNumber}`);
+  const pr = await gh<{ mergeable: boolean | null }>(token, repo, `/pulls/${prNumber}`);
   const commitsRes = await gh<unknown[]>(token, repo, `/pulls/${prNumber}/commits?per_page=100`);
   const commitCount = Array.isArray(commitsRes) ? commitsRes.length : 0;
   const comments = await ghComments(token, repo, prNumber);
@@ -146,8 +172,8 @@ async function getPRStage(
   const ageMs = Date.now() - created;
   const ageMinutes = ageMs / (60 * 1000);
 
-  if (ageMinutes < 20 || commitCount <= 2) return "EARLY";
   if (approved || pr.mergeable === true) return "PRE_MERGE";
+  if (ageMinutes < 20 || commitCount <= 2) return "EARLY";
   if (humanComments.length > 0 || commitCount > 2) return "ACTIVE_REVIEW";
   return "ACTIVE_REVIEW";
 }
@@ -172,6 +198,27 @@ function runAudit(cwd: string, base: string, head: string): void {
   if (r.status !== 0 && r.status !== null) {
     return;
   }
+}
+
+const IMPACT_HIGH: FailureKind[] = [
+  "timeout_cascade",
+  "duplicate_effect",
+  "stale_read",
+  "partial_initialization",
+  "silent_corruption",
+  "version_mismatch_crash",
+];
+const IMPACT_MEDIUM: FailureKind[] = ["dropped_event"];
+
+function impactFromFailureKind(kind: FailureKind): "low" | "medium" | "high" {
+  if (IMPACT_HIGH.includes(kind)) return "high";
+  if (IMPACT_MEDIUM.includes(kind)) return "medium";
+  return "low";
+}
+
+function outputContainsAdvice(prediction: string, check: string): boolean {
+  const combined = `${prediction} ${check}`.toLowerCase();
+  return ADVICE_PHRASES.some((p) => combined.includes(p.trim()));
 }
 
 function reportToPredictionPayload(reportPath: string): PredictionPayload | null {
@@ -204,7 +251,14 @@ function reportToPredictionPayload(reportPath: string): PredictionPayload | null
   const pred = renderFailurePrediction(violation);
   if (pred.failure_kind === "unknown" || pred.confidence === "low") return null;
 
+  const kind = pred.failure_kind as FailureKind;
+  if (!ALLOWED_FAILURE_KINDS.includes(kind)) return null;
+
   const trigger = pred.when_it_happens || pred.runtime_symptom || "";
+  const check = pred.when_it_happens || "";
+  if (outputContainsAdvice(pred.short_sentence, check)) return null;
+
+  const impact = impactFromFailureKind(kind);
   return {
     risk: true,
     mode: "prediction",
@@ -213,11 +267,17 @@ function reportToPredictionPayload(reportPath: string): PredictionPayload | null
     confidence: pred.confidence,
     trigger,
     evidence: pred.evidence,
+    impact,
+    novelty: "high",
+    check,
+    runtime_symptom: pred.runtime_symptom || "fail",
+    failure_kind: kind,
   };
 }
 
 function passesStageThreshold(payload: PredictionPayload, stage: PRStage): boolean {
   if (payload.confidence === "low") return false;
+  if (payload.impact !== "high" || payload.novelty !== "high") return false;
   const n = payload.evidence.length;
   switch (stage) {
     case "EARLY":
@@ -242,38 +302,97 @@ function humanMentionedTrigger(comments: { body: string }[], trigger: string): b
   return false;
 }
 
-function intentFromSeed(seed: number): string {
-  const intents = [
-    "Worth double-checking before merge.",
-    "Might be worth a quick look.",
-    "Heads-up before merging.",
-    "Might want to glance at this.",
-    "Something to keep in mind.",
-  ];
-  return intents[Math.abs(seed) % intents.length] ?? intents[0]!;
+interface ParsedAnchrComment {
+  evidenceHash: string | null;
+  commitsUnchanged: number;
+  silenced: boolean;
+  diffHash: string | null;
 }
 
-function reasoningLine(trigger: string): string {
-  const lower = trigger.toLowerCase();
-  for (const [key, line] of Object.entries(REASONING_MAP)) {
-    if (lower.includes(key)) return `Why this stood out: ${line}`;
+function parseExistingComment(body: string): ParsedAnchrComment {
+  let evidenceHash: string | null = null;
+  let commitsUnchanged = 0;
+  let silenced = false;
+  let diffHash: string | null = null;
+  const evidenceMatch = body.match(/_evidence:\s*([a-f0-9]+)_/);
+  if (evidenceMatch) evidenceHash = evidenceMatch[1] ?? null;
+  const unchangedMatch = body.match(/_anchr_commits_unchanged:\s*(\d+)_/);
+  if (unchangedMatch) commitsUnchanged = parseInt(unchangedMatch[1] ?? "0", 10) || 0;
+  if (body.includes("_anchr_silenced: true_")) silenced = true;
+  const diffMatch = body.match(/_anchr_diff_hash:\s*([a-f0-9]+)_/);
+  if (diffMatch) diffHash = diffMatch[1] ?? null;
+  return { evidenceHash, commitsUnchanged, silenced, diffHash };
+}
+
+function renderCommentBody(
+  payload: PredictionPayload,
+  evidenceHash: string,
+  commitsUnchanged: number,
+  silenced: boolean,
+  diffHash: string,
+): string {
+  const outcome = payload.runtime_symptom ? payload.runtime_symptom : "fail";
+  let sentence = `If ${payload.trigger}, this will ${outcome}.`;
+  if (sentence.length > MAX_SENTENCE_CHARS) {
+    sentence = sentence.slice(0, MAX_SENTENCE_CHARS - 1).replace(/\s+[^\s]*$/, "") + ".";
   }
-  return "";
+  const lines = [
+    ANCHR_MARKER,
+    "",
+    sentence,
+    "",
+    `_evidence: ${evidenceHash}_`,
+    `_anchr_commits_unchanged: ${commitsUnchanged}_`,
+    `_anchr_silenced: ${silenced}_`,
+    `_anchr_diff_hash: ${diffHash}_`,
+  ];
+  return lines.join("\n");
 }
 
 async function findExistingComment(
   token: string,
   repo: string,
   issueNumber: number,
-): Promise<{ id: number; body: string; created_at: string } | null> {
-  const list = await gh<{ id: number; body: string; created_at: string; user: { type?: string } }[]>(
+): Promise<{ id: number; body: string; created_at: string; updated_at: string } | null> {
+  const list = await gh<{ id: number; body: string; created_at: string; updated_at?: string; user: { type?: string } }[]>(
     token,
     repo,
     `/issues/${issueNumber}/comments`,
   );
   const arr = Array.isArray(list) ? list : [];
   const anchr = arr.find((c) => (c.body ?? "").includes(ANCHR_MARKER));
-  return anchr ? { id: anchr.id, body: anchr.body, created_at: anchr.created_at } : null;
+  return anchr
+    ? { id: anchr.id, body: anchr.body, created_at: anchr.created_at, updated_at: anchr.updated_at ?? anchr.created_at }
+    : null;
+}
+
+async function deleteComment(token: string, repo: string, commentId: number): Promise<boolean> {
+  const [owner, repoName] = repo.split("/");
+  const res = await fetch(
+    `https://api.github.com/repos/${owner}/${repoName}/issues/comments/${commentId}`,
+    { method: "DELETE", headers: { Accept: "application/vnd.github.v3+json", Authorization: `Bearer ${token}` } },
+  );
+  return res.ok;
+}
+
+async function humanRequestedChangesAfter(
+  token: string,
+  repo: string,
+  prNumber: number,
+  ourCommentUpdatedAt: string,
+): Promise<boolean> {
+  const reviews = await gh<{ state: string; submitted_at?: string; user?: { type?: string } }[]>(
+    token,
+    repo,
+    `/pulls/${prNumber}/reviews`,
+  );
+  const ourTime = new Date(ourCommentUpdatedAt).getTime();
+  for (const r of Array.isArray(reviews) ? reviews : []) {
+    if (r.state !== "CHANGES_REQUESTED" || r.user?.type === "Bot") continue;
+    const submitted = r.submitted_at ? new Date(r.submitted_at).getTime() : 0;
+    if (submitted > ourTime) return true;
+  }
+  return false;
 }
 
 function evidenceHash(evidence: string[]): string {
@@ -328,6 +447,10 @@ async function main(): Promise<void> {
   if (process.env.ANCHR_DISABLED === "true") {
     process.exit(0);
   }
+  const actor = (process.env.GITHUB_ACTOR ?? "").toLowerCase();
+  if (actor === "dependabot" || actor === "dependabot[bot]" || actor === "github-actions" || actor === "github-actions[bot]") {
+    process.exit(0);
+  }
 
   const event = readEvent(eventPath);
   const pr = event?.pull_request;
@@ -353,6 +476,7 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
+  const currentDiffHash = computeDiffHash(cwd, base, head);
   const stage = await getPRStage(token, repo, pr.number, pr.created_at ?? new Date().toISOString());
   runAudit(cwd, base, head);
 
@@ -362,48 +486,43 @@ async function main(): Promise<void> {
   }
 
   const payload = reportToPredictionPayload(reportPath);
-  if (!payload || !passesStageThreshold(payload, stage)) {
+  if (!payload) {
     process.exit(0);
   }
 
   const comments = await ghComments(token, repo, pr.number);
   const humanComments = comments.filter((c) => !isBotComment(c));
-  if (humanMentionedTrigger(humanComments, payload.trigger)) {
+  payload.novelty = humanMentionedTrigger(humanComments, payload.trigger) ? "low" : "high";
+  if (!passesStageThreshold(payload, stage)) {
     process.exit(0);
   }
 
   const existing = await findExistingComment(token, repo, pr.number);
-  const now = Date.now();
-  if (existing?.created_at) {
-    const created = new Date(existing.created_at).getTime();
-    if (now - created < COOLDOWN_MS) {
-      process.exit(0);
-    }
-  }
   const newEvidenceHash = evidenceHash(payload.evidence);
-  if (existing?.body && existing.body.includes(newEvidenceHash)) {
+  const parsed = existing?.body ? parseExistingComment(existing.body) : null;
+
+  if (existing && parsed?.silenced) {
     process.exit(0);
   }
 
-  const seedInput = `${pr.number}:${pr.title ?? ""}:${payload.evidence[0] ?? ""}`;
-  const seed = createHash("sha256").update(seedInput).digest("hex");
-  const seedNum = parseInt(seed.slice(0, 8), 16);
-  const intent = intentFromSeed(seedNum);
-  const reasoning = reasoningLine(payload.trigger);
-  const lines = [
-    ANCHR_MARKER,
-    "",
-    payload.prediction,
-    "",
-    intent,
-    "",
-  ];
-  if (reasoning && reasoning.length < 80) {
-    lines.push(reasoning);
+  if (existing && parsed?.diffHash && currentDiffHash && parsed.diffHash !== currentDiffHash) {
+    await deleteComment(token, repo, existing.id);
+    process.exit(0);
   }
-  lines.push("");
-  lines.push(`_evidence: ${newEvidenceHash}_`);
-  const body = lines.join("\n");
+
+  if (existing && parsed?.evidenceHash === newEvidenceHash) {
+    const nextUnchanged = (parsed?.commitsUnchanged ?? 0) + 1;
+    const nowSilenced = nextUnchanged >= 2;
+    const body = renderCommentBody(payload, newEvidenceHash, nextUnchanged, nowSilenced, currentDiffHash);
+    await updateComment(token, repo, existing.id, body);
+    process.exit(0);
+  }
+
+  if (existing && (await humanRequestedChangesAfter(token, repo, pr.number, existing.updated_at))) {
+    process.exit(0);
+  }
+
+  const body = renderCommentBody(payload, newEvidenceHash, 0, false, currentDiffHash);
 
   if (existing) {
     await updateComment(token, repo, existing.id, body);

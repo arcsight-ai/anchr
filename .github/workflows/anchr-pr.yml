@@ -1,6 +1,4 @@
-# ANCHR PR Signal (Human Reviewer Final v5) — Merge-Proximity Intelligence.
-# Single human-like risk note only when meaningful. Never blocks merges. Never enforces.
-# Developer-reaction experiment.
+# ANCHR PR Signal (vFinal++ Social Reliability Lock). One note per PR. Drift + human priority. Never blocks.
 
 name: ANCHR PR Signal
 
@@ -11,7 +9,10 @@ on:
 jobs:
   signal:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
+    if: >
+      github.event.pull_request.draft == false
+      && github.actor != 'dependabot' && github.actor != 'dependabot[bot]'
+      && github.actor != 'github-actions' && github.actor != 'github-actions[bot]'
     permissions:
       contents: read
       pull-requests: read
@@ -54,7 +55,7 @@ jobs:
         if: steps.skip.outputs.skip != 'true' && steps.label_skip.outputs.skip != 'true'
         run: npm ci
 
-      - name: ANCHR PR Signal (merge-proximity)
+      - name: ANCHR PR Signal (vFinal++ social reliability)
         if: steps.skip.outputs.skip != 'true' && steps.label_skip.outputs.skip != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
