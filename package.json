@@ -28,7 +28,8 @@
     "install:hook": "npx tsx scripts/anchr-install.ts",
     "uninstall:hook": "npx tsx scripts/anchr-uninstall.ts",
     "doctor": "npx tsx scripts/anchr-doctor.ts",
-    "anchr": "npx tsx scripts/cli.ts"
+    "anchr": "npx tsx scripts/cli.ts",
+    "simulation:conviction": "npx tsx scripts/simulation/conviction-simulation.ts","simulation:survival":"npx tsx scripts/simulation/survival-simulation.ts","simulation:stress":"npx tsx scripts/simulation/institutional-stress-simulation.ts","simulation:stress:run":"npx tsx scripts/simulation/execute-stress-protocol.ts"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
