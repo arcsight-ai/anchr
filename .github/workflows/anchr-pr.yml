@@ -1,0 +1,66 @@
+# ANCHR PR Signal (Human Reviewer Final v5) — Merge-Proximity Intelligence.
+# Single human-like risk note only when meaningful. Never blocks merges. Never enforces.
+# Developer-reaction experiment.
+
+name: ANCHR PR Signal
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  signal:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: write
+
+    steps:
+      - name: Skip if disabled
+        id: skip
+        run: |
+          if [ "${{ vars.ANCHR_DISABLED }}" = "true" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Skip if anchr-ignore label
+        id: label_skip
+        if: steps.skip.outputs.skip != 'true'
+        run: |
+          LABELS='${{ toJson(github.event.pull_request.labels) }}'
+          if echo "$LABELS" | grep -q '"anchr-ignore"'; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout PR head
+        if: steps.skip.outputs.skip != 'true' && steps.label_skip.outputs.skip != 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        if: steps.skip.outputs.skip != 'true' && steps.label_skip.outputs.skip != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install
+        if: steps.skip.outputs.skip != 'true' && steps.label_skip.outputs.skip != 'true'
+        run: npm ci
+
+      - name: ANCHR PR Signal (merge-proximity)
+        if: steps.skip.outputs.skip != 'true' && steps.label_skip.outputs.skip != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: npx -y tsx@4 scripts/anchr-pr-signal.ts
+        continue-on-error: true
