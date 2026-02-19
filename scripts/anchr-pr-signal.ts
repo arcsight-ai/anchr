@@ -61,8 +61,17 @@ const ALLOWED_FAILURE_KINDS: FailureKind[] = [
   "partial_initialization",
   "silent_corruption",
   "version_mismatch_crash",
+  /* v12 runtime-structural */
+  "hidden_shared_state",
+  "async_init_race",
+  "temporal_coupling",
+  "fanout_side_effects",
+  "circular_responsibility",
+  "implicit_global_dependency",
+  "retry_removed",
+  "stale_read_risk",
 ];
-const MAX_SENTENCE_CHARS = 110;
+const MAX_SENTENCE_CHARS = 140;
 
 type PRStage = "EARLY" | "ACTIVE_REVIEW" | "PRE_MERGE";
 
@@ -207,6 +216,14 @@ const IMPACT_HIGH: FailureKind[] = [
   "partial_initialization",
   "silent_corruption",
   "version_mismatch_crash",
+  "hidden_shared_state",
+  "async_init_race",
+  "temporal_coupling",
+  "fanout_side_effects",
+  "circular_responsibility",
+  "implicit_global_dependency",
+  "retry_removed",
+  "stale_read_risk",
 ];
 const IMPACT_MEDIUM: FailureKind[] = ["dropped_event"];
 
@@ -221,6 +238,7 @@ function outputContainsAdvice(prediction: string, check: string): boolean {
   return ADVICE_PHRASES.some((p) => combined.includes(p.trim()));
 }
 
+/** v12: Build one payload per proof, then pick single best (impact then confidence). Emit only one per PR. */
 function reportToPredictionPayload(reportPath: string): PredictionPayload | null {
   const raw = readJson(reportPath);
   if (!raw || typeof raw !== "object") return null;
@@ -230,49 +248,58 @@ function reportToPredictionPayload(reportPath: string): PredictionPayload | null
     minimalCut?: string[];
   };
   if (report.status !== "BLOCKED") return null;
-  const proofs = report.proofs;
+  const proofs = report.proofs ?? [];
   const minimalCut = report.minimalCut ?? [];
-  if (!proofs?.length || minimalCut.length === 0) return null;
+  if (!proofs.length || minimalCut.length === 0) return null;
 
   const parsed = parseMinimalCut(minimalCut);
-  const first = parsed[0];
-  const proof = proofs[0];
-  if (!first || !proof) return null;
+  const base = parsed[0];
+  if (!base) return null;
 
-  const cause = proof.rule as ViolationKind;
-  const violation = {
-    package: first.package,
-    path: first.path,
-    cause,
-    specifier: first.specifier,
-    proof: { type: "import_path" as const, source: proof.source, target: proof.target, rule: cause },
-  };
+  const candidates: PredictionPayload[] = [];
+  for (const proof of proofs) {
+    const cause = proof.rule as ViolationKind;
+    const violation = {
+      package: base.package,
+      path: base.path,
+      cause,
+      specifier: base.specifier,
+      proof: { type: "import_path" as const, source: proof.source, target: proof.target, rule: cause },
+    };
+    const pred = renderFailurePrediction(violation);
+    if (pred.failure_kind === "unknown" || pred.confidence === "low") continue;
+    const kind = pred.failure_kind as FailureKind;
+    if (!ALLOWED_FAILURE_KINDS.includes(kind)) continue;
+    const trigger = pred.when_it_happens || pred.runtime_symptom || "";
+    const check = pred.when_it_happens || "";
+    if (outputContainsAdvice(pred.short_sentence, check)) continue;
+    const impact = impactFromFailureKind(kind);
+    candidates.push({
+      risk: true,
+      mode: "prediction",
+      title: "",
+      prediction: pred.short_sentence,
+      confidence: pred.confidence,
+      trigger,
+      evidence: pred.evidence,
+      impact,
+      novelty: "high",
+      check,
+      runtime_symptom: pred.runtime_symptom || "fail",
+      failure_kind: kind,
+    });
+  }
 
-  const pred = renderFailurePrediction(violation);
-  if (pred.failure_kind === "unknown" || pred.confidence === "low") return null;
-
-  const kind = pred.failure_kind as FailureKind;
-  if (!ALLOWED_FAILURE_KINDS.includes(kind)) return null;
-
-  const trigger = pred.when_it_happens || pred.runtime_symptom || "";
-  const check = pred.when_it_happens || "";
-  if (outputContainsAdvice(pred.short_sentence, check)) return null;
-
-  const impact = impactFromFailureKind(kind);
-  return {
-    risk: true,
-    mode: "prediction",
-    title: "",
-    prediction: pred.short_sentence,
-    confidence: pred.confidence,
-    trigger,
-    evidence: pred.evidence,
-    impact,
-    novelty: "high",
-    check,
-    runtime_symptom: pred.runtime_symptom || "fail",
-    failure_kind: kind,
-  };
+  if (candidates.length === 0) return null;
+  const impactRank = (i: "low" | "medium" | "high") => (i === "high" ? 2 : i === "medium" ? 1 : 0);
+  const confRank = (c: "low" | "medium" | "high") => (c === "high" ? 2 : c === "medium" ? 1 : 0);
+  candidates.sort((a, b) => {
+    const di = impactRank(b.impact) - impactRank(a.impact);
+    if (di !== 0) return di;
+    return confRank(b.confidence) - confRank(a.confidence);
+  });
+  const chosen = candidates[0]!;
+  return chosen;
 }
 
 function passesStageThreshold(payload: PredictionPayload, stage: PRStage): boolean {
@@ -289,6 +316,19 @@ function passesStageThreshold(payload: PredictionPayload, stage: PRStage): boole
     default:
       return false;
   }
+}
+
+/** v12 Structural Inevitability Gate: all must be true or we do not emit. */
+function passesInevitabilityGate(payload: PredictionPayload, stage: PRStage): boolean {
+  if (payload.evidence.length < 2) return false;
+  if (!payload.runtime_symptom?.trim()) return false;
+  if (payload.impact === "low") return false;
+  if (payload.novelty !== "high") return false;
+  if (payload.confidence === "low") return false;
+  if (!passesStageThreshold(payload, stage)) return false;
+  const sentence = `If ${payload.trigger}, this will ${payload.runtime_symptom}.`;
+  if (sentence.length > MAX_SENTENCE_CHARS) return false;
+  return true;
 }
 
 function humanMentionedTrigger(comments: { body: string }[], trigger: string): boolean {
@@ -493,7 +533,7 @@ async function main(): Promise<void> {
   const comments = await ghComments(token, repo, pr.number);
   const humanComments = comments.filter((c) => !isBotComment(c));
   payload.novelty = humanMentionedTrigger(humanComments, payload.trigger) ? "low" : "high";
-  if (!passesStageThreshold(payload, stage)) {
+  if (!passesInevitabilityGate(payload, stage)) {
     process.exit(0);
   }
 

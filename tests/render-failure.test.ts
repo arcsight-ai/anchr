@@ -55,6 +55,11 @@ describe("renderFailurePrediction", () => {
         "type_import_private_target",
         "relative_escape",
         "deleted_public_api",
+        "hidden_shared_state",
+        "init_order_dependency",
+        "temporal_coupling",
+        "fanout_side_effects",
+        "circular_responsibility",
       ] as const;
       const banned = ["architecture", "layer", "boundary", "dependency", "module", "graph", "violation", "import"];
       for (const cause of causes) {
@@ -76,17 +81,19 @@ describe("renderFailurePrediction", () => {
   });
 
   describe("Grammar pattern", () => {
-    it("short_sentence is ≤110 characters", () => {
+    it("short_sentence is ≤140 characters (v12 max cognitive load)", () => {
       const v = violation();
       const out = renderFailurePrediction(v);
-      expect(out.short_sentence.length).toBeLessThanOrEqual(110);
+      expect(out.short_sentence.length).toBeLessThanOrEqual(140);
     });
 
-    it("short_sentence has component-may-failure-when-condition shape for known kind", () => {
+    it("short_sentence has may-condition or If-this-will shape for known kind", () => {
       const v = violation({ cause: "boundary_violation" });
       const out = renderFailurePrediction(v);
       if (out.failure_kind !== "unknown") {
-        expect(out.short_sentence).toMatch(/\bmay\b/);
+        const hasMay = /\bmay\b/.test(out.short_sentence);
+        const hasIfThisWill = /If .+, this will .+\./.test(out.short_sentence);
+        expect(hasMay || hasIfThisWill).toBe(true);
         expect(out.short_sentence.length).toBeGreaterThan(10);
       }
     });
@@ -99,6 +106,11 @@ describe("renderFailurePrediction", () => {
         "type_import_private_target",
         "relative_escape",
         "deleted_public_api",
+        "hidden_shared_state",
+        "init_order_dependency",
+        "temporal_coupling",
+        "fanout_side_effects",
+        "circular_responsibility",
       ] as const;
       for (const cause of causes) {
         const v = violation({ cause, path: "a.ts", specifier: "b", proof: { type: "import_path", source: "a.ts", target: "b.ts", rule: cause } });
@@ -141,6 +153,32 @@ describe("renderFailurePrediction", () => {
       const v = violation({ cause: "deleted_public_api", path: "a.ts", specifier: "pkg/api" });
       const out = renderFailurePrediction(v);
       expect(out.failure_kind).toBe("version_mismatch_crash");
+    });
+
+    it("v12: hidden_shared_state → hidden_shared_state", () => {
+      const v = violation({ cause: "hidden_shared_state", path: "a.ts", specifier: "b" });
+      const out = renderFailurePrediction(v);
+      expect(out.failure_kind).toBe("hidden_shared_state");
+    });
+    it("v12: init_order_dependency → async_init_race", () => {
+      const v = violation({ cause: "init_order_dependency", path: "a.ts", specifier: "b" });
+      const out = renderFailurePrediction(v);
+      expect(out.failure_kind).toBe("async_init_race");
+    });
+    it("v12: temporal_coupling → temporal_coupling", () => {
+      const v = violation({ cause: "temporal_coupling", path: "a.ts", specifier: "b" });
+      const out = renderFailurePrediction(v);
+      expect(out.failure_kind).toBe("temporal_coupling");
+    });
+    it("v12: fanout_side_effects → fanout_side_effects", () => {
+      const v = violation({ cause: "fanout_side_effects", path: "a.ts", specifier: "b" });
+      const out = renderFailurePrediction(v);
+      expect(out.failure_kind).toBe("fanout_side_effects");
+    });
+    it("v12: circular_responsibility → circular_responsibility", () => {
+      const v = violation({ cause: "circular_responsibility", path: "a.ts", specifier: "b" });
+      const out = renderFailurePrediction(v);
+      expect(out.failure_kind).toBe("circular_responsibility");
     });
   });
 

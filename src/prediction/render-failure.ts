@@ -16,7 +16,16 @@ export type FailureKind =
   | "stale_read"
   | "partial_initialization"
   | "silent_corruption"
-  | "version_mismatch_crash";
+  | "version_mismatch_crash"
+  /* v12 runtime-structural only */
+  | "hidden_shared_state"
+  | "async_init_race"
+  | "temporal_coupling"
+  | "fanout_side_effects"
+  | "circular_responsibility"
+  | "implicit_global_dependency"
+  | "retry_removed"
+  | "stale_read_risk";
 
 export type FailurePrediction = {
   failure_kind: FailureKind | "unknown";
@@ -34,6 +43,11 @@ const CAUSE_TO_FAILURE_KIND: Record<ViolationKind, FailureKind> = {
   type_import_private_target: "silent_corruption",
   relative_escape: "partial_initialization",
   deleted_public_api: "version_mismatch_crash",
+  hidden_shared_state: "hidden_shared_state",
+  init_order_dependency: "async_init_race",
+  temporal_coupling: "temporal_coupling",
+  fanout_side_effects: "fanout_side_effects",
+  circular_responsibility: "circular_responsibility",
 };
 
 /** Vivid, runtime-only wording per failure_kind. No architecture vocabulary. */
@@ -118,6 +132,95 @@ const FAILURE_WORDING: Record<
     runtime_symptom: "reset state",
     when_it_happens: "during deploy",
   },
+  /* v12 runtime-structural */
+  hidden_shared_state: {
+    short_sentence: "If two requests mutate the same top-level state, this will corrupt data or leak across users.",
+    causal_chain: [
+      "Top-level mutable binding is used in two or more files",
+      "It is mutated outside the declaring file",
+      "Concurrent or interleaved requests touch the same binding",
+      "Wrong value or cross-request leak",
+    ],
+    runtime_symptom: "corrupt data or leak across users",
+    when_it_happens: "under concurrency or request interleaving",
+  },
+  async_init_race: {
+    short_sentence: "If init runs without await and is read before resolution, this will fail on cold start or first run.",
+    causal_chain: [
+      "Async function is invoked without await",
+      "Result is stored at top-level scope",
+      "Same file reads it before resolution",
+      "Read sees unresolved promise or wrong value",
+    ],
+    runtime_symptom: "fail on cold start or first run",
+    when_it_happens: "on first execution or cold start",
+  },
+  temporal_coupling: {
+    short_sentence: "If call order is not guaranteed, this will behave nondeterministically or fail.",
+    causal_chain: [
+      "Shared boolean or state flag controls behavior",
+      "Two or more exported functions rely on it",
+      "No structural ordering guarantee",
+      "Call order varies by caller",
+    ],
+    runtime_symptom: "behave nondeterministically or fail",
+    when_it_happens: "when call order varies",
+  },
+  fanout_side_effects: {
+    short_sentence: "If one entry writes to multiple targets or triggers a write chain, this will cascade or leave partial state.",
+    causal_chain: [
+      "One entry function writes to two or more targets",
+      "Or write leads to event then write",
+      "No single transaction scope",
+      "Cascading mutation or inconsistent state",
+    ],
+    runtime_symptom: "cascade or leave partial state",
+    when_it_happens: "when one path triggers multiple writes",
+  },
+  circular_responsibility: {
+    short_sentence: "If call sites form a cycle, this will recurse or sync state inconsistently.",
+    causal_chain: [
+      "Cycle across units or mutual calls between call sites",
+      "No clear init or call order",
+      "Recursive propagation or state sync",
+      "Inconsistent state or stack overflow",
+    ],
+    runtime_symptom: "recurse or sync state inconsistently",
+    when_it_happens: "when the cycle is exercised at runtime",
+  },
+  implicit_global_dependency: {
+    short_sentence: "If code reads process.env or global without injection, this will diverge by environment.",
+    causal_chain: [
+      "Direct use of process.env or global object",
+      "No injection or config visible",
+      "Accessed in two or more execution paths",
+      "Behavior differs by env or host",
+    ],
+    runtime_symptom: "diverge by environment",
+    when_it_happens: "when env or host differs from expectation",
+  },
+  retry_removed: {
+    short_sentence: "If retry was removed and external IO remains, this will escalate transient failures.",
+    causal_chain: [
+      "Diff removes retry loop",
+      "External IO remains",
+      "No compensating mechanism added",
+      "Transient failure becomes hard failure",
+    ],
+    runtime_symptom: "escalate transient failures",
+    when_it_happens: "when the external call is flaky or slow",
+  },
+  stale_read_risk: {
+    short_sentence: "If cache is read but invalidation or write path was removed, this will serve stale data after mutation.",
+    causal_chain: [
+      "Cache read is present",
+      "Invalidation removed or write path missing",
+      "No TTL guard visible",
+      "Stale data returned after mutation",
+    ],
+    runtime_symptom: "serve stale data after mutation",
+    when_it_happens: "after a write that no longer invalidates",
+  },
 };
 
 const UNKNOWN_FALLBACK: FailurePrediction = {
@@ -191,7 +294,7 @@ function confidenceFrom(
   for (const step of causalChain) {
     if (containsVagueWord(step)) return "low";
   }
-  if (evidenceCount >= 3 && shortSentence.length <= 110) return "high";
+  if (evidenceCount >= 3 && shortSentence.length <= 140) return "high";
   if (evidenceCount >= 2) return "medium";
   return "low";
 }
