@@ -219,3 +219,20 @@ export function getMergeBase(repoRoot: string, head: string, baseRef: string): s
     return null;
   }
 }
+
+/**
+ * Resolve commit to its tree SHA (topology-stable; unchanged by rebase).
+ * Use for deterministic Instance ID.
+ */
+export function getTreeAtRef(repoRoot: string, ref: string): string | null {
+  try {
+    const out = spawnSync("git", ["rev-parse", `${ref}^{tree}`], {
+      encoding: "utf8",
+      cwd: repoRoot,
+      maxBuffer: 64 * 1024,
+    });
+    return out.status === 0 && out.stdout?.trim() ? out.stdout.trim() : null;
+  } catch {
+    return null;
+  }
+}
