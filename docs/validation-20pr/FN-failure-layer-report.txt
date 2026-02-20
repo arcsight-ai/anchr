@@ -1,0 +1,97 @@
+============================================================
+STEP 1 — Identify FN Context
+============================================================
+
+FN_PR: sindresorhus_ky_751
+Base_SHA: 7e1fd0ba60be6ae2c5aec0ef401393a54d98e372
+Head_SHA: cf0cf02c294eafb538f05b9cfbfedde9d35c82c6
+Result_JSON_Path: docs/validation-20pr/results/sindresorhus_ky_751.json
+
+Verify SHAs exist: Yes. Result JSON fields "baseSha" and "headSha" match above.
+
+============================================================
+STEP 2 — Canonical Graph Delta (Source of Truth)
+============================================================
+
+From human blind-label diff (PR 751):
+- source/utils/merge.ts added: import { supportsAbortSignal } from '../core/constants.js'
+- One new in-repo dependency edge: utils (merge) → core (constants)
+
+New_Edges_Canonical: [source/utils/merge.ts → source/core/constants.ts]
+Removed_Edges_Canonical: []
+
+Utils_To_Core_Edge_Exists: yes
+
+============================================================
+STEP 3 — Engine Graph Output
+============================================================
+
+From Result_JSON_Path (docs/validation-20pr/results/sindresorhus_ky_751.json):
+
+Engine_New_Edges: (not in report schema; report has no field for new/removed edge lists)
+Engine_Removed_Edges: (not in report schema)
+Engine_Layer_Violations: minimalCut = []
+Engine_Graph_Delta: status "VERIFIED", minimalCut [], classification.primaryCause null
+Engine_Final_Decision: allow
+
+Evidence (exact JSON fields):
+- "decision": {"level":"allow","reason":"No architectural impact detected."}
+- "classification": {"primaryCause":null}
+- "minimalCut": []
+- "status": "VERIFIED"
+- "scope": {"mode":"structural-fast-path"}
+
+Engine_Detected_Utils_To_Core: no
+
+============================================================
+STEP 4 — Layer Model Verification
+============================================================
+
+Layer_Model_File: (none)
+Layer_Order_Definition: (none)
+Layer_Model_Exists: no
+
+Grep for "layer.*order|LayerOrder|layerOrder|LAYER" in codebase: no matches. No explicit layer-order config. Boundary checks use package boundaries and public surface (violations.ts: getPackageFromPath, targetPkg !== pkg).
+
+Source_Layer: (N/A)
+Target_Layer: (N/A)
+Layer_Order[source]: (N/A)
+Layer_Order[target]: (N/A)
+Directional_Inversion_By_Order: (N/A)
+
+============================================================
+STEP 5 — Failure Layer Classification
+============================================================
+
+Utils_To_Core_Edge_Exists = yes
+Engine_Detected_Utils_To_Core = no
+→ ELSE IF branch: Failure_Layer = EDGE_FILTERING
+
+Failure_Layer: EDGE_FILTERING
+
+Precise_Mechanism: Package discovery in scripts/anchr-structural-audit.ts (discoverPackages) only considers directories under repo root "packages/" (line 22: const packagesDir = join(repoRoot, "packages")). Ky repo has "source/core/", "source/utils/", no top-level "packages/". So pkgDirByName is empty; the block "if (pkgDirByName.size > 0)" at line 123 is false; detectViolations is never run; boundary violations are never computed. The utils→core edge exists in the repo diff but is never represented in the engine's model because the engine never loads a multi-package graph for this repo layout.
+
+============================================================
+STEP 6 — Minimal Failing Condition
+============================================================
+
+Minimal_Failing_Condition: Repo root contains no "packages/" directory (e.g. uses "source/" or flat layout). discoverPackages(repoRoot) returns empty Map. Boundary violation detection is skipped. Any new cross-folder dependency edge (e.g. source/utils → source/core) is not detected.
+
+============================================================
+STEP 7 — Counterfactual Rule Simulation
+============================================================
+
+Rule: IF New_Edge AND Layer_Order[source] > Layer_Order[target] THEN classify = BLOCK
+
+Layer_Model_Exists = no; no Layer_Order defined. Cannot evaluate rule across 20 PRs without defining layers and re-running engine.
+
+Rule_Fixes_FN: (would require layer model and support for non-"packages/" repos; not evaluable without code/layout changes)
+Collateral_Impact_On_TNs: (unknown; no layer model; cannot evaluate without re-run)
+
+============================================================
+STEP 8 — Deterministic Rule Required
+============================================================
+
+Required_Directional_Rule: Not expressible as a single rule without first ensuring the engine represents the graph. Prerequisite: Package discovery must include repo layouts that do not use top-level "packages/" (e.g. map "source/<layer>/" to package names so that source/utils and source/core are distinct units). Then: IF new_dependency_edge(from, to) AND layer_order(from) > layer_order(to) THEN decision = BLOCK.
+
+============================================================
