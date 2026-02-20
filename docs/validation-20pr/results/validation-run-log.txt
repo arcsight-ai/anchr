@@ -1,0 +1,21 @@
+Validation 20 PR run — log only. No fixes applied mid-run.
+
+Engine: validation-freeze-20pr (4d962ab52399596c54410c426880843925522e1b)
+Date: 2025-02-19
+
+Initial run: 20 attempted, 15 valid result JSONs, 5 run failures (logged, not fixed).
+  - sindresorhus_ky_764: no report written
+  - sindresorhus_ky_728: clone failed (base SHA not on remote)
+  - sindresorhus_ky_758: no report written
+  - vercel_swr_3050: no report written
+  - vercel_swr_3052: no report written
+
+Swap 1 (protocol-consistent): same repos, next in list. Replaced 5 with 693, 757, 761, 4110, 4200.
+  RUN_MISSING_ONLY=1: 5 runs. 3 ok (693, 757, 4110), 2 no report (761, 4200).
+
+Swap 2 (protocol-consistent): same repos, next in list. Replaced 761→755, 4200→2301.
+  RUN_MISSING_ONLY=1: 2 runs. 2 ok (755, 2301).
+
+Final: 20 valid result JSONs. Run failure rate = 5/20 initial; replaced; final sample size 20.
+
+Next: Blind label all 20 in human-ground-truth.csv. Then fill evaluation-table.csv, compute metrics, bundle hash, binary gate. Do not compute partial metrics.
