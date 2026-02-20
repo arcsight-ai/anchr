@@ -12,7 +12,7 @@ function getModuleSpecifier(node: ts.ImportDeclaration | ts.ExportDeclaration): 
 }
 
 function isTypeOnlyImportClause(clause: ts.ImportClause | undefined): boolean {
-  if (!clause) return true;
+  if (!clause) return false;
   return !!clause.isTypeOnly;
 }
 

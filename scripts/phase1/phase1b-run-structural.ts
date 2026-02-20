@@ -9,11 +9,11 @@ import { readFileSync, mkdirSync, existsSync, readdirSync, writeFileSync } from 
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import type { PilotRecord } from "./pilot-types.js";
+import { TMP_BASE } from "./config.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
 const PILOT_ARTIFACTS = join(ROOT, "artifacts", "phase1", "pilot");
-const TMP_BASE = join(ROOT, ".tmp", "phase1");
 const OUT_PATH = join(ROOT, "artifacts", "phase1b", "pilot-structural-results.json");
 const RUN_SINGLE = join(ROOT, "scripts", "phase1", "run-single.ts");
 

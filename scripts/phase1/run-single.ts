@@ -16,10 +16,10 @@ import { readFileSync, mkdirSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import type { PilotRecord } from "./pilot-types.js";
+import { TMP_BASE } from "./config.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
-const TMP_BASE = join(ROOT, ".tmp", "phase1");
 const PILOT_ARTIFACTS = join(ROOT, "artifacts", "phase1", "pilot");
 const CERTIFY_TIMEOUT_MS = 2 * 60 * 1000;
 const DINARuns = 6;

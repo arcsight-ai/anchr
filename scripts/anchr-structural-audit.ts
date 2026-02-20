@@ -79,7 +79,20 @@ function runIncomplete(basePath: string): number {
   return 0;
 }
 
+function logStructured(obj: Record<string, unknown>): void {
+  if (process.env.ANCHR_STRUCTURED_LOG !== "1") return;
+  try {
+    process.stderr.write(JSON.stringify(obj) + "\n");
+  } catch {
+    // ignore
+  }
+}
+
 function main(): number {
+  const t0 = Date.now();
+  const mem0 = process.memoryUsage();
+  logStructured({ event: "analysis_start", ts: t0, rss: mem0.rss });
+
   const cwd = process.cwd();
   const repoRoot = getRepoRoot();
   if (!repoRoot) {
@@ -100,6 +113,9 @@ function main(): number {
   const pkgDirByName = discoverPackages(repoRoot);
 
   const graph = buildGraph(repoRoot);
+  const t1 = Date.now();
+  logStructured({ event: "graph_built", ts: t1, elapsed_ms: t1 - t0 });
+
   const cycles = detectCycles(graph);
   const cycleViolations = cyclesToViolations(repoRoot, graph, cycles);
 
@@ -116,6 +132,8 @@ function main(): number {
   }
 
   const violations = [...cycleViolations, ...boundaryViolations];
+  const t2 = Date.now();
+  logStructured({ event: "minimalcut_done", ts: t2, elapsed_ms: t2 - t1 });
 
   const hasBlock = violations.some(
     (v) =>
@@ -134,6 +152,9 @@ function main(): number {
     headSha,
     canonicalPaths,
   );
+  const t3 = Date.now();
+  logStructured({ event: "decision_made", ts: t3, elapsed_ms: t3 - t2 });
+  logStructured({ event: "total_runtime_ms", ms: t3 - t0, rss: process.memoryUsage().rss });
 
   const boundaryViolationDetails =
     report.decision.level === "block"

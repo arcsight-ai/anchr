@@ -10,7 +10,7 @@ import { execSync, spawnSync } from "child_process";
 import { mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { getComplexityBucket } from "./config.js";
+import { getComplexityBucket, TMP_BASE } from "./config.js";
 import type { PilotRecord, PilotStatus } from "./pilot-types.js";
 import { validatePilotRecord } from "./pilot-types.js";
 
@@ -36,7 +36,6 @@ function loadEnvFrom(dir: string): void {
 loadEnvFrom(process.cwd());
 loadEnvFrom(ROOT);
 
-const TMP_BASE = join(ROOT, ".tmp", "phase1");
 const PILOT_ARTIFACTS = join(ROOT, "artifacts", "phase1", "pilot");
 const CERTIFY_TIMEOUT_MS = 2 * 60 * 1000;
 const RATE_LIMIT_PAUSE_MS = 60 * 1000;

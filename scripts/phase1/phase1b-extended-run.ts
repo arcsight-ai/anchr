@@ -10,10 +10,10 @@ import { readFileSync, mkdirSync, existsSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import type { PrListEntry } from "./phase1b-extended-build-pr-list.js";
+import { TMP_BASE } from "./config.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
-const TMP_BASE = join(ROOT, ".tmp", "phase1");
 const PR_LIST_PATH = join(ROOT, "artifacts", "phase1b_extended", "pr-list.json");
 const RESULTS_PATH = join(ROOT, "artifacts", "phase1b_extended", "results.json");
 const CLI_PATH = join(ROOT, "scripts", "cli.ts");

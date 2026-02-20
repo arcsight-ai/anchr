@@ -3,6 +3,12 @@
  * Merge-stage, suppression, and PR timing logic are disabled for raw signal evaluation.
  */
 
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+/** Clone directory outside workspace so IDE/TS does not type-check cloned repos. */
+export const TMP_BASE = join(tmpdir(), "anchr-phase1");
+
 export const PHASE1_LOCK = {
   certify_runs: 8,
   coverage_thresholds_locked: true,

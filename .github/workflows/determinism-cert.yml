@@ -1,0 +1,42 @@
+# Determinism certification (soft rollout: do not fail merges).
+name: Determinism certification
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  determinism:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run determinism certification
+        id: certify
+        run: |
+          mkdir -p artifacts
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          if [ -z "$BASE" ] || [ -z "$HEAD" ]; then
+            BASE=$(git merge-base HEAD main 2>/dev/null || git rev-parse HEAD~1)
+            HEAD=$(git rev-parse HEAD)
+          fi
+          export REPORT_PATH="${{ github.workspace }}/artifacts/determinism-report.json"
+          npx -y tsx@4.19.2 scripts/dina.ts certify --base "$BASE" --head "$HEAD" --runs 10 || true
+        continue-on-error: true
+
+      - name: Upload determinism report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: determinism-report
+          path: artifacts/determinism-report.json

@@ -1,0 +1,24 @@
+# Day 1 — Determinism lock. Fail build if same PR produces different output across 3 runs.
+name: Determinism
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  determinism:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run determinism proof (3 runs, zero variance)
+        run: npx tsx scripts/hardening/day1-determinism.ts
+        env:
+          CI: true
