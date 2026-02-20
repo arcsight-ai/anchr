@@ -1,0 +1,49 @@
+# Validation Discipline Check — Fails if no daily log appended to docs/7-day-validation-plan.md in 25h
+name: Validation Discipline Check
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check validation log recency
+        run: |
+          FILE="docs/7-day-validation-plan.md"
+          if [ ! -f "$FILE" ]; then
+            echo "Last validation log commit: N/A (file missing)"
+            echo "Current UTC: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "Hours since last log: N/A"
+            echo "Result: FAIL"
+            exit 1
+          fi
+          LAST_TS=$(git log -1 --format=%ct -- "$FILE" 2>/dev/null || echo "")
+          if [ -z "$LAST_TS" ]; then
+            echo "Last validation log commit: N/A (no commit touching file)"
+            echo "Current UTC: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "Hours since last log: N/A"
+            echo "Result: FAIL"
+            exit 1
+          fi
+          NOW=$(date -u +%s)
+          DIFF=$((NOW - LAST_TS))
+          HOURS=$((DIFF / 3600))
+          LAST_ISO=$(date -u -d "@$LAST_TS" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "${LAST_TS}")
+          echo "Last validation log commit: $LAST_ISO"
+          echo "Current UTC: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "Hours since last log: $HOURS"
+          if [ "$HOURS" -gt 25 ]; then
+            echo "Result: FAIL"
+            exit 1
+          fi
+          echo "Result: PASS"
+        env: {}
