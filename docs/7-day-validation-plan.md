@@ -1,5 +1,14 @@
 # 7-Day Real-World Validation Plan (Day 5)
 
+Distribution execution contract: **docs/7-day-execution-contract.md**. Do not duplicate distribution content here.
+
+**System state:**
+
+ENGINE: FROZEN  
+VALIDATION: ACTIVE  
+DISTRIBUTION: IN PROGRESS  
+ARCHITECTURAL CHANGES: DISABLED
+
 **Freeze commit:** 6597d00c1cf47a86fa6c1e8a0db5d987e9c3232f  
 **Objective:** Unattended validation on ≥5 repos. No engine changes during the 7-day window.
 
@@ -167,9 +176,9 @@ If triggered: disable app, document incident, do not patch logic mid-stream. Tre
 
 If nothing breaks: determinism holds in production; precision holds under real traffic; no catastrophic structural false positives; performance stable under real CI; engine is behaviorally stable. That’s stronger than another 20 internal tests.
 
-### 5. The real temptation
+### 5. Freeze rule
 
-You will want to tweak something. Don’t. The credibility comes from restraint. Most systems fail here because founders “just improve one thing.” You froze. Now you observe.
+Engine logic changes during the window invalidate validation. CI enforces HEAD == .freeze-engine-hash and no protected-path changes. No override.
 
 ### 6. On Day 7
 

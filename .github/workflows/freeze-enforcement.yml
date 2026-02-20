@@ -1,0 +1,128 @@
+# Freeze enforcement — single source of truth during validation window
+name: Freeze Enforcement
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  freeze-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read freeze state
+        id: freeze
+        run: |
+          HASH_FILE=".freeze-engine-hash"
+          WINDOW_FILE=".freeze-validation-window"
+          if [ ! -f "$HASH_FILE" ]; then
+            echo "hash_missing=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "hash_missing=0" >> "$GITHUB_OUTPUT"
+            FROZEN=$(head -1 "$HASH_FILE" | tr -d '[:space:]')
+            echo "frozen=$FROZEN" >> "$GITHUB_OUTPUT"
+          fi
+          if [ ! -f "$WINDOW_FILE" ]; then
+            echo "in_window=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          START=$(sed -n '1p' "$WINDOW_FILE" | tr -d '[:space:]')
+          END=$(sed -n '2p' "$WINDOW_FILE" | tr -d '[:space:]')
+          if [ -z "$START" ] || [ -z "$END" ]; then
+            echo "::error::Malformed .freeze-validation-window (line 1: ISO UTC start, line 2: ISO UTC end)"
+            exit 1
+          fi
+          echo "start=$START" >> "$GITHUB_OUTPUT"
+          echo "end=$END" >> "$GITHUB_OUTPUT"
+          NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          echo "now=$NOW" >> "$GITHUB_OUTPUT"
+          if [ "$NOW" \< "$START" ] || [ "$NOW" \> "$END" ]; then
+            echo "in_window=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "in_window=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fail if freeze not initialized
+        run: |
+          if [ "${{ steps.freeze.outputs.hash_missing }}" = "1" ]; then
+            echo "::error::FREEZE NOT INITIALIZED — set freeze hash before entering validation window."
+            exit 1
+          fi
+
+      - name: Exit when validation window inactive
+        if: steps.freeze.outputs.in_window == '0'
+        run: |
+          echo "Validation window inactive — freeze not enforced."
+          exit 0
+
+      - name: Enforce hash match (within validation window)
+        run: |
+          FROZEN="${{ steps.freeze.outputs.frozen }}"
+          HEAD=$(git rev-parse HEAD)
+          if [ "$FROZEN" != "$HEAD" ]; then
+            echo "::error::ENGINE FREEZE VIOLATION — validation invalidated. Re-freeze and restart 7-day clock."
+            exit 1
+          fi
+
+      - name: Check [validation-restart] requires hash update
+        run: |
+          MSG=$(git log -1 --format=%B)
+          if echo "$MSG" | grep -q '\[validation-restart\]'; then
+            if ! git diff --name-only HEAD~1 HEAD | grep -q '^\.freeze-engine-hash$'; then
+              echo "::error::[validation-restart] requires .freeze-engine-hash updated in same commit."
+              exit 1
+            fi
+          fi
+
+      - name: Block protected path changes (within validation window)
+        run: |
+          FROZEN="${{ steps.freeze.outputs.frozen }}"
+          PATHS_FILE=".freeze-protected-paths"
+          if [ ! -f "$PATHS_FILE" ]; then
+            echo "::error::Missing .freeze-protected-paths"
+            exit 1
+          fi
+          CHANGED=""
+          while IFS= read -r p; do
+            p=$(echo "$p" | tr -d '[:space:]')
+            [ -z "$p" ] && continue
+            CHANGED="$CHANGED $(git diff --name-only "$FROZEN" HEAD -- "$p" 2>/dev/null || true)"
+          done < "$PATHS_FILE"
+          CHANGED=$(echo "$CHANGED" | tr -s ' \n' '\n' | grep -v '^$' | sort -u)
+          if [ -n "$CHANGED" ]; then
+            echo "::error::ENGINE FREEZE VIOLATION — validation invalidated. Re-freeze and restart 7-day clock."
+            exit 1
+          fi
+          echo "No protected path changes."
+
+      - name: Derive engine modification count
+        run: |
+          FROZEN="${{ steps.freeze.outputs.frozen }}"
+          PATHS_FILE=".freeze-protected-paths"
+          COUNT=0
+          for c in $(git rev-list "$FROZEN"..HEAD 2>/dev/null); do
+            TOUCHED=$(git diff --name-only "$c^" "$c" 2>/dev/null)
+            while IFS= read -r p; do
+              p=$(echo "$p" | tr -d '[:space:]')
+              [ -z "$p" ] && continue
+              if echo "$TOUCHED" | grep -q "^${p}"; then
+                COUNT=$((COUNT+1))
+                break
+              fi
+            done < "$PATHS_FILE"
+          done
+          echo "Engine modification count (derived): $COUNT"
+          if [ "$COUNT" -ne 0 ]; then
+            echo "::error::ENGINE FREEZE VIOLATION — validation invalidated. Re-freeze and restart 7-day clock."
+            exit 1
+          fi
+
+      - name: Report pass
+        run: |
+          echo "Freeze integrity: PASS"
+          echo "Last CI verification (UTC): $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        env: {}
