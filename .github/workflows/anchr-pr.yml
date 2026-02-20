@@ -1,67 +1,86 @@
-# ANCHR PR Signal (vFinal++ Social Reliability Lock). One note per PR. Drift + human priority. Never blocks.
-
-name: ANCHR PR Signal
+# ANCHR PR Commenter (Clean Final). One comment per PR. Fork-safe. Non-blocking.
+name: ANCHR PR Comment
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
-  signal:
+  anchr:
     runs-on: ubuntu-latest
-    if: >
-      github.event.pull_request.draft == false
-      && github.actor != 'dependabot' && github.actor != 'dependabot[bot]'
-      && github.actor != 'github-actions' && github.actor != 'github-actions[bot]'
     permissions:
       contents: read
-      pull-requests: read
-      issues: write
+      pull-requests: write
+    concurrency:
+      group: anchr-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    timeout-minutes: 12
 
     steps:
-      - name: Skip if disabled
-        id: skip
-        run: |
-          if [ "${{ vars.ANCHR_DISABLED }}" = "true" ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Skip if anchr-ignore label
-        id: label_skip
-        if: steps.skip.outputs.skip != 'true'
-        run: |
-          LABELS='${{ toJson(github.event.pull_request.labels) }}'
-          if echo "$LABELS" | grep -q '"anchr-ignore"'; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Checkout PR head
-        if: steps.skip.outputs.skip != 'true' && steps.label_skip.outputs.skip != 'true'
+      - name: Checkout base
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 0
 
+      - name: Skip if draft
+        id: skip_draft
+        run: |
+          if [ "${{ github.event.pull_request.draft }}" = "true" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Skip if anchr-ignore or disabled
+        id: skip_flags
+        if: steps.skip_draft.outputs.skip != 'true'
+        run: |
+          SKIP=false
+          LABELS='${{ toJson(github.event.pull_request.labels) }}'
+          if echo "$LABELS" | grep -q '"anchr-ignore"'; then SKIP=true; fi
+          if [ "${{ vars.ANCHR_DISABLED }}" = "true" ]; then SKIP=true; fi
+          echo "skip=$SKIP" >> $GITHUB_OUTPUT
+
+      - name: Fetch head (for diff only)
+        if: steps.skip_draft.outputs.skip != 'true' && steps.skip_flags.outputs.skip != 'true'
+        run: |
+          git fetch origin ${{ github.event.pull_request.head.sha }} --depth=1
+
       - name: Setup Node
-        if: steps.skip.outputs.skip != 'true' && steps.label_skip.outputs.skip != 'true'
+        if: steps.skip_draft.outputs.skip != 'true' && steps.skip_flags.outputs.skip != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      - name: Install
-        if: steps.skip.outputs.skip != 'true' && steps.label_skip.outputs.skip != 'true'
-        run: npm ci
+      - name: Run structural audit (report for comment)
+        if: steps.skip_draft.outputs.skip != 'true' && steps.skip_flags.outputs.skip != 'true'
+        env:
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ANCHR_REPORT_PATH: ${{ github.workspace }}/artifacts/anchr-report.json
+        run: |
+          mkdir -p artifacts
+          npx -y tsx@4.19.2 scripts/anchr-structural-audit.ts || true
+        continue-on-error: true
 
-      - name: ANCHR PR Signal (vFinal++ social reliability)
-        if: steps.skip.outputs.skip != 'true' && steps.label_skip.outputs.skip != 'true'
+      - name: Run Dina certification
+        if: steps.skip_draft.outputs.skip != 'true' && steps.skip_flags.outputs.skip != 'true'
+        env:
+          REPORT_PATH: ${{ github.workspace }}/artifacts/determinism-report.json
+        run: |
+          mkdir -p artifacts
+          npx -y tsx@4.19.2 scripts/dina.ts certify --base "${{ github.event.pull_request.base.sha }}" --head "${{ github.event.pull_request.head.sha }}" --runs 8 || true
+        continue-on-error: true
+
+      - name: ANCHR PR comment (clean)
+        if: steps.skip_draft.outputs.skip != 'true' && steps.skip_flags.outputs.skip != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_EVENT_PATH: ${{ github.event_path }}
-          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: npx -y tsx@4 scripts/anchr-pr-signal.ts
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          REPORT_PATH: ${{ github.workspace }}/artifacts/anchr-report.json
+        run: npx -y tsx@4.19.2 scripts/anchr-pr-comment-clean.ts
         continue-on-error: true

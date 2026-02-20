@@ -3,12 +3,14 @@
  * Answers: "What should I fix before committing?"
  */
 
-import { execSync } from "child_process";
+import { execSync, spawnSync } from "child_process";
 import { createHash } from "crypto";
 import * as fs from "fs";
-import { join, resolve } from "path";
-import { spawnSync } from "child_process";
+import { dirname, join, resolve } from "path";
+import { fileURLToPath } from "url";
 import type { Proof, ViolationKind } from "../src/structural/types.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const REPORT_PATH = process.env.ANCHR_REPORT_PATH ?? "artifacts/anchr-report.json";
 const TIMEOUT_MS = 8000;
@@ -153,7 +155,7 @@ function runStructuralAuditWithTimeout(
   head: string,
   staged: boolean,
 ): Record<string, unknown> {
-  const scriptPath = resolve(cwd, "scripts/anchr-structural-audit.ts");
+  const scriptPath = join(__dirname, "anchr-structural-audit.ts");
   const env = {
     ...process.env,
     GITHUB_BASE_SHA: base,

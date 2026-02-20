@@ -1,10 +1,12 @@
-import { mkdirSync, readdirSync, statSync, readFileSync } from "fs";
+import { mkdirSync, readdirSync, statSync } from "fs";
 import { dirname, join, resolve } from "path";
+import { buildGraph } from "../src/graph/buildGraph.js";
+import { detectCycles } from "../src/graph/detectCycles.js";
 import { canonicalPath } from "../src/structural/canonicalPath.js";
 import { getRepoRoot, getBaseHead, getDiff, getDiffCached } from "../src/structural/git.js";
-import { resolveSpecifierFrozen } from "../src/structural/frozenResolver.js";
 import { computePublicFiles } from "../src/structural/publicSurface.js";
 import { detectViolations } from "../src/structural/violations.js";
+import { cyclesToViolations } from "../src/structural/cycleViolations.js";
 import { buildDeterministicReport } from "../src/structural/buildReport.js";
 import { stableStringify } from "../src/structural/report.js";
 import { writeFileSync } from "fs";
@@ -97,34 +99,30 @@ function main(): number {
   const headSha = baseHead.head;
   const pkgDirByName = discoverPackages(repoRoot);
 
-  if (pkgDirByName.size === 0) {
-    const report = buildDeterministicReport(
-      "VERIFIED",
-      [],
+  const graph = buildGraph(repoRoot);
+  const cycles = detectCycles(graph);
+  const cycleViolations = cyclesToViolations(repoRoot, graph, cycles);
+
+  let boundaryViolations: import("../src/structural/types.js").Violation[] = [];
+  if (pkgDirByName.size > 0) {
+    const publicFiles = computePublicFiles(repoRoot, pkgDirByName);
+    boundaryViolations = detectViolations(
+      repoRoot,
+      diffEntries,
+      pkgDirByName,
+      publicFiles,
       baseSha,
-      headSha,
-      collectCanonicalPaths(repoRoot, diffEntries),
     );
-    const outPath = resolve(repoRoot, OUT_PATH);
-    const runWithHash = { ...report.run, repoHash: computeRepoHash(repoRoot) };
-    writeReport(
-      { ...report, run: runWithHash, headSha, baseSha },
-      outPath,
-    );
-    return 0;
   }
 
-  const publicFiles = computePublicFiles(repoRoot, pkgDirByName);
-  const violations = detectViolations(
-    repoRoot,
-    diffEntries,
-    pkgDirByName,
-    publicFiles,
-    baseSha,
-  );
+  const violations = [...cycleViolations, ...boundaryViolations];
 
-  const hasBlock =
-    violations.some((v) => v.cause === "boundary_violation" || v.cause === "deleted_public_api");
+  const hasBlock = violations.some(
+    (v) =>
+      v.cause === "boundary_violation" ||
+      v.cause === "deleted_public_api" ||
+      v.cause === "circular_import",
+  );
 
   const status = hasBlock ? "BLOCKED" : violations.length > 0 ? "BLOCKED" : "VERIFIED";
   const canonicalPaths = collectCanonicalPaths(repoRoot, diffEntries);

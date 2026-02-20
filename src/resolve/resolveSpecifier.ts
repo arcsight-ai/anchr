@@ -21,26 +21,34 @@ const CANDIDATES = ["", ".ts", ".tsx", "/index.ts", "/index.tsx"];
 
 function tryResolveFile(baseDir: string, spec: string): string | null {
   const normalized = spec.replace(/\\/g, "/");
-  for (const suffix of CANDIDATES) {
-    const candidate = suffix
-      ? join(baseDir, normalized + suffix)
-      : join(baseDir, normalized);
-    const abs = resolve(candidate);
-    if (existsSync(abs)) {
-      try {
-        if (statSync(abs, { throwIfNoEntry: false })?.isFile()) {
-          return abs;
+  const stems = [normalized];
+  if (normalized.endsWith(".js") && !normalized.endsWith(".json")) {
+    stems.push(normalized.slice(0, -3));
+  }
+  for (const stem of stems) {
+    for (const suffix of CANDIDATES) {
+      const candidate = suffix ? join(baseDir, stem + suffix) : join(baseDir, stem);
+      const abs = resolve(candidate);
+      if (existsSync(abs)) {
+        try {
+          if (statSync(abs, { throwIfNoEntry: false })?.isFile()) {
+            return abs;
+          }
+        } catch {
+          return null;
         }
-      } catch {
-        return null;
       }
     }
   }
   return null;
 }
 
-function isInsidePackageSrc(absRoot: string, absFile: string, pkgDir: string): boolean {
-  const srcDir = join(pkgDir, "src");
+function getSrcDir(pkg: string, pkgDir: string): string {
+  return pkg === "root" ? pkgDir : join(pkgDir, "src");
+}
+
+function isInsidePackageSrc(absRoot: string, absFile: string, pkgDir: string, pkg: string): boolean {
+  const srcDir = getSrcDir(pkg, pkgDir);
   const rel = absFile.slice(srcDir.length);
   return absFile.startsWith(srcDir) && (rel === "" || rel.startsWith("/"));
 }
@@ -51,7 +59,7 @@ function fileToModuleId(
   pkgName: string,
   pkgDir: string,
 ): string {
-  const srcDir = join(pkgDir, "src");
+  const srcDir = getSrcDir(pkgName, pkgDir);
   if (!absFile.startsWith(srcDir)) return "";
   let rel = absFile.slice(srcDir.length).replace(/^\//, "").replace(/\\/g, "/").toLowerCase();
   rel = rel.replace(/\.(ts|tsx)$/, "");
@@ -76,7 +84,7 @@ export function resolveSpecifier(
     if (!pkg) return { target: null, resolvedFileAbs: resolved, kind: "unresolved" };
     const pkgDir = ctx.pkgDirByName.get(pkg);
     if (!pkgDir) return { target: null, resolvedFileAbs: resolved, kind: "unresolved" };
-    if (!isInsidePackageSrc(absRoot, resolved, pkgDir)) {
+    if (!isInsidePackageSrc(absRoot, resolved, pkgDir, pkg)) {
       return { target: null, resolvedFileAbs: resolved, kind: "unresolved" };
     }
     const target = fileToModuleId(absRoot, resolved, pkg, pkgDir);
@@ -94,7 +102,7 @@ export function resolveSpecifier(
       return { target: null, resolvedFileAbs: null, kind: "external" };
     }
 
-    const srcDir = join(pkgDir, "src");
+    const srcDir = getSrcDir(pkgName, pkgDir);
 
     let resolved: string | null;
     if (!subpath) {
@@ -107,7 +115,7 @@ export function resolveSpecifier(
       return { target: null, resolvedFileAbs: null, kind: "unresolved" };
     }
 
-    if (!isInsidePackageSrc(absRoot, resolved, pkgDir)) {
+    if (!isInsidePackageSrc(absRoot, resolved, pkgDir, pkgName)) {
       return { target: null, resolvedFileAbs: resolved, kind: "unresolved" };
     }
 

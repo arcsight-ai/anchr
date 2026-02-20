@@ -29,6 +29,7 @@ function isStopPath(relFromSrc: string): boolean {
 function proofTypeForRule(rule: ViolationKind): ProofType {
   if (rule === "deleted_public_api") return "deleted_file";
   if (rule === "relative_escape") return "relative_escape_path";
+  if (rule === "circular_import") return "circular_import";
   return "import_path";
 }
 

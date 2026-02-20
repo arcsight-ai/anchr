@@ -80,26 +80,24 @@ function walk(
 }
 
 /**
- * Lists all .ts/.tsx files under packages/<pkg>/src.
+ * Lists all .ts/.tsx files under packages/<pkg>/src and under root-level source/.
  * Excludes node_modules, dist, build, .git, artifacts, test dirs, *.spec.ts(x), *.test.ts(x).
  * Returns absolute paths, sorted lexicographically by normalized relative path.
  */
 export function listSourceFiles(repoRoot: string): string[] {
   const absRoot = resolve(repoRoot);
-  const packagesDir = join(absRoot, "packages");
+  const collected: string[] = [];
 
+  const packagesDir = join(absRoot, "packages");
   try {
     const pkgNames = readdirSync(packagesDir, { withFileTypes: true });
     const dirs: string[] = [];
-
     for (const e of pkgNames) {
       if (!e.isSymbolicLink() && e.isDirectory()) {
         dirs.push(e.name);
       }
     }
     dirs.sort((a, b) => a.localeCompare(b, "en"));
-
-    const collected: string[] = [];
     for (const pkg of dirs) {
       const srcDir = join(packagesDir, pkg, "src");
       try {
@@ -111,19 +109,29 @@ export function listSourceFiles(repoRoot: string): string[] {
         // skip if src does not exist
       }
     }
-
-    collected.sort((a, b) => {
-      const relA = normalizeSeparators(
-        a.slice(absRoot.length).replace(/^\//, ""),
-      );
-      const relB = normalizeSeparators(
-        b.slice(absRoot.length).replace(/^\//, ""),
-      );
-      return relA.localeCompare(relB, "en");
-    });
-
-    return collected;
   } catch {
-    return [];
+    // no packages dir
   }
+
+  const sourceDir = join(absRoot, "source");
+  try {
+    const stats = statSync(sourceDir, { throwIfNoEntry: false });
+    if (stats?.isDirectory() && !isSymlink(sourceDir)) {
+      walk(absRoot, sourceDir, collected);
+    }
+  } catch {
+    // no root-level source/
+  }
+
+  collected.sort((a, b) => {
+    const relA = normalizeSeparators(
+      a.slice(absRoot.length).replace(/^\//, ""),
+    );
+    const relB = normalizeSeparators(
+      b.slice(absRoot.length).replace(/^\//, ""),
+    );
+    return relA.localeCompare(relB, "en");
+  });
+
+  return collected;
 }

@@ -18,12 +18,15 @@ function buildPackageMaps(
 
   for (const absFile of files) {
     const rel = normalizeSeparators(absFile.slice(absRoot.length).replace(/^\//, ""));
-    const match = rel.match(/^packages\/([^/]+)\/src\//);
-    if (match) {
-      const pkg = match[1];
+    const pkgMatch = rel.match(/^packages\/([^/]+)\/src\//);
+    if (pkgMatch) {
+      const pkg = pkgMatch[1];
       const pkgDir = join(absRoot, "packages", pkg);
       pkgDirByName.set(pkg, pkgDir);
       pkgNameByAbsFile.set(absFile, pkg);
+    } else if (rel.startsWith("source/")) {
+      pkgDirByName.set("root", join(absRoot, "source"));
+      pkgNameByAbsFile.set(absFile, "root");
     }
   }
 
@@ -36,7 +39,7 @@ function fileToModuleId(
   pkgName: string,
   pkgDir: string,
 ): ModuleID {
-  const srcDir = join(pkgDir, "src");
+  const srcDir = pkgName === "root" ? pkgDir : join(pkgDir, "src");
   let rel = absFile.slice(srcDir.length).replace(/^\//, "").replace(/\\/g, "/").toLowerCase();
   rel = rel.replace(/\.(ts|tsx)$/, "");
   if (rel === "index" || rel === "") return `pkg:${pkgName}`;
@@ -81,8 +84,8 @@ export function buildGraph(repoRoot: string): GraphResult {
     const pkgDir = pkgDirByName.get(pkg);
     if (!pkgDir) continue;
 
+    const srcDir = pkg === "root" ? pkgDir : join(pkgDir, "src");
     const moduleId = fileToModuleId(absRoot, absFile, pkg, pkgDir);
-    const srcDir = join(pkgDir, "src");
     const relPath = absFile.slice(srcDir.length).replace(/^\//, "").replace(/\.(ts|tsx)$/, "");
     const isEntry = relPath === "index" || relPath === "" || relPath === "index.ts" || relPath === "index.tsx";
 

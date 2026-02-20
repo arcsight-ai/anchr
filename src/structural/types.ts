@@ -2,14 +2,16 @@ export type ViolationKind =
   | "boundary_violation"
   | "type_import_private_target"
   | "relative_escape"
-  | "deleted_public_api";
+  | "deleted_public_api"
+  | "circular_import";
 
 /** Causal Proof Contract: verifiable repo facts only. No reasoning. */
 export type ProofType =
   | "import_path"
   | "export_path"
   | "deleted_file"
-  | "relative_escape_path";
+  | "relative_escape_path"
+  | "circular_import";
 
 export interface Proof {
   type: ProofType;
