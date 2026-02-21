@@ -18,6 +18,9 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Run determinism proof (3 runs, zero variance)
         run: npx tsx scripts/hardening/day1-determinism.ts
         env:
