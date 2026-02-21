@@ -80,30 +80,46 @@ No heuristics. No timestamps or randomness in the verdict.
 
 ---
 
-## Installation
+## Install (60 seconds)
 
-**GitHub App (primary path)**  
-Install the ANCHR/ArcSight GitHub App on your organization or repo. The App runs on pull requests and posts a Check Run named "ArcSight." Use this as the required status check for merge.
+Add the ArcSight check to your repo.
 
-**CLI (secondary path)**  
-For local runs or CI that invokes the tool directly:
+Create **`.github/workflows/arcsight.yml`**. Paste:
 
-```bash
-npx anchr audit
+```yaml
+name: ArcSight
+
+on:
+  pull_request:
+
+jobs:
+  ArcSight:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npx anchr@latest audit
+        env:
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 ```
 
-Optional env for CI: `GITHUB_BASE_SHA` and `GITHUB_HEAD_SHA` (or `BASE_SHA` and `HEAD_SHA`) to compare base vs head. Without them, the CLI uses git merge-base.
+Commit. Open a PR.
 
----
+You will see a check named **ArcSight**.
 
-## Merge Gate Configuration
+To enforce: **Settings → Branch protection → Require status checks → Add "ArcSight"**.
 
-ANCHR blocks architectural drift by enforcing module boundaries as a required status check.
+From that point forward, each PR receives exactly one decision: **VERIFIED** or **BLOCKED**. Same input → same decision.
 
-1. Install the ANCHR/ArcSight GitHub App on the repo (or org).
-2. In **Settings → Branches → Branch protection** for your default branch, enable **Require status checks to pass before merging**.
-3. Add the **ArcSight** status check as required.
-4. Save. Merges are blocked when the check fails (BLOCKED or REVIEW REQUIRED); merges are allowed when the check passes (VERIFIED).
+**Local run:** `npx anchr audit`
 
 ---
 

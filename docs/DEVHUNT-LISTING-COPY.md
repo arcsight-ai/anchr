@@ -52,4 +52,4 @@ Architecture is too important to rely on convention. Code review catches logic e
 
 - One graph per PR. Dependency graph + minimal cut. No manual structure review.
 - One comment. BLOCK / WARN / VERIFIED with evidence. Deterministic. No black box.
-- One decision before merge. GitHub App or CI. Built for monorepos and strict dependency boundaries.
+- One decision before merge. Add the ArcSight workflow; require the check. Built for monorepos and strict dependency boundaries.

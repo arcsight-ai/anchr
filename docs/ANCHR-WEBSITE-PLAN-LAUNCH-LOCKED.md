@@ -99,6 +99,12 @@ Before DevHunt:
 
 ---
 
-## 10. Status
+## 10. Install path (locked)
 
-Launch copy: locked. Brand system: defined. Website: ready for implementation. CLI: `npx anchr audit`. Stack: Vite + React in `/website`.
+**Add the ArcSight workflow.** Not a GitHub App. README contains copy-paste workflow for `.github/workflows/arcsight.yml`. User creates file, pastes, opens PR, requires **ArcSight** check in branch protection. Launch copy and listing use this language everywhere.
+
+---
+
+## 11. Status
+
+Launch copy: locked. Brand system: defined. Install: workflow-based, documented. Website: ready for implementation. CLI: `npx anchr audit`. Stack: Vite + React in `/website`.

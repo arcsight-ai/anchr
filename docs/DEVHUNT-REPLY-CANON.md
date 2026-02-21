@@ -4,7 +4,19 @@ Copy-paste ready. Use as-is. No edits day-of.
 
 ---
 
-## Pinned comment (post first)
+## Launch pinned comment (post first — use this)
+
+ANCHR is not a linter. It is a merge-time structural gate.
+
+One decision per PR. VERIFIED or BLOCKED.
+
+Opinionated by design.
+
+Short. Declarative. No defense.
+
+---
+
+## Longer variant (backup only — do not use as launch pinned)
 
 **ANCHR in one line**
 

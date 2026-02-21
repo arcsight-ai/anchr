@@ -10,11 +10,9 @@ Single source of truth for landing page and DevHunt. This document defines the p
 
 **ANCHR**
 
-Deterministic architecture guard for TypeScript monorepos.
+One decision per PR: VERIFIED or BLOCKED. Deterministic structural gate for TypeScript monorepos.
 
-Stops boundary violations and public API breaks before merge.
-
-[ Install GitHub App ]  [ View on GitHub ]  (See demo PR)
+[ Add ArcSight to Your Repo ]  [ View on GitHub ]  (See demo PR)
 
 **Trust line:** Diff-based analysis. Deterministic output. Merge-gate ready.
 
@@ -24,13 +22,17 @@ Architecture is policy — not convention.
 
 ## What ANCHR Is
 
-ANCHR is a structural merge gate.
+ANCHR is a merge-time structural gate for TypeScript monorepos.
 
-It analyzes pull request diffs, builds a package-level dependency model, and emits one decision:
+It analyzes your dependency graph and returns one deterministic decision per PR. It runs as a GitHub Check via workflow.
 
-**VERIFIED** or **BLOCKED**
+---
 
-No scoring. No heuristics. No "maybe." Just a clear structural verdict.
+## What It Is Not
+
+Not a linter. Not a style rule engine. Not a report you interpret.
+
+It makes the decision.
 
 ---
 
@@ -72,33 +74,19 @@ One comment. Clear evidence. Deterministic verdict.
 
 ## The Contract
 
-ANCHR enforces a single explicit layout:
+Layout supported: `packages/<name>/src`.
 
-`packages/<name>/src`
-
-Public surface is inferred from:
-
-`packages/<name>/src/index.ts` (and barrel re-exports)
-
-It does not guess layout. It does not infer boundaries heuristically.
-
-If the repository does not match the contract, ANCHR reports out-of-scope instead of pretending.
-
-Determinism requires an explicit boundary model.
+Out-of-scope layouts are verified by contract. Opinionated by design.
 
 ---
 
-## Install in Under 60 Seconds
+## Install
 
-1. Install the GitHub App
-2. Add the workflow file
-3. Require the ANCHR status check in branch protection
+Add the ArcSight workflow to your repo. It runs on pull requests and produces a required GitHub Check.
 
-That's it.
+No SaaS. No dashboard. No heuristics. No config guessing.
 
-**Optional local run:** `npx anchr audit`
-
-ANCHR comments only when structural risk is detected.
+Just one deterministic decision per PR. **VERIFIED** or **BLOCKED**.
 
 ---
 
@@ -128,7 +116,7 @@ If your repository is intentionally boundary-less, ANCHR is not designed for tha
 ## FAQ
 
 **Does it block merges?**  
-Yes, when configured as a required status check. Comment-only mode is also supported.
+Yes. Add the ArcSight workflow, then require the **ArcSight** status check in branch protection. The check fails on BLOCKED/REVIEW_REQUIRED and passes on VERIFIED.
 
 **Does it require installing dependencies?**  
 No. It runs in a bounded runtime and reads source files directly.
