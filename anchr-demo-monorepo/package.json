@@ -1,0 +1,9 @@
+{
+  "name": "anchr-demo-monorepo",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "build": "echo 'No build step for demo'",
+    "audit": "npx anchr audit"
+  }
+}

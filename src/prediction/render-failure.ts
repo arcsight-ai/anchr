@@ -43,11 +43,7 @@ const CAUSE_TO_FAILURE_KIND: Record<ViolationKind, FailureKind> = {
   type_import_private_target: "silent_corruption",
   relative_escape: "partial_initialization",
   deleted_public_api: "version_mismatch_crash",
-  hidden_shared_state: "hidden_shared_state",
-  init_order_dependency: "async_init_race",
-  temporal_coupling: "temporal_coupling",
-  fanout_side_effects: "fanout_side_effects",
-  circular_responsibility: "circular_responsibility",
+  circular_import: "circular_responsibility",
 };
 
 /** Vivid, runtime-only wording per failure_kind. No architecture vocabulary. */

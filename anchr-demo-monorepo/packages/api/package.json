@@ -1,0 +1,9 @@
+{
+  "name": "@market-os/api",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@market-os/core": "workspace:*"
+  }
+}

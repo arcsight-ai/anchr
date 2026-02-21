@@ -1,0 +1,29 @@
+# ArcSight architectural check — required for merge.
+# Runs ANCHR; merge allowed only when audit passes (VERIFIED).
+
+name: ArcSight
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  arcsight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run ANCHR audit
+        run: npx anchr@latest audit
+        env:
+          # Optional: point at base/head for PR diff; omit for full-branch audit
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}

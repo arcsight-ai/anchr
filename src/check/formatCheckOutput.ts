@@ -35,6 +35,7 @@ const RULE_TO_FIX: Record<ViolationKind, string> = {
   relative_escape:
     "move file inside package boundary or expose via entrypoint",
   type_import_private_target: "import types from public types entry",
+  circular_import: "break the cycle by moving or inverting the dependency",
 };
 
 export type CheckResult = "ALLOW" | "BLOCK" | "UNCERTAIN";

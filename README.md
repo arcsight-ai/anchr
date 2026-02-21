@@ -1,28 +1,139 @@
-# ANCHR
+# ANCHR — Deterministic Structural Merge Gate for TypeScript Monorepos
 
-ANCHR is a deterministic architectural certification engine.
+[![CI](https://github.com/arcsight-ai/anchr/actions/workflows/arcsight.yml/badge.svg)](https://github.com/arcsight-ai/anchr/actions/workflows/arcsight.yml) [![Deterministic](https://img.shields.io/badge/deterministic-by__construction-2ea043)](.)
+
+Prevents boundary violations and architectural drift at pull request time.
+
+**Review sees the diff. ANCHR sees the structure.** One decision per PR.
+
+Code review catches logic errors. ANCHR enforces structural discipline. Architecture is too important to rely on convention.
+
+ANCHR is not a stylistic linter. It enforces structural boundaries at the package level.
+
+---
+
+## The Problem
+
+Large monorepos decay. Internal APIs get imported across package boundaries. Cycles creep in. Code review cannot reliably catch structural violations—reviewers focus on logic and style, not dependency direction. CI rarely enforces architecture; most pipelines run tests and lint, not "did this PR introduce a cross-package internal import?"
+
+Review sees the diff. ANCHR sees the structure: cycles, layering, and critical edges. The result is gradual coupling, hidden dependencies, and merge-time decisions that later prove expensive to undo.
+
+---
+
+## What ANCHR Does
+
+ANCHR is the merge-time structural gate. It enforces structural boundaries between packages: cross-package internal imports, deleted public API usage, and circular dependencies. It runs as a GitHub Check and blocks merges when violations occur. Output is deterministic: same repository snapshot and refs produce the same verdict every time.
+
+ANCHR is not a linter. It does not analyze syntax or style. It analyzes the dependency graph and blocks structural risk. One graph per PR; one comment with BLOCK, WARN, or VERIFIED and the minimal cut. Merge or fix.
+
+---
+
+## Opinionated by Design
+
+### Scope & Layout Contract
+
+ANCHR enforces structural boundaries in monorepos organized under:
+
+```
+packages/<name>/src
+```
+
+Only this layout is supported. There is no heuristic module inference and no config-driven path guessing. Discovery is explicit: only `<repoRoot>/packages/<name>/src` directories are treated as modules. If the layout does not match, ANCHR returns VERIFIED by contract and surfaces that boundary enforcement was not applied (see runtime output).
+
+Explicit structure enables deterministic enforcement. The contract is intentional.
+
+---
+
+## Why ANCHR
+
+- **Not a linter.** ANCHR does not analyze syntax or style. It analyzes the dependency graph and blocks structural risk.
+- **Not guesswork.** Deterministic. Same input → same output. Evidence (minimal cut) in every BLOCKED run.
+- **Not manual review.** Review sees the diff. ANCHR sees the structure—cycles, layering, and critical edges.
+- **Not random blocking.** One graph per PR. Minimal cut explains why. Resolve or override.
+
+---
+
+## Example Verdicts
+
+| Verdict | Meaning |
+|--------|---------|
+| **VERIFIED** | Safe change. No boundary violations, no new cycles. |
+| **BLOCKED** | Cross-package internal import. A file in package A imports from package B's non-public surface. |
+| **BLOCKED** | Circular dependency. The dependency graph contains a cycle. |
+
+Short, realistic outcomes. BLOCKED runs include a minimal cut (the set of edges that evidence the violation) and a cause label.
+
+---
+
+## How It Works
+
+**Graph. Cut. Decide.**
+
+1. **Discovers packages** — Scans `packages/<name>/src`; only these directories define modules.
+2. **Builds dependency graph** — From import statements in the diff and existing code; value imports and re-exports.
+3. **Computes public surface** — Per package, from entry (`index.ts`/`index.tsx`) and re-exports; paths under `internal/`, `private/`, `impl/` are excluded.
+4. **Detects violations** — Cross-package imports that resolve to non-public files; deleted public API usage; relative path escape; cycles.
+5. **Computes minimal cut** — Canonical set of edges that evidence the violation.
+6. **Emits deterministic result** — Structured report (status, minimal cut, proofs); same inputs yield byte-consistent output.
+
+No heuristics. No timestamps or randomness in the verdict.
+
+---
+
+## Installation
+
+**GitHub App (primary path)**  
+Install the ANCHR/ArcSight GitHub App on your organization or repo. The App runs on pull requests and posts a Check Run named "ArcSight." Use this as the required status check for merge.
+
+**CLI (secondary path)**  
+For local runs or CI that invokes the tool directly:
+
+```bash
+npx anchr audit
+```
+
+Optional env for CI: `GITHUB_BASE_SHA` and `GITHUB_HEAD_SHA` (or `BASE_SHA` and `HEAD_SHA`) to compare base vs head. Without them, the CLI uses git merge-base.
+
+---
+
+## Merge Gate Configuration
+
+ANCHR blocks architectural drift by enforcing module boundaries as a required status check.
+
+1. Install the ANCHR/ArcSight GitHub App on the repo (or org).
+2. In **Settings → Branches → Branch protection** for your default branch, enable **Require status checks to pass before merging**.
+3. Add the **ArcSight** status check as required.
+4. Save. Merges are blocked when the check fails (BLOCKED or REVIEW REQUIRED); merges are allowed when the check passes (VERIFIED).
+
+---
+
+## Why Determinism Matters
+
+Same repository snapshot and refs produce the same verdict. No flaky checks, no race-condition verdicts. The pipeline can rely on the result. Emission is structured and suitable for certification: identical inputs yield identical outputs across environments.
+
+---
+
+## Demo
+
+<!-- Demo GIF: record 10–15s — (1) Open clean PR → ArcSight VERIFIED; (2) Add internal import → ArcSight BLOCKED; (3) Attempt merge → blocked. Save as docs/media/demo-merge-blocked.gif and replace placeholder below. -->
+<!-- ![ANCHR blocks merge on boundary violation](docs/media/demo-merge-blocked.gif) -->
+
+**[anchr-demo-monorepo](anchr-demo-monorepo)** demonstrates the merge gate end-to-end:
+
+- A **safe PR** example (VERIFIED) — changes that stay within boundaries.
+- A **boundary violation** example (BLOCKED) — cross-package internal import.
+- A **circular dependency** example (BLOCKED) — cycle in the dependency graph.
+
+Use it to see ArcSight as a required check and to reproduce VERIFIED vs BLOCKED behavior. For maximum impact, record a short GIF: clean PR → VERIFIED; add internal import → BLOCKED; attempt merge → blocked.
+
+---
 
 ## run.id — Repository State Identity
 
-`run.id` is a deterministic architectural state identifier derived from the repository content. If `run.id` matches between environments (local, CI, any machine), the codebase is identical in structure and content.
+`run.id` is a deterministic architectural state identifier derived from repository content. If `run.id` matches between environments (local, CI, any machine), the codebase is identical in structure and content. Content-based; no timestamps or git metadata in the hash. Cross-platform.
 
-- **Deterministic**: Same files and content → same `run.id` everywhere.
-- **Content-based**: Uses file content hashes, not timestamps or git metadata.
-- **Cross-platform**: Identical results on macOS, Linux, and CI.
+---
 
-## Usage
+## License
 
-```bash
-npm install
-npm run build
-npm start
-```
-
-## Output
-
-```
-ANCHR RUN
-files: <count>
-fingerprint: <64 hex>
-run.id: <16 hex>
-```
+MIT.

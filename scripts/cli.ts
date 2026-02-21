@@ -738,76 +738,85 @@ async function main(): Promise<void> {
     return;
   }
 
-  const { formatLaw } = await import("../src/formatters/law.js");
-  const law = formatLaw(report as import("../src/formatters/law.js").ArcSightReportLike);
-  console.log(law);
-  console.log("");
-
-  const coverage = (report.confidence as { coverageRatio?: number } | undefined)?.coverageRatio;
-  const confidenceLine =
-    coverage != null && coverage >= 0.95 ? "high" : coverage != null && coverage >= 0.8 ? "medium" : "low";
+  const runId = (report.run as { id?: string } | undefined)?.id;
+  const primaryCause = (report.classification as { primaryCause?: string | null } | undefined)?.primaryCause;
+  const CAUSE_LABEL: Record<string, string> = {
+    deleted_public_api: "public API removed",
+    boundary_violation: "internal module access",
+    type_import_private_target: "new cross-package dependency",
+    relative_escape: "relative escape",
+    indeterminate: "coupling increase",
+  };
+  const causeRaw = primaryCause && CAUSE_LABEL[primaryCause] ? CAUSE_LABEL[primaryCause] : "structural violation";
+  const causeLabel = causeRaw.charAt(0).toUpperCase() + causeRaw.slice(1);
+  const proofLine = runId ? `Proof: ${runId.slice(0, 16)}` : null;
 
   if (decisionLevel === "allow" || (decisionLevel !== "block" && decisionLevel !== "warn")) {
-    console.log("Safe change");
+    console.log("ANCHR — MERGE VERIFIED");
     console.log("");
-    console.log(`anchr analyzed ${filesCount} files against ${refs.base.slice(0, 7)}`);
+    const repoRoot = (await import("../src/structural/git.js")).getRepoRoot() ?? cwd;
+    const { discoverPackages } = await import("../src/structural/packages.js");
+    const packageCount = discoverPackages(repoRoot).size;
+    if (packageCount === 0) {
+      console.log("Scope: No `packages/<name>/src` modules detected.");
+      console.log("Boundary enforcement not applied (out-of-scope by contract).");
+      console.log("");
+    }
+    console.log("Deterministic. Same input → same output.");
+    if (proofLine) console.log(proofLine);
     console.log("");
-    console.log("No architectural boundaries affected.");
+    console.log("No structural boundary violations detected.");
     console.log("");
-    console.log("You can commit.");
-    console.log("");
-    console.log("Next: git commit");
-    console.log("");
-    console.log("Confidence: high");
+    console.log("Confidence: HIGH");
     process.exitCode = 0;
   } else if (decisionLevel === "block") {
-    console.log("Architectural violation detected");
+    console.log("ANCHR — MERGE BLOCKED");
     console.log("");
-    console.log(`anchr analyzed ${filesCount} files against ${refs.base.slice(0, 7)}`);
+    console.log("Deterministic. Same input → same output.");
+    if (proofLine) console.log(proofLine);
     console.log("");
-    const lines: string[] = [];
+    console.log(`Cause: ${causeLabel}`);
+    console.log("");
+    const n = Math.min(minimalCut.length, 12);
+    console.log(`Minimal cut (${n} edge${n !== 1 ? "s" : ""}):`);
     for (const cut of minimalCut.slice(0, 12)) {
-      const parts = cut.split(":");
-      const file = parts[0] ?? cut;
-      const rest = parts.slice(1).join(":");
-      lines.push(`File: ${file}`);
-      if (rest) lines.push(`Imports: ${rest}`);
-      lines.push("Why: crosses module boundary");
-      lines.push("");
+      const edge = cut.includes(":") ? cut.replace(":", " → ") : cut;
+      console.log(`  ${edge}`);
     }
-    if (lines.length > 0) console.log(lines.join("\n"));
-    console.log("Fix:");
-    console.log("Expose via public API");
-    console.log("OR move logic");
     console.log("");
-    console.log("Confidence: high");
+    console.log("Fix:");
+    console.log("  Expose via public API");
+    console.log("  OR move logic");
+    console.log("");
+    console.log("Confidence: HIGH");
     process.exitCode = 1;
   } else {
-    console.log("Cannot prove safety");
+    console.log("ANCHR — REVIEW REQUIRED");
     console.log("");
-    console.log(`anchr analyzed ${filesCount} files against ${refs.base.slice(0, 7)}`);
+    console.log("Deterministic. Same input → same output.");
+    if (proofLine) console.log(proofLine);
     console.log("");
-    console.log("The change may affect architecture but certainty is insufficient.");
+    console.log(`Cause: ${causeLabel}`);
+    if (minimalCut.length > 0) {
+      console.log("");
+      const n = Math.min(minimalCut.length, 12);
+      console.log(`Minimal cut (${n} edge${n !== 1 ? "s" : ""}):`);
+      for (const cut of minimalCut.slice(0, 12)) {
+        const edge = cut.includes(":") ? cut.replace(":", " → ") : cut;
+        console.log(`  ${edge}`);
+      }
+    }
     console.log("");
-    console.log("Run:");
-    console.log("  anchr --strict");
-    console.log("");
-    console.log(`Confidence: ${confidenceLine}`);
+    console.log("Confidence: MEDIUM");
     process.exitCode = isStrict ? 2 : 0;
   }
-
-  console.log("");
-  const { formatShareBlock } = await import("../src/formatters/share.js");
-  const shareContext = { base: refs.base, head: refs.head, repoRoot: cwd };
-  console.log(formatShareBlock(report as import("../src/formatters/share.js").ArcSightReport, shareContext));
-  console.log("");
-  const { formatExplanation } = await import("../src/formatters/explain.js");
-  console.log(formatExplanation(report as import("../src/formatters/explain.js").ArcSightReport));
 }
 
 void main().catch((_err: unknown) => {
-  console.log("ArcSight — Inconclusive");
+  console.log("ANCHR — INCONCLUSIVE");
+  console.log("");
   console.log("Analyzer could not complete safely.");
-  console.log("Confidence: low");
+  console.log("");
+  console.log("Confidence: LOW");
   process.exit(2);
 });

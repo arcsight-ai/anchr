@@ -11,6 +11,7 @@ export const RULE_TO_FIX: Record<ViolationKind, string> = {
   relative_escape:
     "move file inside package boundary or expose via entrypoint",
   type_import_private_target: "import types from public types entry",
+  circular_import: "break the cycle by moving or inverting the dependency",
 };
 
 export type RepairIntent =
@@ -25,6 +26,7 @@ export const RULE_TO_INTENT: Record<ViolationKind, RepairIntent> = {
   deleted_public_api: "restore_or_version_contract",
   relative_escape: "replace_filesystem_access_with_package_import",
   type_import_private_target: "promote_type_to_public_contract",
+  circular_import: "require_deeper_analysis",
 };
 
 /** Fix confidence: High = direct internal import, Medium = deleted public API, Low = resolver uncertainty */
@@ -35,6 +37,7 @@ export const RULE_TO_FIX_CONFIDENCE: Record<ViolationKind, FixConfidence> = {
   deleted_public_api: "Medium",
   relative_escape: "High",
   type_import_private_target: "High",
+  circular_import: "High",
 };
 
 export type SummaryConfidence = "High" | "Medium" | "Low";
