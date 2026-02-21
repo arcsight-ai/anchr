@@ -48,6 +48,23 @@ Artifacts live under `docs/validation-20pr/adjudication/` and are produced by th
 
 ---
 
+## Option A: Commit artifacts into wedge
+
+Wedge does not see anchr’s files; it only consumes artifacts. To give wedge the artifacts:
+
+**From anchr (with wedge repo path):**
+```bash
+WEDGE_ROOT=/path/to/wedge npx tsx scripts/copy-adjudication-to-wedge.ts
+```
+Or copy manually:
+- `docs/validation-20pr/adjudication/sindresorhus_ky_751.input.json` → wedge `tests/adjudication/sindresorhus_ky_751.input.json`
+- `docs/validation-20pr/adjudication/sindresorhus_ky_751.emission.json` → wedge `tests/adjudication/sindresorhus_ky_751.emission.json`
+
+The copy script also writes `<case>.checksums` (SHA256 of each artifact). Wedge adjudication should recompute hashes from the two JSON files and fail if they do not match the checksums file (deterministic artifact integrity).
+Then commit in the wedge repo and re-run adjudication there.
+
+---
+
 ## Reproduce wedge run from input
 
 Given `<pr_id>.input.json` with `repo`, `base_sha`, `head_sha`:
