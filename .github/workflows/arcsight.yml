@@ -173,7 +173,9 @@ jobs:
           case "$ACTION" in
             merge)  echo "conclusion=success" >> $GITHUB_OUTPUT ;;
             block)  echo "conclusion=failure" >> $GITHUB_OUTPUT ;;
-            *)      echo "conclusion=neutral" >> $GITHUB_OUTPUT ;;
+            review) echo "conclusion=failure" >> $GITHUB_OUTPUT ;;
+            retry)  echo "conclusion=failure" >> $GITHUB_OUTPUT ;;
+            *)      echo "conclusion=failure" >> $GITHUB_OUTPUT ;;
           esac
 
       - name: Create or update check run

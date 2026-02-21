@@ -1,0 +1,7 @@
+{
+  "name": "demo-anchr-structure",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "workspaces": ["packages/*"]
+}

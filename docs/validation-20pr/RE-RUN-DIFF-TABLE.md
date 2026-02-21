@@ -73,7 +73,7 @@ The **before** column is the run that triggered hardening: layout-agnostic disco
 | vercel_swr_4189 | **Yes** — now ALLOW | N/A (revert) | No | No |
 | vercel_swr_4208 | **Yes** — now ALLOW | N/A (revert) | No | No |
 
-**Conclusion:** All 4 FPs resolved. No new FPs introduced. No status flips on legitimate BLOCK cases (the only BLOCK in ground truth is ky_751, which remains ALLOW in both runs).
+**Conclusion:** All 4 FPs resolved. No new FPs introduced. No status flips on legitimate BLOCK cases (the only BLOCK in ground truth is ky_751, which remains ALLOW in both runs). The single FN (ky_751) is formally bounded as out-of-scope under the detection contract; see `docs/SCOPE-DETECTION-CONTRACT.md`.
 
 ---
 
