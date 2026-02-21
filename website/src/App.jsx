@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import './index.css'
 
 const GITHUB_URL = 'https://github.com/arcsight-ai/anchr'
@@ -85,6 +86,9 @@ function Hero() {
         <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 20 }}>
           Diff-based analysis. Deterministic output. Merge-gate ready.
         </p>
+        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8 }}>
+          Not a linter. Not a report you interpret. It makes the decision.
+        </p>
         <PRCommentCard />
       </div>
     </header>
@@ -161,9 +165,9 @@ function Install() {
   return (
     <section id="install" className="section" style={{ background: 'var(--bg-alt)' }}>
       <div className="container">
-        <h2>Install</h2>
+        <h2>Install (under 60 seconds)</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>
-          Add the ANCHR workflow. No SaaS. No dashboard. No config guessing.
+          Add the ANCHR workflow. No SaaS. No dashboard. No config guessing. One deterministic decision per PR.
         </p>
         <div className="card" style={{ maxWidth: 560 }}>
           <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 8 }}>.github/workflows/anchr.yml</p>
@@ -189,39 +193,153 @@ jobs:
   )
 }
 
+const DEMO_REPO_URL = 'https://github.com/arcsight-ai/anchr/tree/main/anchr-demo-monorepo'
+
 function Demo() {
   return (
     <section id="demo" className="section">
       <div className="container">
         <h2>Demo</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>
-          See ANCHR on a real PR. (Placeholder: link to demo repo PRs.)
+        <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
+          See ANCHR on a real monorepo: branch protection, required check, and three PR outcomes.
         </p>
-        <a href={GITHUB_URL} className="btn btn-secondary">View demo on GitHub</a>
+        <ul style={{ color: 'var(--text-secondary)', marginBottom: 20, paddingLeft: 20, lineHeight: 1.7 }}>
+          <li><strong style={{ color: 'var(--text)' }}>VERIFIED</strong> — Clean PR that respects boundaries.</li>
+          <li><strong style={{ color: 'var(--danger)' }}>BLOCKED</strong> — Boundary violation (cross-package internal import).</li>
+          <li><strong style={{ color: 'var(--danger)' }}>BLOCKED</strong> — Circular dependency.</li>
+        </ul>
+        <a href={DEMO_REPO_URL} target="_blank" rel="noreferrer" className="btn btn-secondary">Open anchr-demo-monorepo</a>
       </div>
     </section>
   )
 }
 
+// FAQ: Pre-answers the top DevHunt objections (first impression + hostile thread). Canon phrasing from docs.
 const FAQ_ITEMS = [
-  { q: 'Does it block merges?', a: 'Yes. Add the ANCHR workflow, then require the ANCHR status check in branch protection. The check fails on BLOCKED and passes on VERIFIED.' },
-  { q: 'Does it require installing dependencies?', a: 'No. It runs in a bounded runtime and reads source files directly.' },
-  { q: 'Does it support arbitrary layouts?', a: 'No. It enforces one explicit contract (packages/<name>/src) for deterministic behavior.' },
-  { q: 'Is it AI?', a: 'No. Deterministic structural analysis.' },
+  {
+    q: 'What does VERIFIED vs BLOCKED mean?',
+    a: 'VERIFIED means no structural violations: your PR respects package boundaries and the dependency graph. BLOCKED means ANCHR found a violation (cross-package internal import, deleted public API, or cycle). One decision per PR, with a minimal cut as evidence. Same input → same output.',
+  },
+  {
+    q: 'How is ANCHR different from ESLint?',
+    a: 'ESLint operates at the file level with rules and style. ANCHR builds a full package-level dependency graph and computes structural violations as graph problems (cycles, cross-boundary imports, minimal cuts). This isn’t a stylistic rule — it’s a merge-time architectural decision with evidence. Different layer. Different job.',
+  },
+  {
+    q: 'How is ANCHR different from dependency-cruiser?',
+    a: 'dependency-cruiser generates reports you interpret. ANCHR produces one required merge-time decision: VERIFIED or BLOCKED — backed by a minimal cut and a GitHub Check that can gate merges. Same input, same output, enforceable in CI. It’s not "analyze and interpret." It’s "decide and enforce."',
+  },
+  {
+    q: 'Why only packages/<name>/src?',
+    a: 'Because determinism matters. ANCHR supports one explicit layout: packages/<name>/src. No heuristics. No config guessing. Same repo → same result every time. It’s opinionated by design. If you want deterministic structural enforcement, this contract makes it possible.',
+  },
+  {
+    q: 'How do I add ANCHR to my repo?',
+    a: 'Create .github/workflows/anchr.yml with the workflow (see Install above), commit, and open a PR. Install takes under 60 seconds. After the check runs once, go to Settings → Branches → Branch protection and require the ANCHR status check. One decision per PR from then on.',
+  },
+  {
+    q: 'Does it block merges?',
+    a: 'Only if you require it. Add the ANCHR workflow, then in branch protection add "ANCHR" as a required status check. BLOCKED fails the check and blocks merge; VERIFIED passes. You control whether it’s advisory or enforced.',
+  },
+  {
+    q: "Won't this slow teams down? / Is it too strict?",
+    a: 'It’s strict by intent. Architecture drift is expensive because it compounds quietly. ANCHR stops violations at merge time — when they’re cheapest to fix. One clear decision per PR: merge or fix. Teams that care about structural discipline use gates. ANCHR is that gate.',
+  },
+  {
+    q: 'Why not Nx or Turborepo?',
+    a: 'Nx and Turborepo enforce rules inside their ecosystems. ANCHR is build-agnostic. It works in any repo that follows the layout contract — no framework adoption required. If you’re already on Nx, great. If not, ANCHR gives you structural enforcement without coupling to a build system.',
+  },
+  {
+    q: "How do I know it's not full of false positives?",
+    a: 'Same input → same output. Deterministic. We enforce one explicit layout (packages/<name>/src) so we’re not guessing. Out-of-scope repos get VERIFIED by contract. When you’re in scope, the contract is documented and the minimal cut is evidence.',
+  },
+  {
+    q: 'Do I need to install dependencies or a build system?',
+    a: 'No. The workflow runs npx anchr@latest audit in CI. No Nx, Turborepo, or extra installs. ANCHR reads your source and dependency graph directly.',
+  },
+  {
+    q: 'Is it a linter or AI?',
+    a: 'Neither. ANCHR is not a linter — it doesn’t analyze syntax or style. It’s a structural gate: package-level dependency graph, one deterministic decision per PR. No AI. No black box.',
+  },
 ]
 
 function FAQ() {
+  const [openIndex, setOpenIndex] = useState(null)
+
   return (
     <section id="faq" className="section" style={{ background: 'var(--bg-alt)' }}>
       <div className="container">
         <h2>FAQ</h2>
-        <div style={{ maxWidth: 640 }}>
-          {FAQ_ITEMS.map((item, i) => (
-            <div key={i} style={{ marginBottom: 20 }}>
-              <h3 style={{ fontSize: 1, marginBottom: 6 }}>{item.q}</h3>
-              <p style={{ color: 'var(--text-secondary)', margin: 0 }}>{item.a}</p>
-            </div>
-          ))}
+        <p style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>
+          Pre-answers to the questions people ask first: ESLint?, dependency-cruiser?, layout?, strict? Install path and evidence.
+        </p>
+        <div className="faq-accordion">
+          {FAQ_ITEMS.map((item, i) => {
+            const isOpen = openIndex === i
+            return (
+              <div
+                key={i}
+                className="faq-item"
+                style={{
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-card)',
+                  marginBottom: 8,
+                  overflow: 'hidden',
+                  background: 'var(--surface)',
+                }}
+              >
+                <button
+                  type="button"
+                  className="faq-trigger"
+                  onClick={() => setOpenIndex(isOpen ? null : i)}
+                  aria-expanded={isOpen}
+                  aria-controls={`faq-answer-${i}`}
+                  id={`faq-question-${i}`}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 16,
+                    padding: '16px 20px',
+                    border: 'none',
+                    background: 'transparent',
+                    color: 'var(--text)',
+                    fontFamily: 'inherit',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span>{item.q}</span>
+                  <span
+                    style={{
+                      flexShrink: 0,
+                      color: 'var(--text-muted)',
+                      transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
+                    }}
+                    aria-hidden
+                  >
+                    ▼
+                  </span>
+                </button>
+                <div
+                  id={`faq-answer-${i}`}
+                  role="region"
+                  aria-labelledby={`faq-question-${i}`}
+                  style={{
+                    display: isOpen ? 'block' : 'none',
+                    padding: '0 20px 16px',
+                  }}
+                >
+                  <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                    {item.a}
+                  </p>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
     </section>

@@ -1,1 +1,0 @@
-{"status":"VERIFIED","decision":{"level":"allow","reason":"no_files"},"classification":{"primaryCause":null},"minimalCut":[],"scope":{"mode":"structural-fast-path"},"confidence":{"coverageRatio":1},"run":{"id":"minimal"},"baseSha":"5faf67c08a03c9e33850d47185d513212670d0f1","headSha":"5faf67c08a03c9e33850d47185d513212670d0f1"}

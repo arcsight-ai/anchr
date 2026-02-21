@@ -66,3 +66,15 @@ h3 { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.5rem; }
   border-radius: var(--radius-card);
   padding: 1.25rem 1.5rem;
 }
+
+.faq-accordion {
+  max-width: 100%;
+}
+
+.faq-trigger:hover {
+  background: var(--surface-hover);
+}
+
+.faq-item .faq-trigger {
+  transition: background-color 0.15s ease;
+}

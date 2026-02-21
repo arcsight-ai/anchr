@@ -1,6 +1,9 @@
 {
   "name": "anchr",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Structural gate for TypeScript monorepos. One decision per PR: VERIFIED or BLOCKED.",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/arcsight-ai/anchr.git" },
   "type": "module",
   "scripts": {
     "test": "jest",
