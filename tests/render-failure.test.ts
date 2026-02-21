@@ -152,12 +152,6 @@ describe("renderFailurePrediction", () => {
       const out = renderFailurePrediction(v);
       expect(out.failure_kind).toBe("circular_responsibility");
     });
-    // TODO: v12 cause types (hidden_shared_state, init_order_dependency, etc.) not in ViolationKind; skipped until scope extends
-    it.skip("v12: hidden_shared_state (out of contract)", () => {});
-    it.skip("v12: init_order_dependency (out of contract)", () => {});
-    it.skip("v12: temporal_coupling (out of contract)", () => {});
-    it.skip("v12: fanout_side_effects (out of contract)", () => {});
-    it.skip("v12: circular_responsibility cause (out of contract)", () => {});
   });
 
   describe("Unknown fallback", () => {

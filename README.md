@@ -115,16 +115,13 @@ Same repository snapshot and refs produce the same verdict. No flaky checks, no 
 
 ## Demo
 
-<!-- Demo GIF: record 10–15s — (1) Open clean PR → ArcSight VERIFIED; (2) Add internal import → ArcSight BLOCKED; (3) Attempt merge → blocked. Save as docs/media/demo-merge-blocked.gif and replace placeholder below. -->
-<!-- ![ANCHR blocks merge on boundary violation](docs/media/demo-merge-blocked.gif) -->
-
 **[anchr-demo-monorepo](anchr-demo-monorepo)** demonstrates the merge gate end-to-end:
 
 - A **safe PR** example (VERIFIED) — changes that stay within boundaries.
 - A **boundary violation** example (BLOCKED) — cross-package internal import.
 - A **circular dependency** example (BLOCKED) — cycle in the dependency graph.
 
-Use it to see ArcSight as a required check and to reproduce VERIFIED vs BLOCKED behavior. For maximum impact, record a short GIF: clean PR → VERIFIED; add internal import → BLOCKED; attempt merge → blocked.
+Use it to see ArcSight as a required check and to reproduce VERIFIED vs BLOCKED behavior.
 
 ---
 
