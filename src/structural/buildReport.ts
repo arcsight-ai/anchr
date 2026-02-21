@@ -28,7 +28,7 @@ export function buildDeterministicReport(
   );
 
   const primaryCause: ViolationKind | null =
-    violations.length > 0 ? violations[0].cause : null;
+    sortedViolations.length > 0 ? sortedViolations[0].cause : null;
 
   /** Causal Proof Contract: no BLOCKED without every violation having a proof. */
   const allHaveProof = sortedViolations.every((v) => v.proof != null);

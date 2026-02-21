@@ -121,6 +121,10 @@ export function getDiff(
     entries.push({ status, path });
   }
 
+  entries.sort((a, b) => {
+    const c = a.path.localeCompare(b.path, "en");
+    return c !== 0 ? c : a.status.localeCompare(b.status, "en");
+  });
   return entries;
 }
 
@@ -149,6 +153,10 @@ export function getDiffCached(repoRoot: string): DiffEntry[] {
       if (!isTracked(normalized)) continue;
       entries.push({ status, path: normalized } as DiffEntry);
     }
+    entries.sort((a, b) => {
+      const c = a.path.localeCompare(b.path, "en");
+      return c !== 0 ? c : a.status.localeCompare(b.status, "en");
+    });
     return entries;
   } catch {
     return [];

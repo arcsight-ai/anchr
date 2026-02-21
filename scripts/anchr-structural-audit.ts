@@ -22,16 +22,18 @@ function discoverPackages(repoRoot: string): Map<string, string> {
   const packagesDir = join(repoRoot, "packages");
   try {
     const entries = readdirSync(packagesDir, { withFileTypes: true });
-    for (const e of entries) {
-      if (e.isDirectory() && !e.isSymbolicLink()) {
-        const srcDir = join(packagesDir, e.name, "src");
-        try {
-          if (statSync(srcDir, { throwIfNoEntry: false })?.isDirectory()) {
-            pkgDirByName.set(e.name, join(packagesDir, e.name));
-          }
-        } catch {
-          // skip
+    const names = entries
+      .filter((e) => e.isDirectory() && !e.isSymbolicLink())
+      .map((e) => e.name)
+      .sort((a, b) => a.localeCompare(b, "en"));
+    for (const name of names) {
+      const srcDir = join(packagesDir, name, "src");
+      try {
+        if (statSync(srcDir, { throwIfNoEntry: false })?.isDirectory()) {
+          pkgDirByName.set(name, join(packagesDir, name));
         }
+      } catch {
+        // skip
       }
     }
   } catch {
