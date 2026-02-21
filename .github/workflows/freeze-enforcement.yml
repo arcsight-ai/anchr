@@ -63,10 +63,26 @@ jobs:
         run: |
           FROZEN="${{ steps.freeze.outputs.frozen }}"
           HEAD=$(git rev-parse HEAD)
-          if [ "$FROZEN" != "$HEAD" ]; then
-            echo "::error::ENGINE FREEZE VIOLATION — validation invalidated. Re-freeze and restart 7-day clock."
-            exit 1
+          PARENT=$(git rev-parse HEAD~1 2>/dev/null || true)
+          if [ "$FROZEN" = "$HEAD" ]; then
+            echo "Freeze hash matches HEAD. Pass."
+            exit 0
           fi
+          # Allow anchor advance: commit updates .freeze-engine-hash to parent HEAD (optionally also .freeze-validation-window)
+          CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null)
+          NEW_HASH=$(git show HEAD:.freeze-engine-hash 2>/dev/null | head -1 | tr -d '[:space:]')
+          if [ -n "$PARENT" ] && [ "$NEW_HASH" = "$PARENT" ]; then
+            if echo "$CHANGED" | grep -q '^\.freeze-engine-hash$'; then
+              if echo "$CHANGED" | grep -v '^\.freeze-engine-hash$' | grep -v '^\.freeze-validation-window$' | grep -q .; then
+                : "other files changed — not anchor advance"
+              else
+                echo "Anchor advance: .freeze-engine-hash set to parent HEAD. New canonical frozen state."
+                exit 0
+              fi
+            fi
+          fi
+          echo "::error::ENGINE FREEZE VIOLATION — validation invalidated. Re-freeze and restart 7-day clock."
+          exit 1
 
       - name: Check [validation-restart] requires hash update
         run: |
