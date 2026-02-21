@@ -128,7 +128,7 @@ export function formatArchitecturalComment(input: FormatArchitecturalCommentInpu
     currentStructuralSummary === previousStructuralSummary
   ) {
     const shortLines = [
-      "ArcSight Architectural Check",
+      "ANCHR",
       "",
       "No architectural boundary changes detected.",
       "",
@@ -147,7 +147,7 @@ export function formatArchitecturalComment(input: FormatArchitecturalCommentInpu
 
   const lines: string[] = [];
 
-  lines.push("ArcSight Architectural Check");
+  lines.push("ANCHR");
   lines.push("");
 
   if (level === "block") {

@@ -10,12 +10,12 @@ Infra product audit. No feature suggestions; only gaps that reduce infra-grade p
 
 | Question | Status |
 |----------|--------|
-| Install flow production-ready? | **YES.** README has "Add ArcSight to your repo" with copy-paste workflow. No GitHub App required; workflow-based install is explicit. |
-| Can it be required as a GitHub Check? | **YES.** Job name `ArcSight`; branch protection can require it. |
+| Install flow production-ready? | **YES.** README has "Add ANCHR to your repo" with copy-paste workflow. No GitHub App required; workflow-based install is explicit. |
+| Can it be required as a GitHub Check? | **YES.** Job name `ANCHR`; branch protection can require it. |
 | Does it block a real PR? | **YES.** `npx anchr@latest audit` exits 1 on BLOCKED; job fails; check fails. |
 | Permissions minimal? | **YES.** Workflow uses `contents: read`, `pull-requests: read`. |
 
-**Public language:** "Add the ArcSight workflow" (not "Install GitHub App"). Launch copy and README aligned.
+**Public language:** "Add the ANCHR workflow" (not "Install GitHub App"). Launch copy and README aligned.
 
 ---
 
@@ -47,7 +47,7 @@ Canonical replies in `docs/DEVHUNT-REPLY-CANON.md`. Pinned comment + 5 objection
 
 **Was:** Install path undefined. Copy said "Install GitHub App" with no App link or workflow snippet.
 
-**Fix:** Option A — workflow-based install. README section "Add ArcSight to your repo" with full workflow YAML. Launch copy and DevHunt listing updated to "Add ArcSight workflow." Install is copy-paste, explicit, production-ready.
+**Fix:** Option A — workflow-based install. README section "Add ANCHR to your repo" with full workflow YAML. Launch copy and DevHunt listing updated to "Add ANCHR workflow." Install is copy-paste, explicit, production-ready.
 
 ---
 

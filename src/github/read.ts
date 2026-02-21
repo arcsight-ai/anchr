@@ -9,7 +9,7 @@ import {
 } from "../reconciliation/engine.js";
 
 const ARCSIGHT_MARKER = "<!-- arcsight:";
-const USER_AGENT = "ArcSight/1.0";
+const USER_AGENT = "anchr/1.0";
 
 export interface ExistingArcSightComment {
   id: number;

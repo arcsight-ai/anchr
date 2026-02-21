@@ -1,15 +1,15 @@
-# ArcSight architectural policy enforcement (Prompt 14).
+# ANCHR architectural policy enforcement (Prompt 14).
 # Deterministic, fork-safe, rerun-safe. Uses curl + token only; no gh CLI.
 # Comment and check run are best-effort; policy is enforced by check result.
 
-name: ArcSight
+name: ANCHR
 
 on:
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
-  arcsight:
+  anchr:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
@@ -18,7 +18,7 @@ jobs:
       checks: write
 
     concurrency:
-      group: arcsight-${{ github.event.pull_request.number }}
+      group: anchr-${{ github.event.pull_request.number }}
       cancel-in-progress: true
 
     steps:
@@ -38,7 +38,7 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Run ArcSight
+      - name: Run ANCHR
         run: |
           npx -y tsx@4 scripts/anchr-structural-audit.ts || true
           npx -y tsx@4 scripts/anchr-decision.ts || true
@@ -47,7 +47,7 @@ jobs:
           GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 
-      - name: Publish ArcSight status
+      - name: Publish ANCHR status
         if: always() && github.event_name == 'pull_request_target'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -60,13 +60,13 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           ANCHR_REPORT_PATH: ${{ github.workspace }}/artifacts/anchr-report.json
         run: |
-          echo "Publishing ArcSight status for commit: $GITHUB_HEAD_SHA"
+          echo "Publishing ANCHR status for commit: $GITHUB_HEAD_SHA"
           if [ ! -f "$ANCHR_REPORT_PATH" ]; then
-            echo "No ArcSight report found — publishing neutral status"
+            echo "No ANCHR report found — publishing neutral status"
             npm run set-pr-status || true
             exit 0
           fi
-          echo "ArcSight report found — publishing decision"
+          echo "ANCHR report found — publishing decision"
           npm run set-pr-status || true
         continue-on-error: true
 
@@ -107,7 +107,7 @@ jobs:
           mkdir -p artifacts
           if [ ! -f artifacts/anchr-report.json ]; then
             echo "action=retry" >> $GITHUB_OUTPUT
-            echo "reason=ArcSight failed to produce report" >> $GITHUB_OUTPUT
+            echo "reason=ANCHR failed to produce report" >> $GITHUB_OUTPUT
             echo "run_id=" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -137,7 +137,7 @@ jobs:
           npx -y tsx@4 scripts/arcsight-pr-comment.ts || true
         continue-on-error: true
 
-      - name: Post ArcSight inline review
+      - name: Post ANCHR inline review
         if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -156,7 +156,7 @@ jobs:
             -H "Authorization: Bearer ${{ github.token }}" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/${{ github.repository }}/commits/$REF/check-runs?per_page=100")
-          CHECK_ID=$(echo "$RUNS" | jq -r '.check_runs[] | select(.name == "ArcSight") | .id' | head -1)
+          CHECK_ID=$(echo "$RUNS" | jq -r '.check_runs[] | select(.name == "ANCHR") | .id' | head -1)
           if [ -n "$CHECK_ID" ]; then
             echo "check_id=$CHECK_ID" >> $GITHUB_OUTPUT
             echo "has_check=true" >> $GITHUB_OUTPUT
@@ -183,9 +183,11 @@ jobs:
         run: |
           REF="${{ github.event.pull_request.head.sha }}"
           CONCLUSION="${{ steps.conclusion.outputs.conclusion }}"
+          RUN_ID="${{ steps.report.outputs.run_id }}"
           REASON="${{ steps.report.outputs.reason }}"
+          SUMMARY=$(printf 'ANCHR — Structural Gate\nrun.id: %s\n\n%s' "${RUN_ID:-—}" "$REASON")
           CHECK_ID="${{ steps.check.outputs.check_id }}"
-          PAYLOAD=$(jq -n --arg c "$CONCLUSION" --arg r "$REASON" '{ conclusion: $c, output: { title: "ArcSight", summary: $r } }')
+          PAYLOAD=$(jq -n --arg c "$CONCLUSION" --arg r "$SUMMARY" '{ conclusion: $c, output: { title: "ANCHR", summary: $r } }')
           if [ -n "$CHECK_ID" ]; then
             curl -sSf -X PATCH \
               -H "Authorization: Bearer ${{ github.token }}" \
@@ -194,7 +196,7 @@ jobs:
               -d "$PAYLOAD" \
               "https://api.github.com/repos/${{ github.repository }}/check-runs/$CHECK_ID" || true
           else
-            CREATE_PAYLOAD=$(jq -n --arg ref "$REF" --arg c "$CONCLUSION" --arg r "$REASON" '{ name: "ArcSight", head_sha: $ref, status: "completed", conclusion: $c, output: { title: "ArcSight", summary: $r } }')
+            CREATE_PAYLOAD=$(jq -n --arg ref "$REF" --arg c "$CONCLUSION" --arg r "$SUMMARY" '{ name: "ANCHR", head_sha: $ref, status: "completed", conclusion: $c, output: { title: "ANCHR", summary: $r } }')
             curl -sSf -X POST \
               -H "Authorization: Bearer ${{ github.token }}" \
               -H "Accept: application/vnd.github.v3+json" \

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ArcSight/anchr demo — run locally to verify the pipeline.
+# ANCHR demo — run locally to verify the pipeline.
 set -e
 cd "$(dirname "$0")/.."
 

@@ -1,30 +1,80 @@
-# ANCHR — Deterministic Structural Merge Gate for TypeScript Monorepos
+# ANCHR
 
-[![CI](https://github.com/arcsight-ai/anchr/actions/workflows/arcsight.yml/badge.svg)](https://github.com/arcsight-ai/anchr/actions/workflows/arcsight.yml) [![Deterministic](https://img.shields.io/badge/deterministic-by__construction-2ea043)](.)
+**Structural Gate for TypeScript Monorepos**
 
-Prevents boundary violations and architectural drift at pull request time.
+ANCHR enforces architectural boundaries at merge time.
 
-**Review sees the diff. ANCHR sees the structure.** One decision per PR.
+It analyzes your dependency graph and returns exactly one decision per pull request:
 
-Code review catches logic errors. ANCHR enforces structural discipline. Architecture is too important to rely on convention.
+**VERIFIED**  
+or  
+**BLOCKED**
 
-ANCHR is not a stylistic linter. It enforces structural boundaries at the package level.
+Deterministic by contract.  
+Same input → same decision.
+
+Supported layout:
+
+```
+packages/<name>/src
+```
+
+Other layouts are out-of-scope by design.
 
 ---
 
-## The Problem
+## Why ANCHR Exists
 
-Large monorepos decay. Internal APIs get imported across package boundaries. Cycles creep in. Code review cannot reliably catch structural violations—reviewers focus on logic and style, not dependency direction. CI rarely enforces architecture; most pipelines run tests and lint, not "did this PR introduce a cross-package internal import?"
+Code review catches logic.  
+ANCHR enforces structure.
 
-Review sees the diff. ANCHR sees the structure: cycles, layering, and critical edges. The result is gradual coupling, hidden dependencies, and merge-time decisions that later prove expensive to undo.
+Boundary violations, private imports, and deleted public APIs are not suggestions.
+
+They are merge-time decisions.
 
 ---
 
-## What ANCHR Does
+## Install (60 seconds)
 
-ANCHR is the merge-time structural gate. It enforces structural boundaries between packages: cross-package internal imports, deleted public API usage, and circular dependencies. It runs as a GitHub Check and blocks merges when violations occur. Output is deterministic: same repository snapshot and refs produce the same verdict every time.
+Add the ANCHR workflow to your repo.  
+Open a PR.  
+Require the ANCHR check in branch protection.
 
-ANCHR is not a linter. It does not analyze syntax or style. It analyzes the dependency graph and blocks structural risk. One graph per PR; one comment with BLOCK, WARN, or VERIFIED and the minimal cut. Merge or fix.
+One decision per PR.
+
+Create **`.github/workflows/anchr.yml`**. Paste:
+
+```yaml
+name: ANCHR
+
+on:
+  pull_request:
+
+jobs:
+  ANCHR:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npx anchr@latest audit
+        env:
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+```
+
+Commit. Open a PR. You will see a check named **ANCHR**.  
+To enforce: **Settings → Branch protection → Require status checks → Add "ANCHR"**.
+
+**Local run:** `npx anchr audit`
+
+[![CI](https://github.com/arcsight-ai/anchr/actions/workflows/anchr.yml/badge.svg)](https://github.com/arcsight-ai/anchr/actions/workflows/anchr.yml) [![Deterministic](https://img.shields.io/badge/deterministic-by__construction-2ea043)](.)
 
 ---
 
@@ -32,24 +82,7 @@ ANCHR is not a linter. It does not analyze syntax or style. It analyzes the depe
 
 ### Scope & Layout Contract
 
-ANCHR enforces structural boundaries in monorepos organized under:
-
-```
-packages/<name>/src
-```
-
-Only this layout is supported. There is no heuristic module inference and no config-driven path guessing. Discovery is explicit: only `<repoRoot>/packages/<name>/src` directories are treated as modules. If the layout does not match, ANCHR returns VERIFIED by contract and surfaces that boundary enforcement was not applied (see runtime output).
-
-Explicit structure enables deterministic enforcement. The contract is intentional.
-
----
-
-## Why ANCHR
-
-- **Not a linter.** ANCHR does not analyze syntax or style. It analyzes the dependency graph and blocks structural risk.
-- **Not guesswork.** Deterministic. Same input → same output. Evidence (minimal cut) in every BLOCKED run.
-- **Not manual review.** Review sees the diff. ANCHR sees the structure—cycles, layering, and critical edges.
-- **Not random blocking.** One graph per PR. Minimal cut explains why. Resolve or override.
+ANCHR enforces structural boundaries in monorepos organized under `packages/<name>/src`. Only this layout is supported. No heuristic module inference, no config-driven path guessing. If the layout does not match, ANCHR returns VERIFIED by contract (out-of-scope).
 
 ---
 
@@ -80,49 +113,6 @@ No heuristics. No timestamps or randomness in the verdict.
 
 ---
 
-## Install (60 seconds)
-
-Add the ArcSight check to your repo.
-
-Create **`.github/workflows/arcsight.yml`**. Paste:
-
-```yaml
-name: ArcSight
-
-on:
-  pull_request:
-
-jobs:
-  ArcSight:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-      checks: write
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - run: npx anchr@latest audit
-        env:
-          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-```
-
-Commit. Open a PR.
-
-You will see a check named **ArcSight**.
-
-To enforce: **Settings → Branch protection → Require status checks → Add "ArcSight"**.
-
-From that point forward, each PR receives exactly one decision: **VERIFIED** or **BLOCKED**. Same input → same decision.
-
-**Local run:** `npx anchr audit`
-
----
-
 ## Why Determinism Matters
 
 Same repository snapshot and refs produce the same verdict. No flaky checks, no race-condition verdicts. The pipeline can rely on the result. Emission is structured and suitable for certification: identical inputs yield identical outputs across environments.
@@ -137,7 +127,7 @@ Same repository snapshot and refs produce the same verdict. No flaky checks, no 
 - A **boundary violation** example (BLOCKED) — cross-package internal import.
 - A **circular dependency** example (BLOCKED) — cycle in the dependency graph.
 
-Use it to see ArcSight as a required check and to reproduce VERIFIED vs BLOCKED behavior.
+Use it to see ANCHR as a required check and to reproduce VERIFIED vs BLOCKED behavior.
 
 ---
 

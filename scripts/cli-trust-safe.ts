@@ -1,6 +1,6 @@
 /**
  * Trust-safe CLI entrypoint (Prompt 1).
- * ArcSight must NEVER block work because of its own failure.
+ * ANCHR must NEVER block work because of its own failure.
  * Internal errors, timeout, invalid report → Inconclusive (exit 2). Only architecture violations block (exit 1).
  */
 
@@ -84,7 +84,7 @@ function readReport(reportPath: string): Record<string, unknown> | null {
 }
 
 function inconclusive(message: string): never {
-  console.log("ArcSight — Inconclusive");
+  console.log("ANCHR — Inconclusive");
   console.log(message);
   console.log("Confidence: low");
   process.exit(2);
@@ -94,7 +94,7 @@ async function main(): Promise<void> {
   const cwd = process.cwd();
   const repoRoot = findRepoRoot(cwd);
   if (!repoRoot) {
-    console.log("ArcSight — Not a repository");
+    console.log("ANCHR — Not a repository");
     process.exit(3);
   }
 
@@ -111,7 +111,7 @@ async function main(): Promise<void> {
   if (!refs) inconclusive("Could not determine base or head commit.");
 
   if (!hasRelevantChanges(repoRoot, refs!.base, refs!.head)) {
-    console.log("ArcSight — OK");
+    console.log("ANCHR — OK");
     console.log("No relevant code changes detected.");
     console.log("Confidence: high");
     process.exit(0);
@@ -158,14 +158,14 @@ async function main(): Promise<void> {
   const confidenceLabel = coverage != null && coverage >= 0.95 ? "high" : coverage != null && coverage >= 0.8 ? "medium" : "low";
 
   if (level === "allow" || (level !== "block" && level !== "warn")) {
-    console.log("ArcSight — OK");
+    console.log("ANCHR — OK");
     console.log("No architectural impact detected.");
     console.log("Confidence: high");
     process.exit(0);
   }
 
   if (level === "block") {
-    console.log("ArcSight — BLOCKED");
+    console.log("ANCHR — BLOCKED");
     console.log("");
     const reason = primaryCause === "deleted_public_api"
       ? "A shared contract was removed; dependent code may break on upgrade."
@@ -188,7 +188,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  console.log("ArcSight — Inconclusive");
+  console.log("ANCHR — Inconclusive");
   console.log("");
   console.log("Reason:");
   console.log("Architectural impact could not be proven safe.");

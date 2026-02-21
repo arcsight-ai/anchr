@@ -1,7 +1,7 @@
-# ArcSight architectural check — required for merge.
+# ANCHR architectural check — required for merge.
 # Runs ANCHR; merge allowed only when audit passes (VERIFIED).
 
-name: ArcSight
+name: ANCHR
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ on:
     branches: [main]
 
 jobs:
-  arcsight:
+  anchr:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

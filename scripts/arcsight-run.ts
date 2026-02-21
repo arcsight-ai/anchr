@@ -74,7 +74,7 @@ async function main(): Promise<void> {
   }
 
   if (!event.pull_request) {
-    console.log("ArcSight: not a PR");
+    console.log("ANCHR: not a PR");
     process.exit(0);
   }
 
@@ -93,12 +93,12 @@ async function main(): Promise<void> {
   let finalReport: Record<string, unknown>;
   if (fastStatus === "UNSAFE" && fastLevel === "block") {
     finalReport = fast;
-    console.log("ArcSight: fast-path BLOCK");
+    console.log("ANCHR: fast-path BLOCK");
   } else if (fastStatus === "VERIFIED") {
     finalReport = fast;
-    console.log("ArcSight: structural VERIFIED");
+    console.log("ANCHR: structural VERIFIED");
   } else {
-    console.log("ArcSight: running certifier");
+    console.log("ANCHR: running certifier");
     finalReport = await runCertifier(fast);
   }
 
@@ -113,7 +113,7 @@ async function main(): Promise<void> {
   let existing = await findExistingArcSightComment(owner, repoName, prNumber, token);
 
   if (existing && existing.headSha !== headSha) {
-    console.log("ArcSight: head changed — re-analysis required");
+    console.log("ANCHR: head changed — re-analysis required");
     existing = null;
   }
 
@@ -122,7 +122,7 @@ async function main(): Promise<void> {
     existing.runId === runId &&
     existing.decisionLevel === decisionLevel
   ) {
-    console.log("ArcSight: already converged");
+    console.log("ANCHR: already converged");
     process.exitCode = finalReport.decision && (finalReport.decision as { level?: string }).level === "block" ? 1 : 0;
     return;
   }
@@ -158,14 +158,14 @@ async function main(): Promise<void> {
 
   const hasNonNoop = actions.some((a) => a.type !== "noop");
   if (!hasNonNoop) {
-    console.log("ArcSight: no changes");
+    console.log("ANCHR: no changes");
     process.exitCode = decisionLevel === "block" ? 1 : 0;
     return;
   }
 
   const latest = await findExistingArcSightComment(owner, repoName, prNumber, token);
   if (existing && latest && latest.bodyHash !== existing.bodyHash) {
-    console.log("ArcSight: concurrent update detected — aborting edit");
+    console.log("ANCHR: concurrent update detected — aborting edit");
     process.exitCode = decisionLevel === "block" ? 1 : 0;
     return;
   }
@@ -176,13 +176,13 @@ async function main(): Promise<void> {
     issueNumber: prNumber,
     githubToken: token,
   });
-  console.log("ArcSight: updating comment");
+  console.log("ANCHR: updating comment");
 
   if (decisionLevel === "block") {
-    console.log("ArcSight: CI result BLOCK");
+    console.log("ANCHR: CI result BLOCK");
     process.exitCode = 1;
   } else {
-    console.log("ArcSight: CI result ALLOW");
+    console.log("ANCHR: CI result ALLOW");
     process.exitCode = 0;
   }
 }

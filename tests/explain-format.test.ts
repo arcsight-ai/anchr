@@ -15,7 +15,7 @@ describe("formatExplainOutput", () => {
       classification: { primaryCause: null },
     };
     const { lines, structured } = formatExplainOutput(input, repoRoot);
-    expect(lines.join("\n")).toContain("ArcSight Architectural Guidance");
+    expect(lines.join("\n")).toContain("ANCHR Architectural Guidance");
     expect(lines.join("\n")).toContain("Result: ALLOW");
     expect(lines.join("\n")).toContain("Confidence: High");
     expect(lines.join("\n")).toContain("Primary issue:");
@@ -39,7 +39,7 @@ describe("formatExplainOutput", () => {
     expect(lines.join("\n")).toContain("Confidence: Low");
     expect(lines.join("\n")).toContain("Proof incomplete.");
     expect(lines.join("\n")).toContain("Run: anchr check --deep");
-    expect(lines.join("\n")).toContain("ArcSight cannot determine architectural safety.");
+    expect(lines.join("\n")).toContain("ANCHR cannot determine architectural safety.");
     expect(structured.result).toBe("UNCERTAIN");
   });
 

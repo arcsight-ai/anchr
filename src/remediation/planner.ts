@@ -59,11 +59,11 @@ const TEMPLATES: Record<
     summary: "This change is architecturally safe.",
     steps: ["No action required."],
     commitGuidance: ["Merge normally."],
-    verification: ["ArcSight verified structural integrity."],
+    verification: ["ANCHR verified structural integrity."],
     education: "No boundary rules were violated.",
   },
   "require-review": {
-    summary: "ArcSight could not fully prove safety.",
+    summary: "ANCHR could not fully prove safety.",
     steps: [
       "Review affected dependency relationships.",
       "Confirm no behavioral coupling introduced.",
@@ -79,14 +79,14 @@ const TEMPLATES: Record<
       "Replace private import with public import.",
     ],
     commitGuidance: ["Introduce stable interface before merge."],
-    verification: ["Re-run ArcSight after refactor."],
+    verification: ["Re-run ANCHR after refactor."],
     education: "Packages must depend only on public APIs.",
   },
   "require-migration": {
     summary: "Public API removal detected.",
     steps: ["Restore export OR update dependents."],
     commitGuidance: ["Coordinate change across packages."],
-    verification: ["All affected packages must pass ArcSight."],
+    verification: ["All affected packages must pass ANCHR."],
     education: "Public APIs are compatibility contracts.",
   },
   "fix-architecture": {
@@ -97,14 +97,14 @@ const TEMPLATES: Record<
       "OR invert dependency direction.",
     ],
     commitGuidance: ["Do not merge until dependency direction is corrected."],
-    verification: ["ArcSight must return VERIFIED."],
+    verification: ["ANCHR must return VERIFIED."],
     education: "Dependencies must follow layer direction.",
   },
   "rerun-analysis": {
     summary: "Analysis incomplete.",
     steps: ["Re-run CI.", "Ensure repository builds locally."],
     commitGuidance: ["Do not merge until analysis stabilizes."],
-    verification: ["ArcSight must produce deterministic output."],
+    verification: ["ANCHR must produce deterministic output."],
     education: "Non-deterministic analysis indicates missing information.",
   },
 };

@@ -10,11 +10,11 @@
 
 | Requirement | Status | Details |
 |-------------|--------|---------|
-| ANCHR creates a GitHub Check Run (not only PR comment) | **YES** | `.github/workflows/arcsight.yml` creates or updates a Check Run via GitHub API (`POST /repos/.../check-runs` or `PATCH .../check-runs/$CHECK_ID`). |
+| ANCHR creates a GitHub Check Run (not only PR comment) | **YES** | `.github/workflows/anchr.yml` creates or updates a Check Run via GitHub API (`POST /repos/.../check-runs` or `PATCH .../check-runs/$CHECK_ID`). |
 | Check attached to correct commit SHA | **YES** | Check is created/updated with `head_sha: ${{ github.event.pull_request.head.sha }}`. Find step uses `REF="${{ github.event.pull_request.head.sha }}"` to list check runs for that commit. |
-| Check updates on re-run | **YES** | Step "Find existing check run" selects by name "ArcSight"; if `CHECK_ID` exists, workflow PATCHes that run with new conclusion and summary. If not, POST creates a new run. Concurrency group `arcsight-${{ github.event.pull_request.number }}` with `cancel-in-progress: true` avoids overlapping runs. |
+| Check updates on re-run | **YES** | Step "Find existing check run" selects by name "ANCHR"; if `CHECK_ID` exists, workflow PATCHes that run with new conclusion and summary. If not, POST creates a new run. Concurrency group `arcsight-${{ github.event.pull_request.number }}` with `cancel-in-progress: true` avoids overlapping runs. |
 
-**Note:** The workflow also publishes a **Commit Status** via `set-pr-status.ts` (context: "ArcSight Architectural Certification"). Branch protection can require either a status check or a Check Run; the Check Run name is what appears in "Required status checks."
+**Note:** The workflow also publishes a **Commit Status** via `set-pr-status.ts` (context: "ANCHR"). Branch protection can require either a status check or a Check Run; the Check Run name is what appears in "Required status checks."
 
 ---
 
@@ -29,7 +29,7 @@
 
 **Implementation:** Workflow step "Map action to conclusion" maps `merge` → `success`; `block`, `review`, `retry`, and any other action → `failure`. Only `merge` allows merge. No `neutral` used for the Check Run so the gate is strictly pass/fail.
 
-**Commit Status (set-pr-status.ts):** Still maps allow→success, block→failure, warn→neutral. Branch protection that uses the **Check Run** "ArcSight" will see only success/failure from the workflow; status API is separate and can remain for backward compatibility.
+**Commit Status (set-pr-status.ts):** Still maps allow→success, block→failure, warn→neutral. Branch protection that uses the **Check Run** "ANCHR" will see only success/failure from the workflow; status API is separate and can remain for backward compatibility.
 
 ---
 
@@ -37,8 +37,8 @@
 
 | Requirement | Status | Details |
 |-------------|--------|---------|
-| Check name stable and consistent | **YES** | Check name is **"ArcSight"** everywhere: create payload `name: "ArcSight"`, update payload `title: "ArcSight"`, find step `select(.name == "ArcSight")`. |
-| Appears in Required Status Checks | **YES** | GitHub lists Check Runs by name in Settings → Branch protection → Required status checks. "ArcSight" will appear once the check has run at least once on the branch. |
+| Check name stable and consistent | **YES** | Check name is **"ANCHR"** everywhere: create payload `name: "ANCHR"`, update payload `title: "ANCHR"`, find step `select(.name == "ANCHR")`. |
+| Appears in Required Status Checks | **YES** | GitHub lists Check Runs by name in Settings → Branch protection → Required status checks. "ANCHR" will appear once the check has run at least once on the branch. |
 | Can be selected as required | **YES** | No restriction; it is a standard Check Run with conclusion success/failure. |
 
 ---
@@ -48,7 +48,7 @@
 **Steps to perform manually:**
 
 1. **Enable branch protection** on a test repo (e.g. main): Require status checks before merging.
-2. **Mark "ArcSight" as required** in the list of status checks.
+2. **Mark "ANCHR" as required** in the list of status checks.
 3. **Open a PR** that triggers a structural violation (MERGE_BLOCKED).
 4. **Run the workflow** (push or re-run).
 5. **Attempt to merge.**  
@@ -90,8 +90,8 @@
 
 | Criterion | Status |
 |-----------|--------|
-| ANCHR publishes a Check Run | **YES** — name "ArcSight", created/updated in arcsight.yml. |
-| Check can be marked as required | **YES** — stable name "ArcSight"; appears in branch protection UI. |
+| ANCHR publishes a Check Run | **YES** — name "ANCHR", created/updated in anchr.yml. |
+| Check can be marked as required | **YES** — stable name "ANCHR"; appears in branch protection UI. |
 | Merge blocked when check fails | **YES** — block/review/retry/* map to conclusion failure. |
 | Merge allowed when check succeeds | **YES** — only `merge` → success. |
 | Deterministic across re-runs | **YES** — same report → same policy → same conclusion; no extra conclusion states. |
@@ -107,6 +107,6 @@
 | review                  | failure    |
 | retry / other           | failure    |
 
-**Branch protection:** When "ArcSight" is required, GitHub will block merge when the check conclusion is failure and allow merge when success. Manual test (section 4) confirms.
+**Branch protection:** When "ANCHR" is required, GitHub will block merge when the check conclusion is failure and allow merge when success. Manual test (section 4) confirms.
 
-**ANCHR qualifies as a true merge gate:** Yes, provided the workflow is installed (e.g. as GitHub App or repo workflow) and branch protection requires the "ArcSight" check. No UI or feature expansion; validation only, with mapping updated so REVIEW_REQUIRED and retry yield failure.
+**ANCHR qualifies as a true merge gate:** Yes, provided the workflow is installed (e.g. as GitHub App or repo workflow) and branch protection requires the "ANCHR" check. No UI or feature expansion; validation only, with mapping updated so REVIEW_REQUIRED and retry yield failure.

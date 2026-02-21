@@ -535,7 +535,7 @@ async function main(): Promise<void> {
     let raw: unknown = null;
     try {
       if (!fs.existsSync(reportPath)) {
-        console.error("No ArcSight report found. Run anchr check first.");
+        console.error("No ANCHR report found. Run anchr check first.");
         process.exit(2);
       }
       raw = readJson(reportPath);
@@ -543,7 +543,7 @@ async function main(): Promise<void> {
       raw = null;
     }
     if (!raw || typeof raw !== "object") {
-      console.error("No ArcSight report found. Run anchr check first.");
+      console.error("No ANCHR report found. Run anchr check first.");
       process.exit(2);
     }
     const report = raw as Record<string, unknown>;
@@ -617,7 +617,7 @@ async function main(): Promise<void> {
         overlayFileCount: result.overlayFileCount,
       }, null, 2));
     } else if (isExplain) {
-      console.log("ArcSight Repair Simulation");
+      console.log("ANCHR Repair Simulation");
       console.log("──────────────────────────");
       if (result.violationSummary) console.log("Violation:", result.violationSummary);
       console.log("Proposed repair: Rewrite import to public API");
@@ -629,7 +629,7 @@ async function main(): Promise<void> {
       console.log("Minimal change:", result.minimal ? "yes" : "no");
       console.log("Files touched:", result.filesChanged);
     } else {
-      console.log("ArcSight Repair Simulation");
+      console.log("ANCHR Repair Simulation");
       console.log("──────────────────────────");
       if (result.violationSummary) console.log("Violation:", result.violationSummary);
       console.log("Proposed repair: Rewrite import to public API");
@@ -729,8 +729,11 @@ async function main(): Promise<void> {
 
   const decisionLevel = (report.decision as { level?: string })?.level ?? "warn";
   const minimalCut = (report.minimalCut as string[]) ?? [];
+  const runId = (report.run as { id?: string } | undefined)?.id ?? "";
 
   if (!isTTY) {
+    console.log("ANCHR — Structural Gate");
+    console.log(runId ? `run.id: ${runId}` : "run.id: —");
     if (decisionLevel === "block") console.log("BLOCK");
     else if (decisionLevel === "warn") console.log("WARN");
     else console.log("VERIFIED");
@@ -738,7 +741,6 @@ async function main(): Promise<void> {
     return;
   }
 
-  const runId = (report.run as { id?: string } | undefined)?.id;
   const primaryCause = (report.classification as { primaryCause?: string | null } | undefined)?.primaryCause;
   const CAUSE_LABEL: Record<string, string> = {
     deleted_public_api: "public API removed",
@@ -750,6 +752,10 @@ async function main(): Promise<void> {
   const causeRaw = primaryCause && CAUSE_LABEL[primaryCause] ? CAUSE_LABEL[primaryCause] : "structural violation";
   const causeLabel = causeRaw.charAt(0).toUpperCase() + causeRaw.slice(1);
   const proofLine = runId ? `Proof: ${runId.slice(0, 16)}` : null;
+
+  console.log("ANCHR — Structural Gate");
+  console.log(runId ? `run.id: ${runId}` : "run.id: —");
+  console.log("");
 
   if (decisionLevel === "allow" || (decisionLevel !== "block" && decisionLevel !== "warn")) {
     console.log("ANCHR — MERGE VERIFIED");

@@ -110,7 +110,7 @@ export function formatExplainOutput(
   const lines: string[] = [];
 
   // ——— 1. Summary block ———
-  lines.push("ArcSight Architectural Guidance");
+  lines.push("ANCHR Architectural Guidance");
   lines.push("");
   lines.push(`Result: ${result}`);
   lines.push(`Confidence: ${confidence}`);
@@ -202,7 +202,7 @@ export function formatExplainOutput(
   }
 
   if (result === "UNCERTAIN") {
-    lines.push("ArcSight cannot determine architectural safety.");
+    lines.push("ANCHR cannot determine architectural safety.");
     lines.push("");
     lines.push("Suggested next step:");
     lines.push("Run: anchr check --deep");

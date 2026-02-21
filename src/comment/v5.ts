@@ -50,7 +50,7 @@ export function buildArcsightV5Comment(input: ArcsightV5Input): string {
         : "🟡 WARN";
 
   const visibleLines = [
-    "ArcSight Certification Result",
+    "ANCHR",
     "",
     `Decision: ${decisionLabel}`,
     "",

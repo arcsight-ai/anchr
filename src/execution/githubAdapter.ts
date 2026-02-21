@@ -6,7 +6,7 @@
 import type { CommentAction } from "../reconciliation/types.js";
 import type { ExecutionContext } from "./types.js";
 
-const USER_AGENT = "ArcSight/1.0";
+const USER_AGENT = "anchr/1.0";
 const REQUEST_TIMEOUT_MS = 15000;
 const VERIFY_DELAY_MS = 1000;
 const RETRY_DELAYS_MS = [1000, 2000, 4000, 8000, 16000];
@@ -104,7 +104,7 @@ async function fetchWithRetry(
       const contentType = res.headers.get("content-type") ?? "";
       if (!contentType.includes("application/json")) {
         if (attempt < MAX_ATTEMPTS - 1) {
-          if (attempt > 0) console.log("ArcSight retry:" + attempt);
+          if (attempt > 0) console.log("ANCHR retry:" + attempt);
           await sleep(jitter(RETRY_DELAYS_MS[attempt] ?? 16000));
           continue;
         }
@@ -124,7 +124,7 @@ async function fetchWithRetry(
           : "";
         if (text.includes("secondary rate limit")) {
           if (attempt === 0) {
-            console.log("ArcSight ratelimit");
+            console.log("ANCHR ratelimit");
             await sleep(60000);
             continue;
           }
@@ -135,14 +135,14 @@ async function fetchWithRetry(
           if (reset) {
             const wait = Math.max(0, parseInt(reset, 10) * 1000 - Date.now());
             if (wait > 0 && attempt === 0) {
-              console.log("ArcSight ratelimit");
+              console.log("ANCHR ratelimit");
               await sleep(Math.min(wait, 60000));
               continue;
             }
           }
         }
         if (!text.includes("rate limit")) {
-          console.log("ArcSight permission-denied");
+          console.log("ANCHR permission-denied");
           return { ok: true, status: 200, data: {}, headers: res.headers };
         }
       }
@@ -154,7 +154,7 @@ async function fetchWithRetry(
         res.status === 504
       ) {
         if (attempt < MAX_ATTEMPTS - 1) {
-          console.log("ArcSight retry:" + attempt);
+          console.log("ANCHR retry:" + attempt);
           await sleep(jitter(RETRY_DELAYS_MS[attempt] ?? 16000));
           continue;
         }
@@ -164,7 +164,7 @@ async function fetchWithRetry(
     } catch (e) {
       lastError = e instanceof Error ? e : new Error(String(e));
       if (attempt < MAX_ATTEMPTS - 1) {
-        console.log("ArcSight retry:" + attempt);
+        console.log("ANCHR retry:" + attempt);
         await sleep(jitter(RETRY_DELAYS_MS[attempt] ?? 16000));
       }
     }
@@ -275,7 +275,7 @@ async function postWriteVerification(
   const expected = normalizeBody(expectedBody);
   const actual = got ? normalizeBody(got.body) : "";
   if (actual === expected) return;
-  console.log("ArcSight verify-mismatch");
+  console.log("ANCHR verify-mismatch");
   for (let r = 0; r < 2; r++) {
     await sleep(VERIFY_DELAY_MS);
     const ok = await updateComment(ctx, commentId, expectedBody);
@@ -300,7 +300,7 @@ export async function executeCommentActions(
 
   for (const action of toRun) {
     if (action.type === "create") {
-      console.log("ArcSight action:create");
+      console.log("ANCHR action:create");
       const created = await createComment(ctx, action.body);
       if (created) {
         await postWriteVerification(ctx, created.id, action.body);
@@ -308,7 +308,7 @@ export async function executeCommentActions(
         const list = await listComments(ctx);
         const existing = findNewestArcSightComment(list);
         if (existing) {
-          console.log("ArcSight action:update:" + existing.id);
+          console.log("ANCHR action:update:" + existing.id);
           await updateComment(ctx, existing.id, action.body);
           await postWriteVerification(ctx, existing.id, action.body);
         }
@@ -321,14 +321,14 @@ export async function executeCommentActions(
       if (current && normalizeBody(current.body) === normalizeBody(action.body)) {
         continue;
       }
-      console.log("ArcSight action:update:" + action.id);
+      console.log("ANCHR action:update:" + action.id);
       const ok = await updateComment(ctx, action.id, action.body);
       if (ok) await postWriteVerification(ctx, action.id, action.body);
       continue;
     }
 
     if (action.type === "replace") {
-      console.log("ArcSight action:replace:" + action.id);
+      console.log("ANCHR action:replace:" + action.id);
       const existing = await getComment(ctx, action.id);
       if (!existing) {
         await createComment(ctx, action.body);
@@ -340,7 +340,7 @@ export async function executeCommentActions(
     }
 
     if (action.type === "delete") {
-      console.log("ArcSight action:delete:" + action.id);
+      console.log("ANCHR action:delete:" + action.id);
       await deleteComment(ctx, action.id);
     }
   }

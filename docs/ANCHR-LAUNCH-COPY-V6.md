@@ -12,7 +12,7 @@ Single source of truth for landing page and DevHunt. This document defines the p
 
 One decision per PR: VERIFIED or BLOCKED. Deterministic structural gate for TypeScript monorepos.
 
-[ Add ArcSight to Your Repo ]  [ View on GitHub ]  (See demo PR)
+[ Add ANCHR to Your Repo ]  [ View on GitHub ]  (See demo PR)
 
 **Trust line:** Diff-based analysis. Deterministic output. Merge-gate ready.
 
@@ -82,7 +82,7 @@ Out-of-scope layouts are verified by contract. Opinionated by design.
 
 ## Install
 
-Add the ArcSight workflow to your repo. It runs on pull requests and produces a required GitHub Check.
+Add the ANCHR workflow to your repo. It runs on pull requests and produces a required GitHub Check.
 
 No SaaS. No dashboard. No heuristics. No config guessing.
 
@@ -116,7 +116,7 @@ If your repository is intentionally boundary-less, ANCHR is not designed for tha
 ## FAQ
 
 **Does it block merges?**  
-Yes. Add the ArcSight workflow, then require the **ArcSight** status check in branch protection. The check fails on BLOCKED/REVIEW_REQUIRED and passes on VERIFIED.
+Yes. Add the ANCHR workflow, then require the **ANCHR** status check in branch protection. The check fails on BLOCKED/REVIEW_REQUIRED and passes on VERIFIED.
 
 **Does it require installing dependencies?**  
 No. It runs in a bounded runtime and reads source files directly.

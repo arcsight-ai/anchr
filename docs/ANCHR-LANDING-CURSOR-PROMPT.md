@@ -16,8 +16,8 @@ Build the ANCHR landing page as a single-page site in **`website/`** at the repo
 - max width 1120–1200px, section gaps 24–32px
 
 **Layout:**
-- Sticky top nav: ANCHR left; Docs / GitHub / Install right; CTA "Add ArcSight workflow"
-- Hero: headline, subhead, 2 CTAs (Add ArcSight workflow, Run locally), and a **PR-comment style card** visual
+- Sticky top nav: ANCHR left; Docs / GitHub / Install right; CTA "Add ANCHR workflow"
+- Hero: headline, subhead, 2 CTAs (Add ANCHR workflow, Run locally), and a **PR-comment style card** visual
 - Sections in order: What it catches (3 cards), How it works (4 steps), Scope contract, Install (GitHub Action + CLI tabs), Demo (links to 2 PRs placeholder), FAQ, Footer
 - Responsive: 1 col mobile, 2–3 col desktop
 

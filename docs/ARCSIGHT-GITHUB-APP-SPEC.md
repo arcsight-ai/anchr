@@ -1,4 +1,4 @@
-# GitHub App: ArcSight (Post-Launch Spec)
+# GitHub App: ANCHR (Post-Launch Spec)
 
 Build this in v1.1. Do not block launch on it. Launch with workflow-based install.
 
@@ -6,7 +6,7 @@ Build this in v1.1. Do not block launch on it. Launch with workflow-based instal
 
 ## Purpose
 
-Provide merge-time structural decision as a required GitHub Check **without** a workflow file in the user's repo. User installs App → enables repo → requires "ArcSight" in branch protection. No YAML.
+Provide merge-time structural decision as a required GitHub Check **without** a workflow file in the user's repo. User installs App → enables repo → requires "ANCHR" in branch protection. No YAML.
 
 ---
 
@@ -41,7 +41,7 @@ Subscribe to:
 3. Clone repo at head SHA (or use API contents).
 4. Run structural audit (same logic as CLI: discover packages, build graph, detect violations, minimal cut).
 5. Create or update Check Run:
-   - **Name:** ArcSight
+   - **Name:** ANCHR
    - **Status:** completed
    - **Conclusion:** success (VERIFIED) or failure (BLOCKED / REVIEW_REQUIRED)
    - **Output:** summary, violating edges, minimal cut, clear explanation
@@ -64,7 +64,7 @@ Same commit SHA + same repo state → same result.
 
 1. Install App on org or repo.
 2. Grant repository access.
-3. **Settings → Branches → Branch protection → Require status checks → Add "ArcSight".**
+3. **Settings → Branches → Branch protection → Require status checks → Add "ANCHR".**
 
 No workflow file required.
 

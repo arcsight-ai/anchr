@@ -15,7 +15,7 @@ import { readPressureSignals, loadPressurePRMemory, savePressurePRMemory, mergeS
 import { formatSignalsSection } from "../src/pressure/signals.js";
 
 const REPORT_PATH = "artifacts/anchr-report.json";
-const COMMENT_MARKER = "ArcSight Certification Result";
+const COMMENT_MARKER = "ANCHR";
 
 function readReport(cwd: string): Record<string, unknown> | null {
   try {
@@ -128,7 +128,7 @@ async function main(): Promise<void> {
     const body = [
       "## ArcSight Certification Result",
       "",
-      "ArcSight report missing — certification did not execute.",
+      "ANCHR report missing — certification did not execute.",
     ].join("\n");
     const comments = await listComments(token, repo, pr.number);
     const existing = comments.find((c) => c.body && c.body.includes(COMMENT_MARKER));

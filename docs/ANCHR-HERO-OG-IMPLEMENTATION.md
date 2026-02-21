@@ -15,7 +15,7 @@ ANCHR Enforces Structure.
 
 One decision per PR: VERIFIED or BLOCKED. Deterministic structural gate for TypeScript monorepos.
 
-**CTA:** Add ArcSight to Your Repo  
+**CTA:** Add ANCHR to Your Repo  
 **Secondary:** View on GitHub
 
 **Full hero block:**
@@ -25,7 +25,7 @@ ANCHR Enforces Structure.
 
 One decision per PR: VERIFIED or BLOCKED. Deterministic structural gate for TypeScript monorepos.
 
-[ Add ArcSight to Your Repo ]  
+[ Add ANCHR to Your Repo ]  
 View on GitHub
 
 Feels installed, not explored.
@@ -82,7 +82,7 @@ One decision per PR: VERIFIED or BLOCKED. Deterministic structural gate for Type
 
 CTA button:
 
-Add ArcSight to Your Repo
+Add ANCHR to Your Repo
 
 Secondary link:
 

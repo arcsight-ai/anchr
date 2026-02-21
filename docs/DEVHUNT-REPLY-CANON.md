@@ -6,13 +6,39 @@ Copy-paste ready. Use as-is. No edits day-of.
 
 ## Launch pinned comment (post first — use this)
 
-ANCHR is not a linter. It is a merge-time structural gate.
+ANCHR is not a linter.
 
-One decision per PR. VERIFIED or BLOCKED.
+It is a merge-time structural gate for TypeScript monorepos.
+
+It returns one deterministic decision per PR:
+
+VERIFIED or BLOCKED.
+
+Layout supported:
+
+packages/<name>/src
+
+Opinionated by design. Same input → same decision.
+
+Install takes under 60 seconds.
+
+Happy to answer questions.
+
+---
+
+## Optional stronger variant (slightly more assertive)
+
+ANCHR enforces architecture at merge time.
+
+It does not warn. It decides.
+
+Deterministic structural gate for TypeScript monorepos.
+
+Supported layout: packages/<name>/src
+
+VERIFIED or BLOCKED.
 
 Opinionated by design.
-
-Short. Declarative. No defense.
 
 ---
 

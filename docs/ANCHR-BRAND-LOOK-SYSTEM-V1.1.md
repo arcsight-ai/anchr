@@ -1,5 +1,7 @@
 # ANCHR Brand + Look System (v1.1)
 
+**Identity (casing, check name, CLI stamp):** See `docs/ANCHR-IDENTITY-SYSTEM.md`. Locked: Brand = ANCHR, CLI = anchr, GitHub Check = ANCHR.
+
 Goal: Make ANCHR instantly legible (in 5 seconds), trusted (deterministic, scoped), and shareable (PR comment visual + "quiet until pre-merge").
 
 **Core thesis:** People don't share tools that interrupt them. They share tools that feel like a senior reviewer who waited.

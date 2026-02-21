@@ -201,7 +201,7 @@ describe("renderProductionComment (shareable layer)", () => {
     expect(body).toContain("Affected packages:");
     expect(body).toContain("Developer action:");
     expect(body).toContain("Supporting evidence:");
-    expect(body).toContain("ArcSight Architectural Check");
+    expect(body).toContain("ANCHR");
     expect(body).toContain("No architectural boundary changes detected.");
     expect(body).toContain("Technical details");
     expect(body).not.toMatch(/🟢|🔴|🟡|🟠/);

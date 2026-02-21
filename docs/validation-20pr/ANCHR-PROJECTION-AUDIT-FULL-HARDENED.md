@@ -17,7 +17,7 @@
 
 ## Non-Negotiable Rule
 
-Anchr must:
+ANCHR must:
 
 - **Add zero truth**
 - **Remove zero truth**
@@ -34,7 +34,7 @@ Mutation = **projection blind spot.**
 
 For any wedge v10 emission:
 
-**Wedge JSON → Anchr parse → Anchr render → Re-serialize**  
+**Wedge JSON → ANCHR parse → ANCHR render → Re-serialize**  
 must produce **byte-identical** JSON.
 
 This subsumes deep structural equality (Phase 1), deterministic rendering (Phase 7), and round-trip guarantee (Phase 10): one principle, byte-level equivalence across parse → render → serialize cycles.
@@ -51,7 +51,7 @@ This subsumes deep structural equality (Phase 1), deterministic rendering (Phase
 
 ## Ban on "Helpful Formatting"
 
-Anchr must **not** introduce display-level formatting in the data model layer. No label substitution, enum prettification, or casing changes applied to wedge fields when storing or re-serializing. That is where projection bugs sneak in: "helpful" formatting mutates truth.
+ANCHR must **not** introduce display-level formatting in the data model layer. No label substitution, enum prettification, or casing changes applied to wedge fields when storing or re-serializing. That is where projection bugs sneak in: "helpful" formatting mutates truth.
 
 ---
 
@@ -151,7 +151,7 @@ For each scenario, assert identical:
 - invalid_cause
 - degradation_cause
 
-Anchr must **NOT**:
+ANCHR must **NOT**:
 
 - Recompute severity.
 - Collapse DEGRADED into something else.
@@ -225,7 +225,7 @@ Assert:
 ## Phase 12 — Schema Drift Guard
 
 - If `schema_version !== 10` in wedge JSON:
-  - Anchr must **reject** (refuse to process, clear error), **or**
+  - ANCHR must **reject** (refuse to process, clear error), **or**
   - **Explicitly** branch version logic (e.g. "v11 handler") with documented behavior.
 - **Never** silently accept unknown schema.
 
@@ -244,7 +244,7 @@ Search codebase for:
 
 **If present** → log location. Treat as potential projection mutation (add/recompute truth).
 
-**Explicit "no derived metrics" enforcement:** Anchr must not compute or emit any metric derived from the emission (e.g. "failure_count", "severity_score", "summary") unless it is a literal pass-through of a wedge field. Any derived metric = projection adding truth. Scan for and list such logic; require removal or explicit justification (e.g. documented UI-only, never substituted for wedge fields).
+**Explicit "no derived metrics" enforcement:** ANCHR must not compute or emit any metric derived from the emission (e.g. "failure_count", "severity_score", "summary") unless it is a literal pass-through of a wedge field. Any derived metric = projection adding truth. Scan for and list such logic; require removal or explicit justification (e.g. documented UI-only, never substituted for wedge fields).
 
 ---
 

@@ -1,8 +1,8 @@
-# Wedge / Anchr boundaries and FN adjudication
+# Wedge / ANCHR boundaries and FN adjudication
 
 **Summary:** Replay identity lives in anchr. Evaluation identity is the structural input + emission. FN adjudication must use artifacts from the anchr run, not replay labels in wedge.
 
-- **Anchr produces adjudication artifacts; wedge consumes them.**
+- **ANCHR produces adjudication artifacts; wedge consumes them.**
 - **FN adjudication is artifact-based: input.json + emission.json.**
 
 ---
@@ -12,10 +12,10 @@
 | Layer | Role | Owns |
 |-------|------|------|
 | **1. Wedge** | Pure evaluation engine. Stateless. | Structural input → v10 (or current) emission JSON. No replay labels. |
-| **2. Anchr** | Projection + replay harness. | 20-repo manifest, replay pipeline, case identifiers (e.g. ky_751), execution context. |
+| **2. ANCHR** | Projection + replay harness. | 20-repo manifest, replay pipeline, case identifiers (e.g. ky_751), execution context. |
 | **3. Ledger / other repos** | Out of scope for FN adjudication here. | — |
 
-Wedge does not look up replay cases. Anchr owns replay state. That separation is intentional.
+Wedge does not look up replay cases. ANCHR owns replay state. That separation is intentional.
 
 ---
 

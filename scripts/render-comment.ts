@@ -108,7 +108,7 @@ export function renderComment(input: RenderInput): string {
   const coverage = stableFloat(Number(input.coverageRatio));
 
   const section1 = "<!-- arcsight:v2:run:" + runId + " -->";
-  const section2 = "ArcSight Architectural Review";
+  const section2 = "ANCHR";
   const section3 = "Result: " + resultLine(code);
   const section4 = "Explanation" + LF + LF + explanation;
   const section5 =

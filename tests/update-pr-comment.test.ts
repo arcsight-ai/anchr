@@ -38,7 +38,7 @@ describe("update-pr-comment logic", () => {
       downgradeReasons: null,
     });
     expect(body).toContain("<!-- arcsight:v2:run:");
-    expect(body).toContain("ArcSight Architectural Review");
+    expect(body).toContain("ANCHR");
   });
 
   it("normalize + hash is deterministic", () => {

@@ -1,7 +1,7 @@
 #!/usr/bin/env npx tsx
 /**
  * Export artifact for FN adjudication (artifact-based protocol).
- * Anchr owns replay identity; wedge does not. This script exports the exact
+ * ANCHR owns replay identity; wedge does not. This script exports the exact
  * structural input and emission for a given pr_id so adjudication can run
  * without identifier lookup in wedge.
  *

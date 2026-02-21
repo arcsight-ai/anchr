@@ -1,7 +1,7 @@
 #!/usr/bin/env npx tsx
 /**
  * Copy adjudication artifacts from anchr → wedge so wedge can consume them.
- * Anchr owns replay and exports; wedge only consumes artifacts at tests/adjudication/.
+ * ANCHR owns replay and exports; wedge only consumes artifacts at tests/adjudication/.
  * Writes SHA256 checksums so wedge adjudication can verify artifact integrity before running.
  *
  * Usage: WEDGE_ROOT=/path/to/wedge npx tsx scripts/copy-adjudication-to-wedge.ts [case_id]

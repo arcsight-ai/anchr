@@ -48,7 +48,7 @@ function loadReport(): Report | null {
 const report = loadReport();
 
 let state: "success" | "failure" | "neutral" = "neutral";
-let description = "ArcSight did not run";
+let description = "ANCHR did not run";
 
 if (!report) {
   description = "No report produced";
@@ -75,7 +75,7 @@ if (process.env.GITHUB_SERVER_URL && runId) {
   targetUrl = process.env.GITHUB_SERVER_URL + "/" + repo + "/actions/runs/" + runId;
 }
 
-const context = "ArcSight Architectural Certification";
+const context = "ANCHR";
 
 const payloadObj: { state: string; context: string; description: string; target_url?: string } = {
   state,
@@ -92,7 +92,7 @@ function postStatus(retry = 0): void {
       path: "/repos/" + repo + "/statuses/" + sha,
       method: "POST",
       headers: {
-        "User-Agent": "arcsight",
+        "User-Agent": "anchr",
         "Authorization": "Bearer " + token,
         "Accept": "application/vnd.github+json",
         "Content-Type": "application/json",
@@ -101,17 +101,17 @@ function postStatus(retry = 0): void {
     },
     (res) => {
       if (res.statusCode != null && res.statusCode >= 200 && res.statusCode < 300) {
-        console.log("ArcSight status:", state);
+        console.log("ANCHR status:", state);
       } else if (retry < 3) {
         setTimeout(() => postStatus(retry + 1), 1500);
       } else {
-        console.log("ArcSight status publish skipped");
+        console.log("ANCHR status publish skipped");
       }
     },
   );
   req.on("error", () => {
     if (retry < 3) setTimeout(() => postStatus(retry + 1), 1500);
-    else console.log("ArcSight status publish failed (non-fatal)");
+    else console.log("ANCHR status publish failed (non-fatal)");
   });
   req.write(payload);
   req.end();

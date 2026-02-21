@@ -49,7 +49,7 @@ function main(): number {
     const err: PlanErrorOutput = {
       version: 1,
       error: "stale_report",
-      message: "No ArcSight report found. Run anchr check first.",
+      message: "No ANCHR report found. Run anchr check first.",
     };
     writePlan(join(cwd, PLAN_PATH), err);
     return 1;

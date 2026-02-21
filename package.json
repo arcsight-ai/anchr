@@ -44,8 +44,7 @@
     "node": ">=20"
   },
   "bin": {
-    "anchr": "bin/anchr.cjs",
-    "arcsight": "bin/anchr.cjs"
+    "anchr": "bin/anchr.cjs"
   },
   "dependencies": {
     "@octokit/rest": "^22.0.1"

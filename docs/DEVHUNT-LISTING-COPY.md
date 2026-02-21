@@ -44,7 +44,7 @@ Architecture is too important to rely on convention. Code review catches logic e
 
 ## Demo link
 
-[anchr-demo-monorepo](https://github.com/arcsight-ai/anchr/tree/main/anchr-demo-monorepo) — safe PR (VERIFIED), boundary violation (BLOCKED), circular dependency (BLOCKED). Branch protection + ArcSight required check.
+[anchr-demo-monorepo](https://github.com/arcsight-ai/anchr/tree/main/anchr-demo-monorepo) — safe PR (VERIFIED), boundary violation (BLOCKED), circular dependency (BLOCKED). Branch protection + ANCHR required check.
 
 ---
 
@@ -52,4 +52,4 @@ Architecture is too important to rely on convention. Code review catches logic e
 
 - One graph per PR. Dependency graph + minimal cut. No manual structure review.
 - One comment. BLOCK / WARN / VERIFIED with evidence. Deterministic. No black box.
-- One decision before merge. Add the ArcSight workflow; require the check. Built for monorepos and strict dependency boundaries.
+- One decision before merge. Add the ANCHR workflow; require the check. Built for monorepos and strict dependency boundaries.

@@ -10,7 +10,7 @@ describe("formatFixOutput", () => {
       risk: "low",
       repairStrategy: "No repairs required.",
     });
-    expect(lines.join("\n")).toContain("ArcSight Repair Plan");
+    expect(lines.join("\n")).toContain("ANCHR Repair Plan");
     expect(lines.join("\n")).toContain("Violations: 0");
     expect(lines.join("\n")).toContain("Risk level: Low");
     expect(lines.join("\n")).toContain("anchr fix --apply");

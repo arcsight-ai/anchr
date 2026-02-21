@@ -31,7 +31,7 @@ describe("render-comment", () => {
 
   it("contains title and result line", () => {
     const out = renderComment(baseInput({ action: action({ code: "MERGE" }) }));
-    expect(out).toContain("ArcSight Architectural Review");
+    expect(out).toContain("ANCHR");
     expect(out).toContain("Result: ");
     expect(out).toContain("🟢 Safe to merge");
   });
@@ -46,7 +46,7 @@ describe("render-comment", () => {
   it("sandboxes explanation with blockquote prefix", () => {
     const out = renderComment(baseInput({ action: action({ code: "MERGE", category: "SAFE_TRIVIAL" }) }));
     expect(out).toContain("Explanation");
-    expect(out).toContain("> ArcSight verified no architectural impact");
+    expect(out).toContain("> ANCHR verified no architectural impact");
     expect(out).toContain("> The change does not alter package dependencies");
   });
 
@@ -95,6 +95,6 @@ describe("render-comment", () => {
   it("explanation is blockquoted (sandboxed)", () => {
     const out = renderComment(baseInput({ action: action({ code: "MERGE", category: "SAFE_TRIVIAL" }) }));
     expect(out).toContain("> ");
-    expect(out).toContain("> ArcSight verified no architectural impact");
+    expect(out).toContain("> ANCHR verified no architectural impact");
   });
 });

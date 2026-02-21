@@ -113,7 +113,7 @@ export async function explainFile(
   const fromPkg = pkgOf(resolved);
 
   if (!fromPkg) {
-    console.log("Outside package scope — ArcSight not applicable");
+    console.log("Outside package scope — ANCHR not applicable");
     return { level: "allow", confidence: "heuristic" };
   }
 
@@ -230,7 +230,7 @@ export async function explainFile(
     level = "warn";
   }
 
-  console.log("\nArcSight Architectural Prediction\n");
+  console.log("\nANCHR Architectural Prediction\n");
   console.log("Decision: " + level.toUpperCase());
   console.log("Confidence: " + confidence + "\n");
 

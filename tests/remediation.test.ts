@@ -12,7 +12,7 @@ describe("remediation planner", () => {
     expect(plan.summary).toBe("This change is architecturally safe.");
     expect(plan.steps).toEqual(["No action required."]);
     expect(plan.commitGuidance).toEqual(["Merge normally."]);
-    expect(plan.verification).toEqual(["ArcSight verified structural integrity."]);
+    expect(plan.verification).toEqual(["ANCHR verified structural integrity."]);
     expect(plan.education).toBe("No boundary rules were violated.");
     expect(plan.metadata.version).toBe("1");
     expect(plan.metadata.primaryCause).toBe("unknown");

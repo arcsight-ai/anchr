@@ -338,7 +338,7 @@ export function formatShareBlock(report: ArcSightReport, context?: ShareBlockCon
   }
 
   const lines = [
-    "ArcSight Result",
+    "ANCHR Result",
     "",
     law,
     "",

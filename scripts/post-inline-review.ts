@@ -48,19 +48,19 @@ async function api(
 function message(f: Finding): string {
   switch (f.cause) {
     case "boundary_violation":
-      return `ArcSight: Importing another package's internal file breaks architectural boundaries.
+      return `ANCHR: Importing another package's internal file breaks architectural boundaries.
 Import from the package entrypoint instead.`;
     case "deleted_public_api":
-      return `ArcSight: This removes a public API used across packages.
+      return `ANCHR: This removes a public API used across packages.
 Migrate dependents in the same PR.`;
     case "type_import_private_target":
-      return `ArcSight: Private types cannot cross package boundaries.
+      return `ANCHR: Private types cannot cross package boundaries.
 Export the type publicly instead.`;
     case "relative_escape":
-      return `ArcSight: Relative path escapes the package boundary.
+      return `ANCHR: Relative path escapes the package boundary.
 Use a package import instead.`;
     default:
-      return `ArcSight: Architectural violation detected.`;
+      return `ANCHR: Architectural violation detected.`;
   }
 }
 

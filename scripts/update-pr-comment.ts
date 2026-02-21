@@ -20,7 +20,7 @@ function getEnv(key: (typeof requiredEnv)[number]): string {
 }
 
 function log(state: string): void {
-  console.log("ArcSight comment: " + state);
+  console.log("ANCHR comment: " + state);
 }
 
 function normalize(s: string): string {
@@ -140,6 +140,6 @@ async function main(): Promise<void> {
 try {
   await main();
 } catch {
-  console.log("ArcSight comment: skipped");
+  console.log("ANCHR comment: skipped");
   process.exit(0);
 }

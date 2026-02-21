@@ -77,7 +77,7 @@ export function buildCommentBody(
 ): string {
   const lines: string[] = [];
 
-  lines.push("## ArcSight Certification Result");
+  lines.push("## ANCHR");
   lines.push("");
   lines.push(`**Decision:** ${decision}`);
   lines.push(`**Commit:** ${headShaShort}`);
@@ -88,7 +88,7 @@ export function buildCommentBody(
     lines.push("**Summary:** " + summary);
     lines.push("");
 
-    lines.push("ArcSight detected a boundary violation. To restore boundary integrity, apply the suggested change below.");
+    lines.push("ANCHR detected a boundary violation. To restore boundary integrity, apply the suggested change below.");
     lines.push("");
 
     if (includeRepair) {
@@ -135,7 +135,7 @@ export function buildCommentBody(
   } else if (decision === "ALLOW") {
     lines.push("No architectural impact detected. No action required.");
   } else if (decision === "WARN") {
-    lines.push("ArcSight could not prove the change safe. No boundary violation detected but architectural certainty was not reached. No repair suggested.");
+    lines.push("ANCHR could not prove the change safe. No boundary violation detected but architectural certainty was not reached. No repair suggested.");
   }
 
   return lines.join("\n");

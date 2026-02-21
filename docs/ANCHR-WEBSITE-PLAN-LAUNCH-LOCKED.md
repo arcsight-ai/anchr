@@ -101,7 +101,7 @@ Before DevHunt:
 
 ## 10. Install path (locked)
 
-**Add the ArcSight workflow.** Not a GitHub App. README contains copy-paste workflow for `.github/workflows/arcsight.yml`. User creates file, pastes, opens PR, requires **ArcSight** check in branch protection. Launch copy and listing use this language everywhere.
+**Add the ANCHR workflow.** Not a GitHub App. README contains copy-paste workflow for `.github/workflows/anchr.yml`. User creates file, pastes, opens PR, requires **ANCHR** check in branch protection. Launch copy and listing use this language everywhere.
 
 ---
 

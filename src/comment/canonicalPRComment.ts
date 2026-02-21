@@ -98,7 +98,7 @@ export function renderPRComment(plan: RemediationPlan): RenderedComment {
   const messageId = plan.metadata?.messageId ?? "";
 
   const lines: string[] = [
-    "ArcSight Result: " + status,
+    "ANCHR Result: " + status,
     "",
     canonicalSummary,
     "",
@@ -117,7 +117,7 @@ export function renderPRComment(plan: RemediationPlan): RenderedComment {
 
   const body = lines.join("\n");
 
-  const shortBodyRaw = "ArcSight: " + status + " — " + canonicalSummary;
+  const shortBodyRaw = "ANCHR: " + status + " — " + canonicalSummary;
   const shortBody = (
     shortBodyRaw.length > SHORT_BODY_MAX
       ? truncateAtWordBoundary(shortBodyRaw, SHORT_BODY_MAX)

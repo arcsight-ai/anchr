@@ -21,14 +21,14 @@ function plan(overrides: Partial<RemediationPlan> = {}): RemediationPlan {
 describe("canonicalPRComment", () => {
   it("produces exact structure with status VERIFIED for proceed", () => {
     const r = renderPRComment(plan());
-    expect(r.body).toContain("ArcSight Result: VERIFIED");
+    expect(r.body).toContain("ANCHR Result: VERIFIED");
     expect(r.body).toContain("This change is architecturally safe.");
     expect(r.body).toContain("Required Actions:");
     expect(r.body).toContain("• No action required.");
     expect(r.body).toContain("Commit Guidance:");
     expect(r.body).toContain("Verification:");
     expect(r.body).toContain("Why this happened:");
-    expect(r.shortBody).toMatch(/^ArcSight: VERIFIED — /);
+    expect(r.shortBody).toMatch(/^ANCHR: VERIFIED — /);
     expect(r.shortBody).not.toContain("\n");
     expect(r.fingerprint).toMatch(/^[a-f0-9]{40}$/);
   });
@@ -71,7 +71,7 @@ describe("canonicalPRComment", () => {
         },
       }),
     );
-    expect(r.body).toContain("ArcSight Result: ARCHITECTURE BLOCKED");
+    expect(r.body).toContain("ANCHR Result: ARCHITECTURE BLOCKED");
   });
 
   it("canonicalizes and dedupes list items", () => {

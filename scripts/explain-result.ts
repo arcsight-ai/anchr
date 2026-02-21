@@ -62,15 +62,15 @@ function normalizeDowngradeReasons(reasons: string[] | null | undefined): string
 function summaryLine(code: string): string {
   switch (code) {
     case "MERGE":
-      return "ArcSight verified no architectural impact";
+      return "ANCHR verified no architectural impact";
     case "REVIEW":
-      return "ArcSight detected a non-trivial dependency change";
+      return "ANCHR detected a non-trivial dependency change";
     case "BLOCK":
-      return "ArcSight detected an architectural boundary violation";
+      return "ANCHR detected an architectural boundary violation";
     case "ESCALATE":
-      return "ArcSight could not reach a reliable conclusion";
+      return "ANCHR could not reach a reliable conclusion";
     default:
-      return "ArcSight could not reach a reliable conclusion";
+      return "ANCHR could not reach a reliable conclusion";
   }
 }
 

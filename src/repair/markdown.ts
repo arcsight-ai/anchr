@@ -1,9 +1,9 @@
 import type { RepairAction, RepairPlan } from "./types.js";
 
 function invariantSummary(status: string, primaryCause: string | null): string {
-  if (status === "verified") return "ArcSight verified no architectural impact.";
-  if (status === "uncertain") return "ArcSight could not prove the change safe.";
-  if (status === "no-report") return "ArcSight report missing — certification did not execute.";
+  if (status === "verified") return "ANCHR verified no architectural impact.";
+  if (status === "uncertain") return "ANCHR could not prove the change safe.";
+  if (status === "no-report") return "ANCHR report missing — certification did not execute.";
   if (status === "blocked" && primaryCause) {
     const causeMap: Record<string, string> = {
       boundary_violation: "A consumer package depends on an implementation detail of another package.",
@@ -19,7 +19,7 @@ function invariantSummary(status: string, primaryCause: string | null): string {
 export function formatMarkdown(plan: RepairPlan, primaryCause: string | null): string {
   const lines: string[] = [];
 
-  lines.push("# ArcSight Architectural Repair Plan");
+  lines.push("# ANCHR Architectural Repair Plan");
   lines.push("");
   lines.push("## Summary");
   lines.push("");
@@ -78,7 +78,7 @@ export function formatMarkdown(plan: RepairPlan, primaryCause: string | null): s
 
     lines.push("## Result");
     lines.push("");
-    lines.push("After applying the primary repair path, the next ArcSight run will return VERIFIED. Boundary integrity is restored without changing runtime behavior beyond what is strictly necessary.");
+    lines.push("After applying the primary repair path, the next ANCHR run will return VERIFIED. Boundary integrity is restored without changing runtime behavior beyond what is strictly necessary.");
   }
 
   return lines.join("\n");

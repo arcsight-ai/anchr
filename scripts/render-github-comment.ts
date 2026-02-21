@@ -36,10 +36,10 @@ const DECISION_MAP: Record<DecisionLevel, { emoji: string; label: string }> = {
 const MEANING: Record<DecisionLevel, string> = {
   allow: "This change preserves package boundaries.",
   block: "This change bypasses a package boundary and may couple modules.",
-  review: "ArcSight cannot prove this change safe.",
-  error: "ArcSight could not analyze the change.",
+  review: "ANCHR cannot prove this change safe.",
+  error: "ANCHR could not analyze the change.",
   unstable:
-    "ArcSight produced inconsistent results for the same change.",
+    "ANCHR produced inconsistent results for the same change.",
 };
 
 const SUGGESTED_FIX: Record<string, string> = {
@@ -126,7 +126,7 @@ function render(report: ReportShape | null, existingComment: string): string {
       ? report.decision?.reason ?? ""
       : level === "unstable"
         ? "Non-deterministic analysis: identical input produced different certification result."
-        : "ArcSight could not analyze the change.";
+        : "ANCHR could not analyze the change.";
   const display = DECISION_MAP[level];
   const meaning = MEANING[level];
 
@@ -172,7 +172,7 @@ function render(report: ReportShape | null, existingComment: string): string {
   const rawCoverage = ratioNum != null ? formatRatio(ratioNum) ?? "—" : "—";
 
   const lines: string[] = [
-    "## ArcSight Result",
+    "## ANCHR Result",
     "",
     `${display.emoji} ${display.label}`,
     "",
@@ -249,11 +249,11 @@ function main(): void {
     process.stdout.write("\n");
   } catch {
     const fallback = [
-      "## ArcSight Result",
+      "## ANCHR Result",
       "",
       "⚪ ERROR",
       "",
-      "ArcSight could not analyze the change.",
+      "ANCHR could not analyze the change.",
       "",
       ANCHOR,
       "",

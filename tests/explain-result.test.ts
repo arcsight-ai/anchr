@@ -18,7 +18,7 @@ describe("explain-result", () => {
     };
     const out = explainResult(input);
     expect(out).toBe(
-      "ArcSight verified no architectural impact\nThe change does not alter package dependencies",
+      "ANCHR verified no architectural impact\nThe change does not alter package dependencies",
     );
     expect(out.endsWith("\n")).toBe(false);
     expect(out).not.toContain("\r");
@@ -30,7 +30,7 @@ describe("explain-result", () => {
       violations: [{ cause: "boundary_violation", toPkg: "epistemic-kernel" }],
     };
     const out = explainResult(input);
-    expect(out).toContain("ArcSight detected an architectural boundary violation");
+    expect(out).toContain("ANCHR detected an architectural boundary violation");
     expect(out).toContain("The change breaks a declared package boundary");
     expect(out).toContain("Import from epistemic-kernel internal module detected");
     expect(out.endsWith("\n")).toBe(false);
@@ -42,7 +42,7 @@ describe("explain-result", () => {
       downgradeReasons: ["certifier_script_missing"],
     };
     const out = explainResult(input);
-    expect(out).toContain("ArcSight could not reach a reliable conclusion");
+    expect(out).toContain("ANCHR could not reach a reliable conclusion");
     expect(out).toContain("The analysis result is not deterministic");
     expect(out).toContain("Manual review is recommended");
     expect(out).not.toContain("certifier_script_missing");
@@ -162,7 +162,7 @@ describe("explain-result", () => {
       action: { code: "UNKNOWN" as any, category: "UNKNOWN" as any, message: "x" },
     };
     const out = explainResult(input);
-    expect(out).toContain("ArcSight could not reach a reliable conclusion");
+    expect(out).toContain("ANCHR could not reach a reliable conclusion");
     expect(out).toContain("The analysis result is not deterministic");
   });
 });

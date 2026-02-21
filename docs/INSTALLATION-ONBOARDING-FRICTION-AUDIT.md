@@ -13,7 +13,7 @@
 | Scenario | What exists | Gap |
 |----------|-------------|-----|
 | **New repo + “install ANCHR GitHub App”** | Messaging canon and 7-day plan refer to “GitHub App or CI workflow.” There is **no** in-repo GitHub App definition (e.g. `.github/app.yml` or separate app repo) or doc that says “install this app from the Marketplace.” | Unclear what “Install ANCHR GitHub App” means in practice (which app, which repo). |
-| **New repo + add workflow** | `.github/workflows/arcsight.yml` runs `npx -y tsx@4 scripts/anchr-structural-audit.ts` and other **local scripts**. It assumes the workflow runs in a repo that **contains the ANCHR source** (scripts/, package.json, etc.). | A new empty repo cannot run this workflow as-is; it has no `scripts/` or ANCHR code. |
+| **New repo + add workflow** | `.github/workflows/anchr.yml` runs `npx -y tsx@4 scripts/anchr-structural-audit.ts` and other **local scripts**. It assumes the workflow runs in a repo that **contains the ANCHR source** (scripts/, package.json, etc.). | A new empty repo cannot run this workflow as-is; it has no `scripts/` or ANCHR code. |
 | **New repo + npm install anchr** | README says “In your repo: npx anchr audit” (local). That implies `npm install anchr` (or global install) and then run from the repo. **No** workflow file is documented that uses `npx anchr audit` in CI and then creates a Check Run. | Local path is clear; CI path for a repo that only adds a workflow + anchr as dependency is **not** documented. |
 
 **Conclusion:** Fresh-repo simulation cannot reach “first meaningful check result” without defining how the customer repo gets the workflow and the runner (e.g. “copy this workflow that uses npx anchr” + publish check). Today, the only self-contained flow is **this repo (ANCHR)** running its own workflow on its own PRs.
@@ -22,7 +22,7 @@
 
 ## 2. First Run Experience (When Workflow Exists)
 
-For a repo that **has** the ArcSight workflow and ANCHR source (e.g. the ANCHR repo itself):
+For a repo that **has** the ANCHR workflow and ANCHR source (e.g. the ANCHR repo itself):
 
 | Criterion | Assessment |
 |-----------|------------|
@@ -59,10 +59,10 @@ For a repo that **has** the ArcSight workflow and ANCHR source (e.g. the ANCHR r
 
 | Failure mode | Behavior | Actionable? |
 |--------------|----------|-------------|
-| **App/workflow lacks permissions** | Workflow requests `contents: read`, `pull-requests: write`, `checks: write`. If permissions are reduced or missing, Check Run POST/PATCH or status POST can fail. Steps use `|| true` / `continue-on-error: true`, so workflow job may still succeed while check/comment do not appear. | **Partially.** User sees workflow green but no ArcSight check; they must infer permissions. No explicit “ArcSight needs checks: write” message in UI. |
+| **App/workflow lacks permissions** | Workflow requests `contents: read`, `pull-requests: write`, `checks: write`. If permissions are reduced or missing, Check Run POST/PATCH or status POST can fail. Steps use `|| true` / `continue-on-error: true`, so workflow job may still succeed while check/comment do not appear. | **Partially.** User sees workflow green but no ANCHR check; they must infer permissions. No explicit “ArcSight needs checks: write” message in UI. |
 | **Repo is private** | `secrets.GITHUB_TOKEN` has permissions in private repos; workflow and Check Run work the same. | No special handling needed. |
 | **Workflow YAML missing** | If the repo has no workflow that runs ANCHR and creates a check, no check runs. No “install” to speak of. | User must add a workflow; no error message. |
-| **No report produced** | If `artifacts/anchr-report.json` is missing (e.g. audit step failed), “Read report and policy” sets action=retry; conclusion=failure; status publish uses “No ArcSight report found — publishing neutral status” and runs set-pr-status anyway. Check Run still created/updated with failure. | Acceptable; user sees a failing check and can re-run or inspect logs. |
+| **No report produced** | If `artifacts/anchr-report.json` is missing (e.g. audit step failed), “Read report and policy” sets action=retry; conclusion=failure; status publish uses “No ANCHR report found — publishing neutral status” and runs set-pr-status anyway. Check Run still created/updated with failure. | Acceptable; user sees a failing check and can re-run or inspect logs. |
 
 ---
 
@@ -87,7 +87,7 @@ No config file. No steps for “GitHub Check on every PR.”
 
 **Path B — CI in ANCHR repo (actual)**  
 1. Clone ANCHR (or have it as the repo).  
-2. Ensure default branch has `.github/workflows/arcsight.yml`.  
+2. Ensure default branch has `.github/workflows/anchr.yml`.  
 3. Open a PR.  
 4. Workflow runs; Check Run “ArcSight” appears.  
 No config file. Not applicable to a random new repo.

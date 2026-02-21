@@ -1,8 +1,8 @@
 # anchr-demo-monorepo
 
-Public demo repo for [ANCHR](https://github.com/arcsight-ai/anchr) (ArcSight): module boundaries, branch protection, and required merge check. Use this as a proof anchor for DevHunt and onboarding.
+Public demo repo for [ANCHR](https://github.com/arcsight-ai/anchr) : module boundaries, branch protection, and required merge check. Use this as a proof anchor for DevHunt and onboarding.
 
-**Use as a standalone repo:** Copy or clone this folder into its own Git repository (e.g. `arcsight-ai/anchr-demo-monorepo`) so that ANCHR and the ArcSight workflow run against this monorepo’s `packages/` only.
+**Use as a standalone repo:** Copy or clone this folder into its own Git repository (e.g. `arcsight-ai/anchr-demo-monorepo`) so that ANCHR runs against this monorepo’s `packages/` only.
 
 ## Boundaries
 
@@ -28,22 +28,22 @@ For PR-style diff (base vs head), set `GITHUB_BASE_SHA` and `GITHUB_HEAD_SHA` to
 
 1. **Settings → Branches → Add rule** for `main` (or default branch).
 2. Enable **Require status checks to pass before merging**.
-3. Add status check: **ArcSight** (the workflow name appears as this check).
-4. Save. Merges to `main` are then blocked unless the ArcSight (ANCHR) check passes.
+3. Add status check: **ANCHR** (the workflow name appears as this check).
+4. Save. Merges to `main` are then blocked unless the ANCHR check passes.
 
 ## Three PR scenarios (proof anchor)
 
 ### 1. VERIFIED — clean PR
 
 - Change that respects boundaries (e.g. edit a comment in `packages/api/src/index.ts`, or add a new public export in `packages/core/src/format.ts` and use it from `api`).
-- Open PR → ArcSight runs → **MERGE VERIFIED** → Check passes → merge allowed.
+- Open PR → ANCHR runs → **MERGE VERIFIED** → Check passes → merge allowed.
 
 ### 2. BLOCKED — boundary violation
 
 - In `packages/api/src/index.ts`, add an import of `core`’s **internal** surface, e.g.:
   - `import { internalHelper } from "@market-os/core/internal";` (if your resolver allows that subpath), or
   - In a file under `api`, add a relative import that resolves to `../core/src/internal.ts`.
-- Open PR → ArcSight runs → **MERGE BLOCKED** (boundary violation) → Check fails → merge blocked.
+- Open PR → ANCHR runs → **MERGE BLOCKED** (boundary violation) → Check fails → merge blocked.
 
 **Concrete step:** In `packages/api/src/index.ts`, add:
 `import { internalHelper } from "@market-os/core/internal";`  
@@ -52,18 +52,18 @@ and use `internalHelper()` somewhere. ANCHR treats `@market-os/core/internal` as
 ### 3. BLOCKED — circular dependency
 
 - Make `core` depend on `api` (e.g. add `"@market-os/api": "workspace:*"` to `packages/core/package.json` and in `packages/core/src/index.ts` add `import { apiVersion } from "@market-os/api";` and re-export or use it).
-- Open PR → ArcSight runs → **MERGE BLOCKED** (circular dependency) → Check fails → merge blocked.
+- Open PR → ANCHR runs → **MERGE BLOCKED** (circular dependency) → Check fails → merge blocked.
 
 **Concrete steps:**
 1. In `packages/core/package.json`, add `"@market-os/api": "workspace:*"` to `dependencies`.
 2. In `packages/core/src/index.ts`, add `import { apiVersion } from "@market-os/api";` and e.g. `export { apiVersion };`.
-3. Open PR from that branch → ArcSight should report cycle and block merge.
+3. Open PR from that branch → ANCHR should report cycle and block merge.
 
 ## Screenshots (optional for DevHunt)
 
 - PR with **MERGE BLOCKED** (boundary violation).
 - PR with **MERGE VERIFIED** (clean change).
-- Branch protection page showing **ArcSight** as a required check.
+- Branch protection page showing **ANCHR** as a required check.
 
 ## License
 

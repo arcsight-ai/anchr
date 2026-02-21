@@ -75,7 +75,7 @@ export function formatFixOutput(result: {
   }
 
   if (result.status === "no_report" || result.status === "no_violations") {
-    lines.push("ArcSight Repair Plan");
+    lines.push("ANCHR Repair Plan");
     lines.push("");
     lines.push("Violations: 0");
     lines.push("Files affected: 0");
@@ -107,7 +107,7 @@ export function formatFixOutput(result: {
 
   const plan = result.plan!;
 
-  lines.push("ArcSight Repair Plan");
+  lines.push("ANCHR Repair Plan");
   lines.push("");
   lines.push(`Violations: ${result.violationCount}`);
   lines.push(`Files affected: ${result.filesAffected.length}`);
@@ -164,7 +164,7 @@ export function formatFixOutput(result: {
   lines.push("• No private package imports will remain");
   lines.push("• No relative imports will escape package boundaries");
   lines.push("• No deleted public APIs will be referenced");
-  lines.push("• ArcSight structural phase will return VERIFIED");
+  lines.push("• ANCHR structural phase will return VERIFIED");
   lines.push("");
 
   lines.push("No files were modified.");

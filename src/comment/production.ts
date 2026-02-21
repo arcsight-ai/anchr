@@ -67,7 +67,7 @@ export function renderProductionComment(input: ProductionCommentInput): string {
     return [
       firstLine,
       "",
-      "ArcSight Result: ⏳ OUTDATED",
+      "ANCHR Result: ⏳ OUTDATED",
       "",
       "This result was generated for an older commit and has been replaced by newer changes.",
       "",
@@ -79,7 +79,7 @@ export function renderProductionComment(input: ProductionCommentInput): string {
     return [
       firstLine,
       "",
-      "ArcSight Result: ⚠️ INDETERMINATE",
+      "ANCHR Result: ⚠️ INDETERMINATE",
       "",
       "The same change produced different architectural decisions across runs.",
       "This result is ignored for safety. Please re-run the check.",
