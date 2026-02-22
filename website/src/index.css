@@ -16,8 +16,11 @@
   --radius-btn: 12px;
   --radius-pill: 999px;
   --max-width: 1160px;
+  --max-width-prose: 56ch;
+  --space-section: 64px;
+  --space-section-lg: 96px;
   --gap-section: 28px;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color: var(--text);
@@ -30,20 +33,32 @@
 
 * { box-sizing: border-box; }
 
-body { margin: 0; min-height: 100vh; }
+body { margin: 0; min-height: 100vh; padding-bottom: env(safe-area-inset-bottom, 0); }
 
 a { color: var(--accent); text-decoration: none; }
 a:hover { color: var(--accent-hover); }
 
-code, .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+code, .mono { font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace; font-size: 0.9em; }
 
 .container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
 
-.section { padding: var(--gap-section) 0; }
+.section {
+  padding: var(--space-section) 0;
+  border-top: 1px solid var(--border);
+}
+main > .section:first-child { border-top: none; }
 
-h1 { font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 700; line-height: 1.2; margin: 0 0 0.5rem; }
-h2 { font-size: 1.65rem; font-weight: 600; margin: 0 0 1rem; color: var(--text); }
-h3 { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.5rem; }
+.hero-section { padding-top: var(--space-section); }
+@media (min-width: 1024px) {
+  .hero-section { padding-top: var(--space-section-lg); }
+}
+
+.prose { max-width: var(--max-width-prose); }
+
+/* Fixed rem only (no clamp): prevents viewport recalculation and heading flicker. #root scope beats DevHunt-injected h1/h2/h3 { font-size: inherit }. */
+#root h1 { font-size: 2.75rem; font-weight: 700; line-height: 1.2; margin: 0 0 0.5rem; }
+#root h2 { font-size: 2.15rem; font-weight: 600; margin: 0 0 1.5rem; color: var(--text); }
+#root h3 { font-size: 1.35rem; font-weight: 600; margin: 0 0 0.5rem; }
 
 .btn {
   display: inline-block;
@@ -55,7 +70,13 @@ h3 { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.5rem; }
   border: 1px solid var(--border);
   transition: background-color 0.15s, border-color 0.15s;
 }
-.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary {
+  padding: 14px 24px;
+  font-weight: 600;
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
 .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
 .btn-secondary { background: var(--surface); color: var(--text); }
 .btn-secondary:hover { background: var(--surface-hover); }
@@ -73,6 +94,56 @@ button:focus-visible {
   padding: 1.25rem 1.5rem;
 }
 
+/* One decision per PR: GitHub Check–style mock */
+.check-mock {
+  max-width: 420px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text);
+}
+.check-mock-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.check-mock-row { color: var(--text-secondary); }
+.check-mock-row strong { color: var(--text); font-weight: 600; }
+.check-mock-status { color: var(--danger); font-weight: 600; }
+.check-mock-cut { margin-top: 8px; overflow-wrap: anywhere; }
+.mechanism-line {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+/* DevHunt banner (static in index.html; no third-party script) */
+.devhunt-banner {
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--border);
+  padding: 0.5rem 24px;
+  font-size: 0.8125rem;
+}
+.devhunt-banner-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.devhunt-banner a { font-weight: 500; }
+.devhunt-banner a:hover { color: var(--accent-hover); }
+@media (max-width: 768px) {
+  .devhunt-banner { padding: 0.5rem 16px; }
+}
+
 .faq-accordion {
   max-width: 100%;
 }
@@ -85,10 +156,102 @@ button:focus-visible {
   transition: background-color 0.15s ease;
 }
 
+/* Nav: desktop always shows links; mobile shows hamburger, dropdown when open */
+.nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  min-height: 44px;
+  padding: 10px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  color: var(--text);
+  cursor: pointer;
+}
+.nav-toggle-bar {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+}
+.nav-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Mobile & small viewports */
 @media (max-width: 768px) {
-  .container { padding: 0 16px; }
-  .section { padding: 20px 0; }
-  .nav-links { gap: 12px; }
-  .nav-links a:not(.btn) { font-size: 0.85rem; }
-  .nav-links .btn { padding: 10px 16px; font-size: 0.9rem; }
+  .container { padding: 0 16px; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+  .section { padding: 48px 0; }
+  .check-mock { padding: 16px; font-size: 13px; }
+  #root h1 { font-size: 2.25rem; }
+  #root h2 { font-size: 1.75rem; }
+  #root h3 { font-size: 1.25rem; }
+  .nav-toggle { display: flex; }
+  .nav-links {
+    display: none !important;
+    flex-basis: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+  }
+  .nav-open .nav-links {
+    display: flex !important;
+  }
+  .nav-links a:not(.btn) {
+    font-size: 0.95rem;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 0;
+    color: var(--text-secondary);
+  }
+  .nav-links .btn {
+    margin-top: 8px;
+    padding: 12px 18px;
+    font-size: 0.9rem;
+    min-height: 44px;
+    text-align: center;
+    justify-content: center;
+  }
+  .install-tabs { flex-direction: column; width: 100%; }
+  .install-tabs button { flex: 1; min-height: 44px; }
+  .hero-figure { min-width: 0 !important; }
+  .demo-card-cell { min-height: 200px; }
+  .demo-card-cell > div { height: 200px; }
+  .faq-trigger { min-height: 48px; padding: 14px 16px !important; }
+  footer .container { flex-direction: column; align-items: flex-start; gap: 12px; }
+  footer .btn { width: 100%; text-align: center; justify-content: center; }
+}
+
+/* Touch-friendly and safe area */
+@media (max-width: 480px) {
+  .container { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+  #root h1 { font-size: 2rem; }
+  #root h2 { font-size: 1.65rem; }
+}
+
+/* 375px: avoid awkward H1 wrap (e.g. "monorepos." alone) — smaller size, same words */
+@media (max-width: 375px) {
+  #root h1 { font-size: 1.75rem; }
+}
+
+/* Desktop: comfortable reading width and spacing */
+@media (min-width: 1024px) {
+  .section { padding: var(--space-section-lg) 0; }
+  .hero-sub { max-width: 540px; }
 }

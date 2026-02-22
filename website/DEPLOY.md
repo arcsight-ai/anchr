@@ -12,7 +12,7 @@ The site is aligned with Screaming Frog SEO Spider expectations:
 - **Images:** Three screenshots in the Demo section and one in the Install section (from `docs/media/`, copied to `public/`); all have descriptive `alt` text. OG image and favicon are meta/link only.
 - **Structured data:** JSON-LD SoftwareApplication in head.
 - **Sitemap & robots:** `robots.txt` and `sitemap.xml` in `public/`.
-- **Accessibility:** Skip link (“Skip to main content”), semantic `<main id="main-content">`, viewport set. Fonts use `display=swap`.
+- **Accessibility:** Skip link (“Skip to main content”), semantic `<main id="main-content">`, viewport set.
 
 Run a crawl after deploy and fix any host-specific issues (e.g. redirect chains, 4xxs).
 
@@ -36,6 +36,27 @@ Run a crawl after deploy and fix any host-specific issues (e.g. redirect chains,
 - Security headers (HSTS, X-Content-Type-Options, etc.) are set via:
   - **Netlify:** `public/_headers`
   - **Vercel:** `vercel.json`
+
+## Rendering and heading flicker prevention
+
+**Stack:** Vite + React. Client-only (no SSR, no Next.js). No hydration mismatch possible.
+
+**Why headings must not flicker:** Minimal, typography-led design makes any layout shift very visible. The following is in place so the hero and section headings do not resize or reflow after load:
+
+1. **No webfont** — System font stack only (`-apple-system`, `BlinkMacSystemFont`, etc.). No font file loads, so there is no fallback → custom font metric swap.
+2. **Critical CSS in `<head>`** — Inline block in `index.html` sets `:root`, `body`, `.container`, `.section`, and **fixed rem** for `h1`, `h2`, `h3` (with matching `@media` for 768px and 480px). These rules apply as soon as the HTML is parsed, before any script runs.
+3. **Fixed rem only (no clamp)** — All heading sizes are static rem (e.g. `h1: 2.75rem`; overrides at 768px and 480px). No viewport-based `clamp()` or `vw`, so no recalculation on resize or after paint.
+4. **No JS typography** — No `useEffect` or other script changes heading size, weight, or classes after mount.
+5. **`#root` background** — `var(--bg)` on `#root` so the shell is never white before React paints.
+
+**Critical CSS must match production CSS exactly.** The inline block in `index.html` duplicates the h1/h2/h3 rules (and breakpoints) from `src/index.css`. If they ever differ (e.g. inline 2.75rem but bundle 2.5rem), first paint will be overridden when the hashed CSS loads and you will see a shrink. When changing typography, update both places.
+
+**DevHunt banner:** We use a static HTML banner in `index.html` (no third-party script). The official DevHunt script injects a Tailwind-style reset that overrode our heading styles and caused flicker; our banner shows the same message and links to https://devhunt.org/tool/anchr with no external JS. Heading rules use `#root h1`, `#root h2`, `#root h3` so any future third-party CSS cannot override them.
+
+**If other flicker appears**, the cause is not the app typography system; it is one of: (1) stale HTML cached at CDN/browser, (2) another third-party script, (3) production serving an older deploy.
+
+- **Three checks:** Incognito + DevTools "Disable cache" + hard refresh; remove DevHunt script, deploy, test; confirm production is latest deploy and HTML references hashed `assets/index-<hash>.css`.
+- **The one test that isolates cause:** DevTools → Elements → select hero `<h1>` → watch **Computed** `font-size` and `line-height` → reload. If **font-size changes** after load → CSS override or stale CSS. If **font-size stays the same** but layout shifts → container width or injected DOM above hero (e.g. third-party).
 
 ## Build
 
