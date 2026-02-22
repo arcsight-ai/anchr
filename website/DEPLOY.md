@@ -89,7 +89,8 @@ Run each command separately (do not paste multiple lines at once; the shell may 
 3. **DNS:** In GoDaddy (or your registrar), point `anchr.sh` at Fly:
    - **A record:** `anchr.sh` → value Fly shows for the app (e.g. IPv4 from `fly certs show anchr.sh`).
    - Or **CNAME:** `anchr.sh` → `anchr.fly.dev` (if your registrar allows CNAME on apex; otherwise use A).
-4. **Headers:** Fly doesn’t read `_headers` / `vercel.json`. To add security headers, either use a custom nginx snippet in `nginx.conf` or configure them in `fly.toml` when available for your plan.
+4. **HTTP and www redirects:** Fly Proxy redirects HTTP → HTTPS when `force_https = true` (set in `fly.toml`); apex A/AAAA must point to Fly. For www → apex: run `fly certs add www.anchr.sh`, point www A/AAAA to Fly; `nginx.conf` redirects `www.anchr.sh` to `https://anchr.sh` (301). Redeploy after nginx changes.
+5. **Headers:** Fly doesn’t read `_headers` / `vercel.json`. To add security headers, either use a custom nginx snippet in `nginx.conf` or configure them in `fly.toml` when available for your plan.
 
 Machines are set to scale to zero when idle (`min_machines_running = 0`). To avoid cold starts after idle, set `min_machines_running = 1` in `fly.toml`.
 
