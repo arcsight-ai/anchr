@@ -13,6 +13,8 @@ or
 Deterministic by contract.  
 Same input → same decision.
 
+![ANCHR BLOCK — boundary violation with minimal cut](docs/media/screenshot-block-pr-comment.png)
+
 Supported layout:
 
 ```

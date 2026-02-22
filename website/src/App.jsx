@@ -3,6 +3,33 @@ import './index.css'
 
 const GITHUB_URL = 'https://github.com/arcsight-ai/anchr'
 
+// Stroke version: line-art A + anchor. Works on any background.
+function AnchrLogoStroke({ style }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 38" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={style}>
+      <circle cx="16" cy="6.5" r="3" fill="none" />
+      <path d="M13 9.5 L9.5 17.5 L22.5 17.5 L19 9.5 M16 17.5 L16 26 L9.5 34 M16 26 L22.5 34" />
+    </svg>
+  )
+}
+
+// Filled version: one solid shape (A + ring + flukes). Stronger at small sizes; single mark.
+function AnchrLogoFilled({ style }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 38" fill="currentColor" fillRule="evenodd" aria-hidden="true" style={style}>
+      <path d="M9.5 35 L9.5 17.5 L13 9.5 A 3 3 0 0 1 19 9.5 L22.5 17.5 L22.5 35 L16 29 Z M9.5 17.5 L22.5 17.5 L16 9.5 Z" />
+    </svg>
+  )
+}
+
+// Default: filled for impact at small sizes; use AnchrLogoStroke for line-art.
+function AnchrLogo({ style, variant = 'filled' }) {
+  return variant === 'stroke' ? <AnchrLogoStroke style={style} /> : <AnchrLogoFilled style={style} />
+}
+const LICENSE_URL = `${GITHUB_URL}/blob/main/LICENSE`
+const DOCS_URL = `${GITHUB_URL}#readme`
+const ISSUES_URL = `${GITHUB_URL}/issues`
+
 function Nav() {
   return (
     <nav style={{
@@ -11,61 +38,18 @@ function Nav() {
       padding: '14px 0'
     }}>
       <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <a href="#" style={{ fontWeight: 700, fontSize: '1.2rem', color: 'var(--text)' }}>ANCHR</a>
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: '1.2rem', color: 'var(--text)' }}>
+          <AnchrLogo style={{ width: 28, height: 33, flexShrink: 0 }} />
+          ANCHR
+        </a>
+        <div className="nav-links" style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', alignItems: 'center' }}>
+          <a href={DOCS_URL} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Docs</a>
           <a href="#install" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Install</a>
-          <a href={GITHUB_URL} target="_blank" rel="noreferrer" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>GitHub</a>
-          <a href="#install" className="btn btn-primary">Add ANCHR workflow</a>
+          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>GitHub</a>
+          <a href="#install" className="btn btn-primary">Add ANCHR to my repo</a>
         </div>
       </div>
     </nav>
-  )
-}
-
-function PRCommentCard() {
-  return (
-    <div className="card" style={{
-      maxWidth: 520,
-      marginTop: 28,
-      fontFamily: 'Inter',
-      border: '1px solid var(--border)',
-      boxShadow: 'none'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-        <span style={{
-          fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 4,
-          background: 'var(--surface-hover)', color: 'var(--text-muted)'
-        }}>PRE_MERGE</span>
-        <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>ANCHR</span>
-      </div>
-      <div style={{ marginBottom: 10 }}>
-        <span style={{ color: 'var(--danger)', fontWeight: 600, fontSize: 14 }}>BLOCK</span>
-        <span style={{ color: 'var(--text-muted)', fontSize: 14 }}> — boundary_violation</span>
-      </div>
-      <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 12px' }}>
-        world-model imports from @market-os/epistemic-kernel/src (internal). Minimal cut below.
-      </p>
-      <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8 }}>
-        <strong style={{ color: 'var(--text)' }}>MinimalCut</strong>
-        <ul style={{ margin: '4px 0 0', paddingLeft: 20 }}>
-          <li>packages/world-model → packages/epistemic-kernel/src/types</li>
-          <li>packages/epistemic-kernel: expose types via public entry only</li>
-        </ul>
-      </div>
-      <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8 }}>
-        <strong style={{ color: 'var(--text)' }}>Evidence</strong>
-        <ul style={{ margin: '4px 0 0', paddingLeft: 20 }}>
-          <li>Import chain: world-model/run.ts → epistemic-kernel/src/types.ts</li>
-          <li>epistemic-kernel public API: index.ts (types not re-exported)</li>
-        </ul>
-      </div>
-      <div style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'JetBrains Mono' }}>
-        run.id: a3f2c1b
-      </div>
-      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 10 }}>
-        Does not block merges.
-      </div>
-    </div>
   )
 }
 
@@ -73,23 +57,46 @@ function Hero() {
   return (
     <header className="section" style={{ paddingTop: 48 }}>
       <div className="container">
-        <h1 style={{ marginBottom: 12 }}>
-          Code Review Catches Logic.<br />ANCHR Enforces Structure.
-        </h1>
-        <p style={{ fontSize: 1.15, color: 'var(--text-secondary)', maxWidth: 560, marginBottom: 24 }}>
-          One decision per PR: VERIFIED or BLOCKED. Deterministic structural gate for TypeScript monorepos.
-        </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-          <a href="#install" className="btn btn-primary">Add ANCHR to Your Repo</a>
-          <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="btn btn-secondary">View on GitHub</a>
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 32,
+          alignItems: 'flex-start',
+        }}>
+          <div style={{ flex: '1 1 380px', minWidth: 0 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              For TypeScript monorepos
+            </p>
+            <h1 style={{ marginBottom: 10, lineHeight: 1.2 }}>
+              ANCHR enforces structure at merge time.
+            </h1>
+            <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', maxWidth: 520, marginBottom: 20 }}>
+              One decision per PR: VERIFIED or BLOCKED. No config. No dashboard. One YAML file.
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
+              <a href="#install" className="btn btn-primary">Add ANCHR to my repo</a>
+              <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">View on GitHub</a>
+              <a href="#demo" style={{ fontSize: 14, color: 'var(--text-muted)' }}>See it in action →</a>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 16 }}>
+              Open source · MIT · No signup
+            </p>
+          </div>
+          <figure style={{
+            flex: '1 1 380px',
+            minWidth: 280,
+            margin: 0,
+          }}>
+            <img
+              src="/screenshot-block-pr-comment.png"
+              alt="ANCHR PR comment: BLOCK with boundary_violation, minimal cut and evidence"
+              style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)' }}
+            />
+            <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>
+              What ANCHR posts on a PR when it finds a boundary violation
+            </figcaption>
+          </figure>
         </div>
-        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 20 }}>
-          Diff-based analysis. Deterministic output. Merge-gate ready.
-        </p>
-        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8 }}>
-          Not a linter. Not a report you interpret. It makes the decision.
-        </p>
-        <PRCommentCard />
       </div>
     </header>
   )
@@ -161,7 +168,32 @@ function ScopeContract() {
   )
 }
 
+const WORKFLOW_YAML = `name: ANCHR
+on: pull_request
+jobs:
+  ANCHR:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx anchr@latest audit`
+
+const CLI_CMD = 'npx anchr@latest audit'
+
 function Install() {
+  const [installTab, setInstallTab] = useState('workflow')
+  const [copyFeedback, setCopyFeedback] = useState(null) // 'workflow' | 'cli' | null
+  const handleCopyWorkflow = () => {
+    navigator.clipboard.writeText(WORKFLOW_YAML).then(() => {
+      setCopyFeedback('workflow')
+      setTimeout(() => setCopyFeedback(null), 2000)
+    })
+  }
+  const handleCopyCli = () => {
+    navigator.clipboard.writeText(CLI_CMD).then(() => {
+      setCopyFeedback('cli')
+      setTimeout(() => setCopyFeedback(null), 2000)
+    })
+  }
   return (
     <section id="install" className="section" style={{ background: 'var(--bg-alt)' }}>
       <div className="container">
@@ -169,31 +201,110 @@ function Install() {
         <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>
           Add the ANCHR workflow. No SaaS. No dashboard. No config guessing. One deterministic decision per PR.
         </p>
-        <div className="card" style={{ maxWidth: 560 }}>
-          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 8 }}>.github/workflows/anchr.yml</p>
-          <pre style={{
-            background: 'var(--bg)', padding: 16, borderRadius: 8, overflow: 'auto',
-            fontSize: 13, fontFamily: 'JetBrains Mono', margin: 0, border: '1px solid var(--border)'
-          }}>
-{`name: ANCHR
-on: pull_request
-jobs:
-  ANCHR:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: npx anchr@latest audit`}
-          </pre>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <button
+            type="button"
+            onClick={() => setInstallTab('workflow')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 'var(--radius-btn)',
+              border: '1px solid var(--border)',
+              background: installTab === 'workflow' ? 'var(--surface-hover)' : 'transparent',
+              color: 'var(--text)',
+              fontFamily: 'inherit',
+              fontSize: 14,
+              cursor: 'pointer',
+            }}
+          >
+            Workflow
+          </button>
+          <button
+            type="button"
+            onClick={() => setInstallTab('cli')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 'var(--radius-btn)',
+              border: '1px solid var(--border)',
+              background: installTab === 'cli' ? 'var(--surface-hover)' : 'transparent',
+              color: 'var(--text)',
+              fontFamily: 'inherit',
+              fontSize: 14,
+              cursor: 'pointer',
+            }}
+          >
+            Local run
+          </button>
         </div>
-        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 16 }}>
-          Then require the <strong>ANCHR</strong> status check in branch protection. One decision per PR: VERIFIED or BLOCKED.
-        </p>
+        {installTab === 'workflow' && (
+          <>
+            <div className="card" style={{ maxWidth: 560 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>.github/workflows/anchr.yml</p>
+                <button
+                  type="button"
+                  onClick={handleCopyWorkflow}
+                  className="btn btn-primary"
+                  style={{ fontSize: 13, padding: '8px 14px' }}
+                  aria-label={copyFeedback === 'workflow' ? 'Copied to clipboard' : 'Copy workflow YAML to clipboard'}
+                >
+                  {copyFeedback === 'workflow' ? 'Copied!' : 'Copy workflow'}
+                </button>
+              </div>
+              <pre style={{
+                background: 'var(--bg)', padding: 16, borderRadius: 8, overflow: 'auto',
+                fontSize: 13, fontFamily: 'JetBrains Mono', margin: 0, border: '1px solid var(--border)'
+              }}>
+{WORKFLOW_YAML}
+              </pre>
+            </div>
+            <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 16 }}>
+              Then require the <strong>ANCHR</strong> status check in branch protection. One decision per PR: VERIFIED or BLOCKED.
+            </p>
+            <p style={{ marginTop: 20 }}>
+              <a href="#install" className="btn btn-primary">Add ANCHR to my repo</a>
+            </p>
+            <figure style={{ margin: '20px 0 0', maxWidth: 560 }}>
+              <img src="/screenshot-branch-protection-anchr.png" alt="Branch protection rule with ANCHR required check" loading="lazy" decoding="async" style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)' }} />
+              <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>Require ANCHR before merge</figcaption>
+            </figure>
+          </>
+        )}
+        {installTab === 'cli' && (
+          <>
+            <div className="card" style={{ maxWidth: 560 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>Terminal</p>
+                <button
+                  type="button"
+                  onClick={handleCopyCli}
+                  className="btn btn-primary"
+                  style={{ fontSize: 13, padding: '8px 14px' }}
+                  aria-label={copyFeedback === 'cli' ? 'Copied to clipboard' : 'Copy npx command to clipboard'}
+                >
+                  {copyFeedback === 'cli' ? 'Copied!' : 'Copy command'}
+                </button>
+              </div>
+              <pre style={{
+                background: 'var(--bg)', padding: 16, borderRadius: 8, overflow: 'auto',
+                fontSize: 13, fontFamily: 'JetBrains Mono', margin: 0, border: '1px solid var(--border)'
+              }}>
+{CLI_CMD}
+              </pre>
+            </div>
+            <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 16 }}>
+              Run from your repo root. Same decision as CI: VERIFIED or BLOCKED. Use <code className="mono">--base</code> and <code className="mono">--head</code> for branch comparison.
+            </p>
+          </>
+        )}
       </div>
     </section>
   )
 }
 
+// Demo: in-repo folder (always works). When you have standalone arcsight-ai/anchr-demo-monorepo, set to https://github.com/arcsight-ai/anchr-demo-monorepo and set the two PR URLs below so VERIFIED/BLOCKED links appear.
 const DEMO_REPO_URL = 'https://github.com/arcsight-ai/anchr/tree/main/anchr-demo-monorepo'
+const DEMO_VERIFIED_PR_URL = '#' // e.g. https://github.com/arcsight-ai/anchr-demo-monorepo/pull/1 when standalone repo + PR exist
+const DEMO_BLOCKED_PR_URL = '#' // e.g. https://github.com/arcsight-ai/anchr-demo-monorepo/pull/2 when standalone repo + PR exist
 
 function Demo() {
   return (
@@ -208,7 +319,38 @@ function Demo() {
           <li><strong style={{ color: 'var(--danger)' }}>BLOCKED</strong> — Boundary violation (cross-package internal import).</li>
           <li><strong style={{ color: 'var(--danger)' }}>BLOCKED</strong> — Circular dependency.</li>
         </ul>
-        <a href={DEMO_REPO_URL} target="_blank" rel="noreferrer" className="btn btn-secondary">Open anchr-demo-monorepo</a>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', marginBottom: 28 }}>
+          <a href={DEMO_REPO_URL} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">Open anchr-demo-monorepo</a>
+          {DEMO_VERIFIED_PR_URL !== '#' && (
+            <>
+              <a href={DEMO_VERIFIED_PR_URL} target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, color: 'var(--accent)' }}>VERIFIED PR</a>
+              <span style={{ color: 'var(--text-muted)' }}>·</span>
+            </>
+          )}
+          {DEMO_BLOCKED_PR_URL !== '#' && (
+            <a href={DEMO_BLOCKED_PR_URL} target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, color: 'var(--accent)' }}>BLOCKED PR</a>
+          )}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginTop: 8, alignItems: 'stretch' }}>
+          <figure style={{ margin: 0, display: 'flex', flexDirection: 'column', minHeight: 320 }}>
+            <div style={{ height: 240, background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img src="/screenshot-block-pr-comment.png" alt="PR comment: ANCHR BLOCK — boundary_violation with minimal cut" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </div>
+            <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, flexShrink: 0 }}>BLOCKED — PR comment with minimal cut</figcaption>
+          </figure>
+          <figure style={{ margin: 0, display: 'flex', flexDirection: 'column', minHeight: 320 }}>
+            <div style={{ height: 240, background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img src="/screenshot-verified-green.png" alt="ANCHR check VERIFIED — green success" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </div>
+            <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, flexShrink: 0 }}>VERIFIED — green check</figcaption>
+          </figure>
+          <figure style={{ margin: 0, display: 'flex', flexDirection: 'column', minHeight: 320 }}>
+            <div style={{ height: 240, background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img src="/screenshot-branch-protection-anchr.png" alt="Branch protection: ANCHR required check" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </div>
+            <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, flexShrink: 0 }}>Branch protection — ANCHR required</figcaption>
+          </figure>
+        </div>
       </div>
     </section>
   )
@@ -350,8 +492,14 @@ function Footer() {
   return (
     <footer className="section" style={{ borderTop: '1px solid var(--border)', paddingTop: 24 }}>
       <div className="container" style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
-        <a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub</a>
-        <span>Open source · MIT</span>
+        <a href="/" style={{ display: 'flex', alignItems: 'center', color: 'inherit' }} aria-label="ANCHR home">
+          <AnchrLogo style={{ width: 24, height: 28, flexShrink: 0, opacity: 0.9 }} />
+        </a>
+        <a href="#install" className="btn btn-primary" style={{ fontSize: 13, padding: '8px 14px' }}>Add ANCHR to my repo</a>
+        <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href={ISSUES_URL} target="_blank" rel="noopener noreferrer">Issues</a>
+        <span>Open source · </span>
+        <a href={LICENSE_URL} target="_blank" rel="noopener noreferrer">MIT</a>
         <span>Built to prevent architecture drift before it becomes a rewrite.</span>
       </div>
     </footer>
@@ -362,13 +510,15 @@ export default function App() {
   return (
     <>
       <Nav />
-      <Hero />
-      <WhatItCatches />
-      <HowItWorks />
-      <ScopeContract />
-      <Install />
-      <Demo />
-      <FAQ />
+      <main id="main-content">
+        <Hero />
+        <WhatItCatches />
+        <HowItWorks />
+        <ScopeContract />
+        <Install />
+        <Demo />
+        <FAQ />
+      </main>
       <Footer />
     </>
   )

@@ -2,17 +2,47 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#0B0F14" />
     <meta name="description" content="One decision per PR: VERIFIED or BLOCKED. Deterministic structural gate for TypeScript monorepos." />
+    <link rel="canonical" href="https://anchr.sh/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://anchr.sh/" />
     <meta property="og:title" content="ANCHR — VERIFIED or BLOCKED." />
     <meta property="og:description" content="Deterministic structural gate for TypeScript monorepos. One decision per PR." />
+    <meta property="og:image" content="https://anchr.sh/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ANCHR — VERIFIED or BLOCKED." />
+    <meta name="twitter:description" content="Deterministic structural gate for TypeScript monorepos. One decision per PR." />
+    <meta name="twitter:image" content="https://anchr.sh/og.png" />
+
+    <title>ANCHR — Structural gate for TypeScript monorepos</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-    <title>ANCHR — Structural gate for TypeScript monorepos</title>
+    <!-- display=swap avoids invisible text during font load (PageSpeed / Core Web Vitals) -->
+
+    <!-- Replace https://anchr.sh with your deployed URL if different (canonical, og:url, og:image, twitter:image, sitemap, robots). -->
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"SoftwareApplication","name":"ANCHR","applicationCategory":"DeveloperApplication","description":"One decision per PR: VERIFIED or BLOCKED. Deterministic structural gate for TypeScript monorepos.","url":"https://anchr.sh/","operatingSystem":"Cross-platform","license":"https://opensource.org/licenses/MIT","author":{"@type":"Organization","name":"arcsight-ai","url":"https://github.com/arcsight-ai"}}
+    </script>
   </head>
   <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <style>
+      .skip-link { position: absolute; top: 0; left: 0; padding: 12px 20px; background: #2F81F7; color: #fff; z-index: 9999; font-size: 14px; text-decoration: none; transform: translateY(-100%); transition: transform 0.2s; }
+      .skip-link:focus { transform: translateY(0); outline: 2px solid #5AA2FF; outline-offset: 2px; }
+    </style>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
