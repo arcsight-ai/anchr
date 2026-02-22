@@ -45,6 +45,35 @@ npm run build
 
 Output is in `dist/`. Serve the `dist/` folder as static files.
 
+## Fly.io
+
+The repo includes Fly config so you can run the site on the same org as your other apps.
+
+Run each command separately (do not paste multiple lines at once; the shell may treat comments as arguments).
+
+1. **First-time setup** (once per app). From repo root:
+   ```bash
+   cd website
+   fly launch --no-deploy --copy-config -y
+   ```
+   Then add the custom domain:
+   ```bash
+   fly certs add anchr.sh
+   ```
+2. **Deploy:**
+   ```bash
+   cd website
+   fly deploy
+   ```
+3. **DNS:** In GoDaddy (or your registrar), point `anchr.sh` at Fly:
+   - **A record:** `anchr.sh` → value Fly shows for the app (e.g. IPv4 from `fly certs show anchr.sh`).
+   - Or **CNAME:** `anchr.sh` → `anchr.fly.dev` (if your registrar allows CNAME on apex; otherwise use A).
+4. **Headers:** Fly doesn’t read `_headers` / `vercel.json`. To add security headers, either use a custom nginx snippet in `nginx.conf` or configure them in `fly.toml` when available for your plan.
+
+Machines are set to scale to zero when idle (`min_machines_running = 0`). To avoid cold starts after idle, set `min_machines_running = 1` in `fly.toml`.
+
+If you see `Error spawning metrics process: fork/exec .../fly: no such file or directory` after `fly deploy`, the CLI is failing to run a local metrics subprocess; the app on Fly is fine and the deploy succeeded.
+
 ## Optional: 2-minute install test
 
 Before launch, time a cold install: new repo → add workflow → open PR → see ANCHR verdict. Target: under 2 minutes. If it takes longer, simplify the workflow or docs. See `docs/DEVHUNT-LAUNCH-BLUEPRINT-V2-FINAL.md` (gate 8).

@@ -90,6 +90,10 @@ function Hero() {
             <img
               src="/screenshot-block-pr-comment.png"
               alt="ANCHR PR comment: BLOCK with boundary_violation, minimal cut and evidence"
+              width={2912}
+              height={1440}
+              fetchPriority="high"
+              decoding="async"
               style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)' }}
             />
             <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>
@@ -264,7 +268,7 @@ function Install() {
               <a href="#install" className="btn btn-primary">Add ANCHR to my repo</a>
             </p>
             <figure style={{ margin: '20px 0 0', maxWidth: 560 }}>
-              <img src="/screenshot-branch-protection-anchr.png" alt="Branch protection rule with ANCHR required check" loading="lazy" decoding="async" style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)' }} />
+              <img src="/screenshot-branch-protection-anchr.png" alt="Branch protection rule with ANCHR required check" width={2528} height={1696} loading="lazy" decoding="async" style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)' }} />
               <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>Require ANCHR before merge</figcaption>
             </figure>
           </>
@@ -334,19 +338,19 @@ function Demo() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginTop: 8, alignItems: 'stretch' }}>
           <figure style={{ margin: 0, display: 'flex', flexDirection: 'column', minHeight: 320 }}>
             <div style={{ height: 240, background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <img src="/screenshot-block-pr-comment.png" alt="PR comment: ANCHR BLOCK — boundary_violation with minimal cut" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <img src="/screenshot-block-pr-comment.png" alt="PR comment: ANCHR BLOCK — boundary_violation with minimal cut" width={2912} height={1440} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, flexShrink: 0 }}>BLOCKED — PR comment with minimal cut</figcaption>
           </figure>
           <figure style={{ margin: 0, display: 'flex', flexDirection: 'column', minHeight: 320 }}>
             <div style={{ height: 240, background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <img src="/screenshot-verified-green.png" alt="ANCHR check VERIFIED — green success" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <img src="/screenshot-verified-green.png" alt="ANCHR check VERIFIED — green success" width={3584} height={1184} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, flexShrink: 0 }}>VERIFIED — green check</figcaption>
           </figure>
           <figure style={{ margin: 0, display: 'flex', flexDirection: 'column', minHeight: 320 }}>
             <div style={{ height: 240, background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <img src="/screenshot-branch-protection-anchr.png" alt="Branch protection: ANCHR required check" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <img src="/screenshot-branch-protection-anchr.png" alt="Branch protection: ANCHR required check" width={2528} height={1696} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, flexShrink: 0 }}>Branch protection — ANCHR required</figcaption>
           </figure>

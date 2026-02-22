@@ -8,6 +8,7 @@
     <meta name="description" content="One decision per PR: VERIFIED or BLOCKED. Deterministic structural gate for TypeScript monorepos." />
     <link rel="canonical" href="https://anchr.sh/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" href="/screenshot-block-pr-comment.png" as="image" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -29,8 +30,9 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-    <!-- display=swap avoids invisible text during font load (PageSpeed / Core Web Vitals) -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" /></noscript>
+    <!-- display=swap + async load to avoid render-blocking (PageSpeed) -->
 
     <!-- Replace https://anchr.sh with your deployed URL if different (canonical, og:url, og:image, twitter:image, sitemap, robots). -->
     <script type="application/ld+json">
