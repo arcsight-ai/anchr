@@ -50,6 +50,8 @@
     "anchr": "bin/anchr.cjs"
   },
   "dependencies": {
-    "@octokit/rest": "^22.0.1"
+    "@octokit/rest": "^22.0.1",
+    "minimatch": "^10.0.0",
+    "yaml": "^2.6.0"
   }
 }

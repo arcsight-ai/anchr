@@ -1,5 +1,6 @@
 import { mkdirSync, readdirSync, statSync } from "fs";
 import { dirname, join, resolve } from "path";
+import { minimatch } from "minimatch";
 import { buildGraph } from "../src/graph/buildGraph.js";
 import { detectCycles } from "../src/graph/detectCycles.js";
 import { canonicalPath } from "../src/structural/canonicalPath.js";
@@ -107,12 +108,43 @@ function main(): number {
   }
 
   const staged = process.env.ANCHR_STAGED === "1" || process.env.ANCHR_STAGED === "true";
-  const diffEntries = staged
+  let diffEntries = staged
     ? getDiffCached(repoRoot)
     : getDiff(repoRoot, baseHead.base, baseHead.head);
   const baseSha = staged ? baseHead.head : baseHead.base;
   const headSha = baseHead.head;
+
+  // Policy ignore (only set when invoked by anchr gate). Filter changed paths before analysis; stable order.
+  const ignoreRaw = process.env.ANCHR_IGNORE;
+  if (ignoreRaw) {
+    let patterns: string[];
+    try {
+      const parsed = JSON.parse(ignoreRaw) as unknown;
+      if (!Array.isArray(parsed)) throw new Error("ANCHR_IGNORE must be JSON array");
+      patterns = parsed.filter((p): p is string => typeof p === "string");
+    } catch {
+      patterns = [];
+    }
+    if (patterns.length > 0) {
+      diffEntries = diffEntries.filter(
+        (e) => !patterns.some((p) => minimatch(e.path, p, { matchBase: true })),
+      );
+    }
+  }
+
   const pkgDirByName = discoverPackages(repoRoot);
+
+  // If all changed files were ignored, structural surface is empty → VERIFIED; report still written.
+  // Same buildDeterministicReport(VERIFIED, [], baseSha, headSha, []) as normal no-violation path; run.id and shape identical.
+  if (diffEntries.length === 0) {
+    const report = buildDeterministicReport("VERIFIED", [], baseSha, headSha, []);
+    const outPath = resolve(repoRoot, OUT_PATH);
+    writeReport(
+      { ...report, headSha, baseSha },
+      outPath,
+    );
+    return 0;
+  }
 
   const graph = buildGraph(repoRoot);
   const t1 = Date.now();

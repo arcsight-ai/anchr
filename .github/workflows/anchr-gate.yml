@@ -1,0 +1,134 @@
+# ANCHR — Architectural Firewall (GitHub App wrapper, Prompt 5).
+# Orchestration only. Single source of authority: anchr gate.
+# Triggers: pull_request_target (opened, synchronize, reopened, ready_for_review).
+# No push, no schedule, no backend. Exit 0 → success, 1 → failure, 2 → neutral.
+# Node: locked to 20. anchr: pinned to @1 (latest 1.x). Pin to anchr@1.0.0 for strict semver.
+
+name: ANCHR — Architectural Firewall
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  gate:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    # Minimal permissions only (prevents privilege creep). No contents: write, no secrets, no admin.
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+
+    concurrency:
+      group: anchr-gate-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout base
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+
+      - name: Fetch head
+        run: |
+          git fetch origin ${{ github.event.pull_request.head.sha }} --depth=1
+          git checkout ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run anchr gate
+        id: gate
+        run: |
+          export GITHUB_BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          export GITHUB_HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          export HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          export BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          npx anchr@1 gate
+          EXIT=$?
+          echo "exit_code=$EXIT" >> $GITHUB_OUTPUT
+          if [ -f artifacts/anchr-report.json ]; then
+            echo "has_report=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_report=false" >> $GITHUB_OUTPUT
+          fi
+          exit $EXIT
+        env:
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        continue-on-error: true
+        timeout-minutes: 1
+
+      - name: Post ANCHR internal error comment
+        if: steps.gate.outputs.has_report != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BODY='<!-- ANCHR:GATE:V1 -->'$'\n\n''ANCHR internal error. No report produced.'
+          curl -sSf -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Content-Type: application/json" \
+            -d "{\"body\": $(echo "$BODY" | jq -Rs .)}" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" || true
+
+      - name: Post or update gate comment
+        if: steps.gate.outputs.has_report == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          REPORT_PATH: ${{ github.workspace }}/artifacts/anchr-report.json
+        run: |
+          if [ -f scripts/arcsight-pr-comment.ts ]; then
+            npx tsx scripts/arcsight-pr-comment.ts
+          else
+            npx anchr@1 comment
+          fi
+        continue-on-error: true
+
+      - name: Find existing check run
+        id: find_check
+        run: |
+          REF="${{ github.event.pull_request.head.sha }}"
+          RUNS=$(curl -sSf \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/commits/$REF/check-runs?per_page=100")
+          CHECK_ID=$(echo "$RUNS" | jq -r '.check_runs[] | select(.name == "ANCHR — Architectural Firewall") | .id' | head -1)
+          echo "check_id=${CHECK_ID:-}" >> $GITHUB_OUTPUT
+
+      - name: Create or update Check Run
+        run: |
+          REF="${{ github.event.pull_request.head.sha }}"
+          EXIT="${{ steps.gate.outputs.exit_code }}"
+          CONCLUSION="neutral"
+          [ "$EXIT" = "0" ] && CONCLUSION="success"
+          [ "$EXIT" = "1" ] && CONCLUSION="failure"
+          [ "$EXIT" = "2" ] && CONCLUSION="neutral"
+          SUMMARY="ANCHR — Architectural Firewall. Exit code: ${EXIT:-2}."
+          CHECK_ID="${{ steps.find_check.outputs.check_id }}"
+          if [ -n "$CHECK_ID" ]; then
+            curl -sSf -X PATCH \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -H "Content-Type: application/json" \
+              -d "{\"conclusion\": \"$CONCLUSION\", \"output\": {\"title\": \"ANCHR — Architectural Firewall\", \"summary\": \"$SUMMARY\"}}" \
+              "https://api.github.com/repos/${{ github.repository }}/check-runs/$CHECK_ID" || true
+          else
+            curl -sSf -X POST \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -H "Content-Type: application/json" \
+              -d "{\"name\": \"ANCHR — Architectural Firewall\", \"head_sha\": \"$REF\", \"status\": \"completed\", \"conclusion\": \"$CONCLUSION\", \"output\": {\"title\": \"ANCHR — Architectural Firewall\", \"summary\": \"$SUMMARY\"}}" \
+              "https://api.github.com/repos/${{ github.repository }}/check-runs" || true
+          fi
+        continue-on-error: true

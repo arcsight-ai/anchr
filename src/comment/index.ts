@@ -21,6 +21,8 @@ export type {
 } from "./v5.js";
 export { renderPRComment } from "./canonicalPRComment.js";
 export type { RenderedComment } from "./canonicalPRComment.js";
+export { buildGateComment } from "./gateComment.js";
+export type { GateReport, GateMode, GateCommentMeta } from "./gateComment.js";
 export {
   formatArchitecturalExplanation,
 } from "./architecturalExplanation.js";

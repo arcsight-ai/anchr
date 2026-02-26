@@ -13,9 +13,7 @@ import type { Proof, ViolationKind } from "../src/structural/types.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const REPORT_PATH = process.env.ANCHR_REPORT_PATH ?? "artifacts/anchr-report.json";
-const TIMEOUT_MS = 8000;
 const LARGE_CHANGE_THRESHOLD = 120;
-const MAX_FILES = 400;
 
 function safeExec(cmd: string): string | null {
   try {
@@ -154,6 +152,8 @@ function runStructuralAuditWithTimeout(
   base: string,
   head: string,
   staged: boolean,
+  timeoutMs: number,
+  extraEnv?: Record<string, string | undefined>,
 ): Record<string, unknown> {
   const scriptPath = join(__dirname, "anchr-structural-audit.ts");
   const env = {
@@ -161,16 +161,17 @@ function runStructuralAuditWithTimeout(
     GITHUB_BASE_SHA: base,
     HEAD_SHA: head,
     ANCHR_STAGED: staged ? "1" : "",
+    ...(extraEnv ?? {}),
   };
   const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const t = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const r = spawnSync("npx", ["tsx", scriptPath], {
       cwd,
       stdio: "pipe",
       env,
       encoding: "utf8",
-      timeout: TIMEOUT_MS + 500,
+      timeout: timeoutMs + 500,
     });
     clearTimeout(t);
     const raw = readJson(join(cwd, REPORT_PATH));
@@ -181,6 +182,7 @@ function runStructuralAuditWithTimeout(
       status: "INCOMPLETE",
       decision: { level: "warn", reason: "analysis_timeout" },
       minimalCut: [],
+      scopeExceeded: { reason: "timeout" },
     };
   }
 }
@@ -197,6 +199,10 @@ export interface RunAnalysisOpts {
   refs: { base: string; head: string };
   mode: "staged" | "branch";
   isStrict: boolean;
+  /** Ignore globs (only from anchr gate). Applied to changed paths before analysis. */
+  ignorePatterns?: string[];
+  maxFiles?: number;
+  timeoutMs?: number;
 }
 
 export interface RunAnalysisResult {
@@ -216,8 +222,11 @@ export function runAnalysisAndWriteReport(
   cwd: string,
   opts: RunAnalysisOpts
 ): RunAnalysisResult {
-  const { refs, mode, isStrict } = opts;
+  const { refs, mode, isStrict, ignorePatterns, maxFiles = 400, timeoutMs = 8000 } = opts;
   const reportPath = join(cwd, REPORT_PATH);
+  const extraEnv: Record<string, string | undefined> = ignorePatterns?.length
+    ? { ANCHR_IGNORE: JSON.stringify(ignorePatterns) }
+    : {};
 
   let files: DiffEntry[];
   if (mode === "staged") {
@@ -226,7 +235,10 @@ export function runAnalysisAndWriteReport(
     files = collectFilesBranch(refs.base, refs.head);
   }
 
-  const minimalReport = (reason: "no_files" | "too_large"): Record<string, unknown> => ({
+  const minimalReport = (
+    reason: "no_files" | "too_large",
+    scopeExceeded?: { reason: string; changedFiles?: number; maxFiles?: number },
+  ): Record<string, unknown> => ({
     status: reason === "no_files" ? "VERIFIED" : "INCOMPLETE",
     decision: { level: reason === "no_files" ? "allow" : "warn", reason: reason },
     classification: { primaryCause: null },
@@ -236,20 +248,26 @@ export function runAnalysisAndWriteReport(
     run: { id: "minimal" },
     baseSha: refs.base,
     headSha: refs.head,
+    ...(scopeExceeded ? { scopeExceeded } : {}),
   });
 
-  if (files.length > MAX_FILES) {
+  if (files.length > maxFiles) {
+    const report = minimalReport("too_large", {
+      reason: "max_files",
+      changedFiles: files.length,
+      maxFiles,
+    });
     try {
       const dir = join(reportPath, "..");
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(reportPath, JSON.stringify(minimalReport("too_large")) + "\n", "utf8");
+      fs.writeFileSync(reportPath, JSON.stringify(report) + "\n", "utf8");
     } catch {
       // ignore
     }
     return {
       reportPath,
-      exitCode: 0,
-      report: minimalReport("too_large"),
+      exitCode: 2,
+      report,
       filesCount: files.length,
       refs,
       noReportReason: "too_large",
@@ -257,18 +275,23 @@ export function runAnalysisAndWriteReport(
   }
   if (files.length > LARGE_CHANGE_THRESHOLD && mode === "staged") {
     files = collectFilesBranch(refs.base, refs.head);
-    if (files.length > MAX_FILES) {
+    if (files.length > maxFiles) {
+      const report = minimalReport("too_large", {
+        reason: "max_files",
+        changedFiles: files.length,
+        maxFiles,
+      });
       try {
         const dir = join(reportPath, "..");
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-        fs.writeFileSync(reportPath, JSON.stringify(minimalReport("too_large")) + "\n", "utf8");
+        fs.writeFileSync(reportPath, JSON.stringify(report) + "\n", "utf8");
       } catch {
         // ignore
       }
       return {
         reportPath,
-        exitCode: 0,
-        report: minimalReport("too_large"),
+        exitCode: 2,
+        report,
         filesCount: files.length,
         refs,
         noReportReason: "too_large",
@@ -293,9 +316,26 @@ export function runAnalysisAndWriteReport(
     };
   }
 
-  const fast = runStructuralAuditWithTimeout(cwd, refs.base, refs.head, mode === "staged");
+  const fast = runStructuralAuditWithTimeout(
+    cwd,
+    refs.base,
+    refs.head,
+    mode === "staged",
+    timeoutMs,
+    extraEnv,
+  );
   const fastStatus = (fast.status as string) ?? "INCOMPLETE";
   const fastLevel = (fast.decision as { level?: string })?.level ?? "warn";
+
+  if (fastStatus === "INCOMPLETE" && (fast.scopeExceeded as { reason?: string } | undefined)?.reason === "timeout") {
+    try {
+      const dir = join(reportPath, "..");
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(reportPath, JSON.stringify(fast) + "\n", "utf8");
+    } catch {
+      // ignore
+    }
+  }
 
   let report: Record<string, unknown>;
   if (fastStatus === "UNSAFE" && fastLevel === "block") {
@@ -330,7 +370,9 @@ async function runCertifier(_fast: Record<string, unknown>): Promise<Record<stri
 async function main(): Promise<void> {
   const args = getArgs();
   if (args[0] === "--help" || args[0] === "-h") {
-    console.log("anchr audit   — machine-readable certification result");
+    console.log("anchr gate    — [CANONICAL] CI enforcement. Structural report only. Exit 0|1|2.");
+    console.log("anchr comment — post or update PR gate comment from artifacts (use after gate in CI).");
+    console.log("anchr audit   — machine-readable certification result (non-canonical for enforcement)");
     console.log("anchr foresee — human-readable predicted impact (Aftermath narrated by Dina)");
     process.exit(0);
   }
@@ -355,7 +397,92 @@ async function main(): Promise<void> {
     });
     process.exit(r.status ?? 0);
   }
+  if (args[0] === "comment") {
+    const { runGateComment } = await import("../src/comment/runGateComment.js");
+    await runGateComment(process.cwd(), process.env);
+    process.exit(0);
+  }
   ensureRepo();
+
+  // ─── Gate (Prompt 1 — canonical CI enforcement). Structural report only; no convergence. ───
+  if (args[0] === "gate") {
+    const refs = getRefs(args, "branch");
+    if (!refs) {
+      console.error("anchr gate: could not resolve base/head (use --base/--head or GITHUB_BASE_SHA/GITHUB_HEAD_SHA)");
+      process.exit(2);
+    }
+    const cwd = process.cwd();
+    let config: { enforcement: "STRICT" | "ADVISORY"; ignore: string[] };
+    try {
+      const { getRepoRoot } = await import("../src/structural/git.js");
+      const { loadAnchrConfig } = await import("../src/config/anchrYaml.js");
+      const repoRoot = getRepoRoot() ?? cwd;
+      config = loadAnchrConfig(repoRoot);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("anchr gate:", msg);
+      process.exit(2);
+    }
+    const enforcement = hasFlag(args, "--strict") ? "STRICT" : config.enforcement;
+    const isStrict = enforcement === "STRICT";
+    const result = runAnalysisAndWriteReport(cwd, {
+      refs,
+      mode: "branch",
+      isStrict: false,
+      ignorePatterns: config.ignore.length ? config.ignore : undefined,
+      maxFiles: config.maxFiles,
+      timeoutMs: config.timeoutMs,
+    });
+
+    if (result.noReportReason === "no_files") {
+      // Report was still written (minimalReport); run.id deterministic for downstream.
+      const runId = (result.report?.run as { id?: string } | undefined)?.id ?? "";
+      console.log("ANCHR gate — VERIFIED");
+      console.log(runId ? `run.id: ${runId}` : "run.id: —");
+      console.log("No TypeScript changes in diff.");
+      process.exit(0);
+    }
+    if (result.noReportReason === "too_large") {
+      console.error("anchr gate: change too large to analyze (internal limit)");
+      process.exit(2);
+    }
+
+    const report = result.report as Record<string, unknown>;
+    const status = (report.status as string) ?? "INCOMPLETE";
+    const runId = (report.run as { id?: string } | undefined)?.id ?? "";
+    // isStrict already resolved from CLI --strict > .anchr.yml > ADVISORY
+
+    // Enforcement from report.status only (structural authority). decision.level is derived; gate does not rely on it.
+    if (status === "INCOMPLETE") {
+      console.error("anchr gate: analysis could not complete (internal error)");
+      process.exit(2);
+    }
+
+    if (status === "BLOCKED") {
+      console.log("ANCHR gate — BLOCKED");
+      console.log(runId ? `run.id: ${runId}` : "run.id: —");
+      console.log("Proven structural violation. Resolve before merge.");
+      process.exit(1);
+    }
+
+    if (status === "INDETERMINATE") {
+      if (isStrict) {
+        console.log("ANCHR gate — BLOCKED");
+        console.log(runId ? `run.id: ${runId}` : "run.id: —");
+        console.log("Indeterminate (proof missing). Resolve before merge.");
+        process.exit(1);
+      }
+      console.log("ANCHR gate — WARN (advisory)");
+      console.log(runId ? `run.id: ${runId}` : "run.id: —");
+      console.log("Indeterminate. Advisory only; exit 0.");
+      process.exit(0);
+    }
+
+    // VERIFIED
+    console.log("ANCHR gate — VERIFIED");
+    console.log(runId ? `run.id: ${runId}` : "run.id: —");
+    process.exit(0);
+  }
 
   if (args[0] === "history") {
     const repoRoot = safeExec("git rev-parse --show-toplevel") ?? process.cwd();
@@ -692,6 +819,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // Default: audit (non-canonical for CI enforcement; use "anchr gate" for gate.)
   const mode = getMode(args);
   const refs = getRefs(args, mode);
   if (!refs) {

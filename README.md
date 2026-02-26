@@ -1,50 +1,42 @@
 # ANCHR
 
-**Structural Gate for TypeScript Monorepos**
+**AI writes. ANCHR enforces.**
 
-ANCHR enforces architectural boundaries at merge time.
+Cursor (or any AI) writes code. ANCHR protects your architecture at merge time. When a PR breaks boundaries, ANCHR blocks, shows the minimal cut, and suggests the fix. You apply it. Merge passes.
 
-It analyzes your dependency graph and returns exactly one decision per pull request:
-
-**VERIFIED**  
-or  
-**BLOCKED**
-
-Deterministic by contract.  
-Same input → same decision.
-
-![ANCHR BLOCK — boundary violation with minimal cut](docs/media/screenshot-block-pr-comment.png)
-
-Supported layout:
-
-```
-packages/<name>/src
-```
-
-Other layouts are out-of-scope by design.
+You don't have to babysit AI anymore.
 
 ---
 
-## Why ANCHR Exists
+## One decision per PR
 
-Code review catches logic.  
-ANCHR enforces structure.
+**VERIFIED** — Safe. No boundary violations.  
+**BLOCKED** — Violation. Minimal cut + suggested structural fix in the comment.
 
-Boundary violations, private imports, and deleted public APIs are not suggestions.
+Deterministic: same base + head → same result. Every time.
 
-They are merge-time decisions.
+![ANCHR BLOCK — boundary violation with minimal cut](docs/media/screenshot-block-pr-comment.png)
+
+---
+
+## Quick Start (3 steps)
+
+1. **Add the workflow** — Copy [.github/workflows/anchr-gate.yml](.github/workflows/anchr-gate.yml) into your repo as `.github/workflows/anchr-gate.yml` (or use the minimal `anchr.yml` below).
+
+2. **Add `.anchr.yml`** at repo root:
+   ```yaml
+   enforcement: STRICT
+   ```
+
+3. **Open a PR** — See the ANCHR comment and the **ANCHR — Architectural Firewall** check.
+
+For stability pin to `npx anchr@1.0.0 gate`; or use `anchr@1` for latest 1.x.
 
 ---
 
 ## Install (60 seconds)
 
-Add the ANCHR workflow to your repo.  
-Open a PR.  
-Require the ANCHR check in branch protection.
-
-One decision per PR.
-
-Create **`.github/workflows/anchr.yml`**. Paste:
+Create **`.github/workflows/anchr.yml`**:
 
 ```yaml
 name: ANCHR
@@ -65,77 +57,84 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - run: npx anchr@latest audit
+      - run: npx anchr@latest gate
         env:
           GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 ```
 
-Commit. Open a PR. You will see a check named **ANCHR**.  
+Commit. Open a PR. You get a check named **ANCHR**.  
 To enforce: **Settings → Branch protection → Require status checks → Add "ANCHR"**.
 
-**Local run:** `npx anchr audit`
+**Strict mode (block on any violation):** `enforcement: STRICT` in `.anchr.yml` or `npx anchr gate --strict`
+
+**Local run:** `npx anchr gate` or `npx anchr gate --base <base-sha> --head <head-sha>`
 
 [![CI](https://github.com/arcsight-ai/anchr/actions/workflows/anchr.yml/badge.svg)](https://github.com/arcsight-ai/anchr/actions/workflows/anchr.yml) [![Deterministic](https://img.shields.io/badge/deterministic-by__construction-2ea043)](.)
 
 ---
 
-## Opinionated by Design
+## Configuration
 
-### Scope & Layout Contract
+Optional `.anchr.yml` at repo root:
 
-ANCHR enforces structural boundaries in monorepos organized under `packages/<name>/src`. Only this layout is supported. No heuristic module inference, no config-driven path guessing. If the layout does not match, ANCHR returns VERIFIED by contract (out-of-scope).
+```yaml
+enforcement: STRICT   # or ADVISORY (warn only)
+ignore:
+  - "tests/**"
+  - "**/*.test.ts"
+maxFiles: 500         # optional; default 400 (large repos)
+timeoutMs: 10000      # optional; default 8000
+```
 
----
+**Enforcement:** `--strict` overrides → STRICT. Else `.anchr.yml` `enforcement`. Default ADVISORY. With STRICT, any violation or indeterminate result fails the check.
 
-## Example Verdicts
-
-| Verdict | Meaning |
-|--------|---------|
-| **VERIFIED** | Safe change. No boundary violations, no new cycles. |
-| **BLOCKED** | Cross-package internal import. A file in package A imports from package B's non-public surface. |
-| **BLOCKED** | Circular dependency. The dependency graph contains a cycle. |
-
-Short, realistic outcomes. BLOCKED runs include a minimal cut (the set of edges that evidence the violation) and a cause label.
-
----
-
-## How It Works
-
-**Graph. Cut. Decide.**
-
-1. **Discovers packages** — Scans `packages/<name>/src`; only these directories define modules.
-2. **Builds dependency graph** — From import statements in the diff and existing code; value imports and re-exports.
-3. **Computes public surface** — Per package, from entry (`index.ts`/`index.tsx`) and re-exports; paths under `internal/`, `private/`, `impl/` are excluded.
-4. **Detects violations** — Cross-package imports that resolve to non-public files; deleted public API usage; relative path escape; cycles.
-5. **Computes minimal cut** — Canonical set of edges that evidence the violation.
-6. **Emits deterministic result** — Structured report (status, minimal cut, proofs); same inputs yield byte-consistent output.
-
-No heuristics. No timestamps or randomness in the verdict.
+**Large repos:** If a PR exceeds `maxFiles` or analysis times out, the comment shows “Analysis scope exceeded” (e.g. “Changed files: 732 (max 500). Structural analysis skipped.”). No silent neutral.
 
 ---
 
-## Why Determinism Matters
+## What ANCHR enforces
 
-Same repository snapshot and refs produce the same verdict. No flaky checks, no race-condition verdicts. The pipeline can rely on the result. Emission is structured and suitable for certification: identical inputs yield identical outputs across environments.
+| Verdict   | Meaning |
+|----------|--------|
+| **VERIFIED** | No boundary violations, no new cycles. |
+| **BLOCKED**  | Cross-package internal import, or circular dependency. Comment includes minimal cut and cause. |
+
+Layout: `packages/<name>/src` only. Other layouts are out-of-scope by design.
+
+---
+
+## How it works
+
+1. **Packages** — From `packages/<name>/src`.
+2. **Graph** — Dependencies from imports in the diff and codebase.
+3. **Public surface** — Per package (entry + re-exports; `internal/`, `private/`, `impl/` excluded).
+4. **Violations** — Cross-package non-public imports, deleted public API use, path escape, cycles.
+5. **Minimal cut** — Canonical set of edges that prove the violation.
+6. **Result** — One status, same inputs → same output. No timestamps, no randomness.
+
+---
+
+## Why determinism
+
+Same repo snapshot and refs → same verdict. No flaky checks. The pipeline can rely on it. Identical inputs → identical outputs across environments.
 
 ---
 
 ## Demo
 
-**[anchr-demo-monorepo](anchr-demo-monorepo)** demonstrates the merge gate end-to-end:
+**Install → open PR → see the comment.**  
+[Screenshot: BLOCK with minimal cut and suggested fix](docs/media/screenshot-block-pr-comment.png).
 
-- A **safe PR** example (VERIFIED) — changes that stay within boundaries.
-- A **boundary violation** example (BLOCKED) — cross-package internal import.
-- A **circular dependency** example (BLOCKED) — cycle in the dependency graph.
+Flow: open a PR with a messy AI change → ANCHR blocks → show comment and suggestion → apply minimal rewrite → push → green check.
 
-Use it to see ANCHR as a required check and to reproduce VERIFIED vs BLOCKED behavior.
+**60-second live script** (meetups, DevRel, Product Hunt, Loom): [docs/60-SECOND-DEMO-SCRIPT.md](docs/60-SECOND-DEMO-SCRIPT.md).
 
 ---
 
-## run.id — Repository State Identity
+## run.id — Repository state identity
 
-`run.id` is a deterministic architectural state identifier derived from repository content. If `run.id` matches between environments (local, CI, any machine), the codebase is identical in structure and content. Content-based; no timestamps or git metadata in the hash. Cross-platform.
+Deterministic architectural state ID from repo content. Same `run.id` across machines ⇒ same structure and content. Content-based; no timestamps or git metadata in the hash.
 
 ---
 
