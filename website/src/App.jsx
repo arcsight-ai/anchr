@@ -91,10 +91,13 @@ function Hero() {
               AI writes. ANCHR enforces.
             </p>
             <h1 style={{ marginBottom: 14, lineHeight: 1.2 }}>
-              Move at AI speed. Keep architectural control.
+              Architectural authority for AI-generated code.
             </h1>
             <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', maxWidth: 520, marginBottom: 12, lineHeight: 1.6 }}>
-              ANCHR is the architectural firewall for AI-generated code. If a PR introduces structural drift, ANCHR blocks the merge and shows the exact structural fix.
+              Move at AI speed. Keep architectural control.
+            </p>
+            <p style={{ fontSize: 15, color: 'var(--text-muted)', maxWidth: 520, marginBottom: 20, lineHeight: 1.6 }}>
+              AI can change your architecture faster than your team can review it. ANCHR enforces architecture at merge time.
             </p>
             <ul style={{ fontSize: 15, color: 'var(--text-secondary)', maxWidth: 520, marginBottom: 20, paddingLeft: 20, lineHeight: 1.7 }}>
               <li>Architectural authority in CI</li>
@@ -106,7 +109,10 @@ function Hero() {
               <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">View on GitHub</a>
             </div>
             <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 12 }}>
-              Installs in minutes. No configuration. No dashboard.
+              One workflow file. One required check.
+            </p>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>
+              Deterministic. No heuristics. No scoring. Same input → same decision.
             </p>
           </div>
           <figure className="hero-figure" style={{
@@ -124,7 +130,7 @@ function Hero() {
               style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)' }}
             />
             <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>
-              ANCHR posts this when it finds a boundary violation
+              Blocks the merge and shows the exact structural correction — including a copy-paste fix in the comment.
             </figcaption>
           </figure>
         </div>
@@ -147,11 +153,11 @@ function OneDecisionSection() {
         <p style={{ marginTop: 20, color: 'var(--text-secondary)', fontSize: 15 }}>
           No config. No dashboards. No scoring. One decision.
         </p>
+        <p style={{ marginTop: 12, color: 'var(--text-muted)', fontSize: 14 }}>
+          BLOCKED = no structural violation passed the gate. Fix shown in comment. Re-push.
+        </p>
         <p style={{ marginTop: 24 }}>
           <a href="#install" className="btn btn-primary">Add ANCHR to my repo</a>
-        </p>
-        <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 10 }}>
-          Installs in minutes. No configuration. No dashboard.
         </p>
       </div>
     </section>
@@ -163,9 +169,13 @@ function OneProductSection() {
     <section className="section">
       <div className="container">
         <h2>One product. One loop. One promise.</h2>
-        <p style={{ color: 'var(--text-secondary)', maxWidth: 560, lineHeight: 1.8, fontSize: '1.05rem' }}>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: 560, lineHeight: 1.8, fontSize: '1.05rem', marginBottom: 20 }}>
           Add the workflow. Open a PR. ANCHR blocks structural drift and shows the fix. You apply it. Merge passes.
         </p>
+        <div className="card" style={{ maxWidth: 560, padding: '20px 24px', fontFamily: 'system-ui, sans-serif' }}>
+          <p style={{ margin: 0, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>{'PR opened  →  ANCHR runs  →  Structural decision  →  VERIFIED ✓  or  BLOCKED ✗'}</p>
+          <p style={{ margin: '12px 0 0', fontSize: 14, color: 'var(--text-muted)' }}>If BLOCKED: copy-paste fix in comment → apply → re-push → merge passes.</p>
+        </div>
       </div>
     </section>
   )
@@ -195,7 +205,7 @@ function WhatItCatches() {
       <div className="container">
         <h2>What it catches</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>
-          Blocks structural violations before merge. One comment. Clear evidence.
+          Blocks structural violations before merge. One comment. Clear evidence. Suggested structural correction and copy-paste fix when blocked.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
           {items.map((item, i) => (
@@ -211,20 +221,17 @@ function WhatItCatches() {
 }
 
 function HowItWorks() {
-  const steps = [
-    'Add the workflow (one YAML file).',
-    'On each PR, ANCHR builds the graph for packages/<name>/src.',
-    'Computes violations: cycles, cross-boundary imports, deleted public API.',
-    'One decision: VERIFIED or BLOCKED. Require the check in branch protection.',
-  ]
   return (
     <section id="how" className="section" style={{ background: 'var(--bg-alt)' }}>
       <div className="container">
         <h2>How it works</h2>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: 640, marginBottom: 16 }}>
+          Architecture drift doesn't reach main. ANCHR analyzes each PR, detects cycles and boundary violations, and blocks with precise corrections — or passes.
+        </p>
         <ol style={{ paddingLeft: 20, color: 'var(--text-secondary)', maxWidth: 640 }}>
-          {steps.map((step, i) => (
-            <li key={i} style={{ marginBottom: 12 }}>{step}</li>
-          ))}
+          <li style={{ marginBottom: 12 }}>Add the workflow (one YAML file).</li>
+          <li style={{ marginBottom: 12 }}>On each PR, ANCHR builds the graph for <code className="mono">packages/&lt;name&gt;/src</code>.</li>
+          <li style={{ marginBottom: 12 }}>One decision: VERIFIED or BLOCKED. Require the check in branch protection.</li>
         </ol>
       </div>
     </section>
@@ -286,7 +293,7 @@ function Install() {
           Add one workflow. Require the ANCHR check.
         </p>
         <p style={{ color: 'var(--text-muted)', marginBottom: 16, fontSize: 15 }}>
-          No SaaS, no dashboard, no config. One decision per PR.
+          One workflow file. One required check.
         </p>
         <div className="install-tabs" style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
           <button
@@ -347,14 +354,8 @@ function Install() {
             <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 16 }}>
               Require the <strong>ANCHR</strong> check in branch protection.
             </p>
-            <p style={{ marginTop: 20 }}>
-              <a href="#install" className="btn btn-primary">Add ANCHR to my repo</a>
-            </p>
-            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 10 }}>
-              Installs in minutes. No configuration. No dashboard.
-            </p>
             <figure style={{ margin: '20px 0 0', maxWidth: 560 }}>
-              <img src="/screenshot-branch-protection-anchr.png" alt="Branch protection rule with ANCHR required check" width={2528} height={1696} loading="lazy" decoding="async" style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)' }} />
+              <img src="/screenshot-branch-protection-anchr.png" alt="Branch protection: ANCHR required. Merge only when VERIFIED." width={2528} height={1696} loading="lazy" decoding="async" style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)' }} />
               <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>Require ANCHR before merge</figcaption>
             </figure>
           </>
@@ -401,8 +402,11 @@ function Demo() {
     <section id="demo" className="section">
       <div className="container">
         <h2>Demo</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
-          See ANCHR block structural drift in real time.
+        <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>
+          See ANCHR block structural drift and show the fix in real time.
+        </p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>
+          When BLOCKED: minimal cut, suggested structural correction, and a copy-paste snippet in the comment.
         </p>
         <ul style={{ color: 'var(--text-secondary)', marginBottom: 20, paddingLeft: 20, lineHeight: 1.7 }}>
           <li><strong style={{ color: 'var(--text)' }}>VERIFIED</strong> — PR that respects boundaries.</li>
@@ -421,24 +425,30 @@ function Demo() {
             <a href={DEMO_BLOCKED_PR_URL} target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, color: 'var(--accent)' }}>BLOCKED PR</a>
           )}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginTop: 8, alignItems: 'stretch' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20, marginTop: 8, alignItems: 'stretch' }}>
           <figure className="demo-card-cell" style={{ margin: 0, display: 'flex', flexDirection: 'column', minHeight: 320 }}>
             <div style={{ height: 240, background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <img src="/screenshot-block-pr-comment.png" alt="PR comment: ANCHR BLOCK — boundary_violation with minimal cut" width={2912} height={1440} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <img src="/screenshot-block-pr-comment.png" alt="ANCHR PR comment: Architectural drift detected. Merge blocked. Minimal cut and suggested structural correction." width={2912} height={1440} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
-            <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, flexShrink: 0 }}>BLOCKED — PR comment with minimal cut</figcaption>
+            <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, flexShrink: 0 }}>BLOCKED — Architectural drift detected. Minimal cut and fix.</figcaption>
           </figure>
           <figure className="demo-card-cell" style={{ margin: 0, display: 'flex', flexDirection: 'column', minHeight: 320 }}>
             <div style={{ height: 240, background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <img src="/screenshot-verified-green.png" alt="ANCHR check VERIFIED — green success" width={3584} height={1184} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <img src="/screenshot-verified-green.png" alt="ANCHR check VERIFIED — no architectural drift. Green check." width={3584} height={1184} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
-            <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, flexShrink: 0 }}>VERIFIED — green check</figcaption>
+            <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, flexShrink: 0 }}>VERIFIED — No architectural drift.</figcaption>
           </figure>
           <figure className="demo-card-cell" style={{ margin: 0, display: 'flex', flexDirection: 'column', minHeight: 320 }}>
             <div style={{ height: 240, background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <img src="/screenshot-branch-protection-anchr.png" alt="Branch protection: ANCHR required check" width={2528} height={1696} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <img src="/screenshot-branch-protection-anchr.png" alt="Branch protection: ANCHR required. Merge only when VERIFIED." width={2528} height={1696} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
-            <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, flexShrink: 0 }}>Branch protection — ANCHR required</figcaption>
+            <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, flexShrink: 0 }}>Branch protection — ANCHR required.</figcaption>
+          </figure>
+          <figure className="demo-card-cell" style={{ margin: 0, display: 'flex', flexDirection: 'column', minHeight: 320 }}>
+            <div style={{ height: 240, background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img src="/screenshot-suggested-fix.png" alt="Suggested structural correction: copy-paste fix in the PR comment." width={800} height={280} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </div>
+            <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, flexShrink: 0 }}>Suggested fix — copy-paste in the comment.</figcaption>
           </figure>
         </div>
       </div>
@@ -454,7 +464,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'How is ANCHR different from ESLint?',
-    a: 'ESLint: file-level rules and style. ANCHR: package-level graph, structural violations, merge-time decision with evidence. Different layer.',
+    a: 'ESLint flags syntax rules locally. ANCHR enforces architectural integrity at merge time in CI.',
   },
   {
     q: 'How is ANCHR different from dependency-cruiser?',
@@ -490,7 +500,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Is it a linter or AI?',
-    a: 'Neither. Structural gate: package-level graph, one decision per PR. No AI.',
+    a: 'Linters check syntax. ANCHR enforces architecture in CI. One decision per PR. No AI.',
   },
 ]
 
@@ -502,7 +512,7 @@ function FAQ() {
       <div className="container">
         <h2>FAQ</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>
-          ESLint? dependency-cruiser? layout? Install path. Evidence.
+          Frequently asked questions about how ANCHR enforces architecture in your CI.
         </p>
         <div className="faq-accordion">
           {FAQ_ITEMS.map((item, i) => {
@@ -587,7 +597,7 @@ function Footer() {
         </a>
         <div>
           <a href="#install" className="btn btn-primary" style={{ fontSize: 13, padding: '8px 14px' }}>Add ANCHR to my repo</a>
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '6px 0 0' }}>Installs in minutes. No configuration. No dashboard.</p>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '6px 0 0' }}>One workflow file. One required check.</p>
         </div>
         <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href={ISSUES_URL} target="_blank" rel="noopener noreferrer">Issues</a>

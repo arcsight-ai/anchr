@@ -184,6 +184,17 @@ button:focus-visible {
   height: 2px;
   background: currentColor;
   border-radius: 1px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+/* Hamburger → X when menu open */
+.nav-open .nav-toggle-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.nav-open .nav-toggle-bar:nth-child(2) {
+  opacity: 0;
+}
+.nav-open .nav-toggle-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
 }
 .nav-toggle:focus-visible {
   outline: 2px solid var(--accent);
