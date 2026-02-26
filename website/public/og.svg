@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <style>
+      .bg { fill: #0B0F14; }
+      .logo { fill: #2F81F7; }
+      .headline { font: 700 42px/1.2 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; fill: #E6EDF3; }
+      .subline { font: 400 24px/1.4 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; fill: #9AA7B2; }
+      .wordmark { font: 700 28px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; fill: #E6EDF3; letter-spacing: 0.02em; }
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="630"/>
+  <!-- ANCHR logo (anchor A) from logo.svg viewBox 0 0 32 38, scaled to ~88px height -->
+  <g class="logo" transform="translate(60, 72) scale(2.32)">
+    <path d="M9.5 35 L9.5 17.5 L13 9.5 A 3 3 0 0 1 19 9.5 L22.5 17.5 L22.5 35 L16 29 Z M9.5 17.5 L22.5 17.5 L16 9.5 Z"/>
+  </g>
+  <text class="wordmark" x="60" y="175">ANCHR</text>
+  <text class="headline" x="60" y="280">Architectural authority for</text>
+  <text class="headline" x="60" y="332">AI-generated code.</text>
+  <text class="subline" x="60" y="400">Move at AI speed. Keep architectural control.</text>
+</svg>
