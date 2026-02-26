@@ -88,31 +88,13 @@ function Hero() {
         }}>
           <div className="hero-sub" style={{ flex: '1 1 380px', minWidth: 0 }}>
             <p style={{ fontSize: '1rem', color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              AI writes. ANCHR enforces.
+              AI writes. ANCHR decides if it merges.
             </p>
             <h1 style={{ marginBottom: 14, lineHeight: 1.2 }}>
-              Architectural authority for AI-generated code.
+              Architectural authority at merge time.
             </h1>
-            <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', maxWidth: 520, marginBottom: 12, lineHeight: 1.6 }}>
-              Move at AI speed. Keep architectural control.
-            </p>
-            <p style={{ fontSize: 15, color: 'var(--text-muted)', maxWidth: 520, marginBottom: 12, lineHeight: 1.6 }}>
-              AI can change your architecture faster than your team can review it.
-            </p>
-            <p style={{ fontSize: 15, color: 'var(--text-secondary)', maxWidth: 520, marginBottom: 12, lineHeight: 1.6 }}>
-              ANCHR enforces repository boundaries in CI.
-            </p>
-            <p style={{ fontSize: 15, color: 'var(--text-secondary)', maxWidth: 520, marginBottom: 12, lineHeight: 1.6 }}>
-              On every PR, it builds the dependency graph, detects structural violations (cycles, cross-package imports, deleted public APIs), and makes one decision: VERIFIED or BLOCKED.
-            </p>
-            <p style={{ fontSize: 15, color: 'var(--text-secondary)', maxWidth: 520, marginBottom: 12, lineHeight: 1.6 }}>
-              If blocked, it shows the exact structural correction in the PR comment.
-            </p>
-            <p style={{ fontSize: 14, color: 'var(--text-muted)', maxWidth: 520, marginBottom: 8, lineHeight: 1.5 }}>
-              Deterministic. One required check. No dashboard.
-            </p>
-            <p style={{ fontSize: 14, color: 'var(--text-muted)', maxWidth: 520, marginBottom: 20, lineHeight: 1.5 }}>
-              Built for TypeScript monorepos (<code className="mono">packages/&lt;name&gt;/src</code>).
+            <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', maxWidth: 520, marginBottom: 24, lineHeight: 1.5 }}>
+              Blocks structural violations before merge and shows the exact fix.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
               <a href="#install" className="btn btn-primary">Add ANCHR to my repo</a>
@@ -147,7 +129,7 @@ function OneDecisionSection() {
   return (
     <section className="section" style={{ background: 'var(--bg-alt)' }}>
       <div className="container">
-        <h2>One decision per PR.</h2>
+        <h2 className="section-title">One decision per PR.</h2>
         <div className="check-mock">
           <div className="check-mock-title">ANCHR Check</div>
           <div className="check-mock-row">Status: <span className="check-mock-status">[BLOCKED]</span></div>
@@ -170,16 +152,11 @@ function OneDecisionSection() {
 
 function OneProductSection() {
   return (
-    <section className="section">
-      <div className="container">
-        <h2>One product. One loop. One promise.</h2>
-        <p style={{ color: 'var(--text-secondary)', maxWidth: 560, lineHeight: 1.8, fontSize: '1.05rem', marginBottom: 20 }}>
-          Add the workflow. Open a PR. ANCHR blocks structural drift and shows the fix. You apply it. Merge passes.
-        </p>
-        <div className="card" style={{ maxWidth: 560, padding: '20px 24px', fontFamily: 'system-ui, sans-serif' }}>
-          <p style={{ margin: 0, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>{'PR opened  →  ANCHR runs  →  Structural decision  →  VERIFIED ✓  or  BLOCKED ✗'}</p>
-          <p style={{ margin: '12px 0 0', fontSize: 14, color: 'var(--text-muted)' }}>If BLOCKED: copy-paste fix in comment → apply → re-push → merge passes.</p>
-        </div>
+    <section className="section one-loop-section">
+      <div className="container" style={{ textAlign: 'center', maxWidth: 640 }}>
+        <h2 className="section-title">One product. One loop. One promise.</h2>
+        <p style={{ margin: 0, fontSize: '1.15rem', color: 'var(--text-secondary)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{'PR opened  →  ANCHR runs  →  VERIFIED ✓  or  BLOCKED ✗'}</p>
+        <p style={{ margin: '12px 0 0', fontSize: '1rem', color: 'var(--text-muted)' }}>If BLOCKED → copy-paste fix → re-push → merge passes.</p>
       </div>
     </section>
   )
@@ -207,9 +184,9 @@ function WhatItCatches() {
   return (
     <section id="what" className="section">
       <div className="container">
-        <h2>What it catches</h2>
+        <h2 className="section-title">What it catches</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>
-          Blocks structural violations before merge. One comment. Clear evidence. Suggested structural correction and copy-paste fix when blocked.
+          Prevents structural drift before it lands. One comment. Clear evidence. Copy-paste corrections when blocked.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
           {items.map((item, i) => (
@@ -228,7 +205,7 @@ function HowItWorks() {
   return (
     <section id="how" className="section" style={{ background: 'var(--bg-alt)' }}>
       <div className="container">
-        <h2>How it works</h2>
+        <h2 className="section-title">How it works</h2>
         <p style={{ color: 'var(--text-secondary)', maxWidth: 640, marginBottom: 16 }}>
           On every PR, it builds the dependency graph, detects structural violations (cycles, cross-package imports, deleted public APIs), and makes one decision: VERIFIED or BLOCKED. If blocked, it shows the exact structural correction in the PR comment.
         </p>
@@ -245,7 +222,7 @@ function ScopeContract() {
   return (
     <section id="scope" className="section">
       <div className="container">
-        <h2>Scope is a feature</h2>
+        <h2 className="section-title">Scope is a feature</h2>
         <div className="card" style={{ maxWidth: 640 }}>
           <p style={{ margin: 0 }}>
             Built for TypeScript monorepos (<code className="mono">packages/&lt;name&gt;/src</code>). Other layouts are out of scope by design. Deterministic.
@@ -263,9 +240,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npx anchr@latest audit`
+      - run: npx anchr@1 gate`
 
-const CLI_CMD = 'npx anchr@latest audit'
+const CLI_CMD = 'npx anchr@1 gate'
 
 function Install() {
   const [installTab, setInstallTab] = useState('workflow')
@@ -285,7 +262,7 @@ function Install() {
   return (
     <section id="install" className="section" style={{ background: 'var(--bg-alt)' }}>
       <div className="container">
-        <h2>Install (under 60 seconds)</h2>
+        <h2 className="section-title">Install (under 60 seconds)</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>
           Add one workflow. Require the ANCHR check.
         </p>
@@ -380,7 +357,10 @@ function Install() {
               </pre>
             </div>
             <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 16 }}>
-              Run from repo root. Same decision as CI. Use <code className="mono">--base</code> and <code className="mono">--head</code> for branch comparison.
+              Run from repo root. Same decision as CI.
+            </p>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>
+              For local audits/diffs: <code className="mono">npx anchr@1 audit --base &lt;base&gt; --head &lt;head&gt;</code>
             </p>
           </>
         )}
@@ -398,7 +378,7 @@ function Demo() {
   return (
     <section id="demo" className="section">
       <div className="container">
-        <h2>Demo</h2>
+        <h2 className="section-title">Demo</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>
           See ANCHR block structural drift and show the fix in real time.
         </p>
@@ -493,7 +473,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Do I need to install dependencies or a build system?',
-    a: 'No. npx anchr@latest audit in CI. No Nx, Turborepo, or extra installs.',
+    a: 'No. npx anchr@1 gate in CI. No Nx, Turborepo, or extra installs.',
   },
   {
     q: 'Is it a linter or AI?',
@@ -507,9 +487,9 @@ function FAQ() {
   return (
     <section id="faq" className="section" style={{ background: 'var(--bg-alt)' }}>
       <div className="container">
-        <h2>FAQ</h2>
+        <h2 className="section-title">FAQ</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>
-          Frequently asked questions about how ANCHR enforces architecture in your CI.
+          Frequently asked questions about how ANCHR enforces architecture in your CI. ANCHR is no analysis dashboard — it doesn&apos;t score, rate, or visualize. It decides.
         </p>
         <div className="faq-accordion">
           {FAQ_ITEMS.map((item, i) => {

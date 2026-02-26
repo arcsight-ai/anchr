@@ -57,8 +57,11 @@ main > .section:first-child { border-top: none; }
 
 /* Fixed rem only (no clamp): prevents viewport recalculation and heading flicker. #root scope beats DevHunt-injected h1/h2/h3 { font-size: inherit }. */
 #root h1 { font-size: 2.75rem; font-weight: 700; line-height: 1.2; margin: 0 0 0.5rem; }
-#root h2 { font-size: 2.15rem; font-weight: 600; margin: 0 0 1.5rem; color: var(--text); }
-#root h3 { font-size: 1.35rem; font-weight: 600; margin: 0 0 0.5rem; }
+#root h2 { font-size: 2rem; font-weight: 600; margin: 0 0 1.25rem; color: var(--text); letter-spacing: -0.02em; }
+#root h2.section-title { margin-bottom: 1.5rem; }
+#root h3 { font-size: 1.2rem; font-weight: 600; margin: 0 0 0.5rem; color: var(--text); }
+.section:has(> .container > h2) { padding-top: var(--space-section); }
+.one-loop-section { padding-top: var(--space-section-lg); padding-bottom: var(--space-section-lg); }
 
 .btn {
   display: inline-block;
