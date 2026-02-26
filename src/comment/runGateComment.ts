@@ -45,18 +45,23 @@ function readReport(
   }
 }
 
-/** Read suggestion strings from artifacts. Priority: fix-suggestions then repair. Preserve array order; no re-sort. */
-function readSuggestionBullets(cwd: string): string[] | undefined {
+/** Read suggestion strings and optional source from artifacts. Priority: fix-suggestions then repair. */
+function readSuggestionBulletsAndSource(cwd: string): { bullets: string[] | undefined; source?: "convergence" | "minimalCut" } {
   try {
     const raw = readFileSync(join(cwd, FIX_SUGGESTIONS_PATH), "utf8");
-    const data = JSON.parse(raw) as { suggestions?: { title?: string; steps?: string[] }[] };
+    const data = JSON.parse(raw) as {
+      suggestions?: { title?: string; steps?: string[] }[];
+      source?: "convergence" | "minimalCut";
+    };
     const suggestions = data?.suggestions;
     if (Array.isArray(suggestions) && suggestions.length > 0) {
       const bullets = suggestions
         .map((s) => (typeof s.title === "string" && s.title ? s.title : Array.isArray(s.steps) && s.steps[0] ? String(s.steps[0]) : ""))
         .filter((t) => t.length > 0)
         .slice(0, MAX_SUGGESTION_SOURCE);
-      if (bullets.length > 0) return bullets;
+      if (bullets.length > 0) {
+        return { bullets, source: data?.source };
+      }
     }
   } catch {
     // skip
@@ -70,12 +75,12 @@ function readSuggestionBullets(cwd: string): string[] | undefined {
         .map((a) => (typeof a.requiredChange === "string" && a.requiredChange ? a.requiredChange : ""))
         .filter((t) => t.length > 0)
         .slice(0, MAX_SUGGESTION_SOURCE);
-      if (bullets.length > 0) return bullets;
+      if (bullets.length > 0) return { bullets };
     }
   } catch {
     // skip
   }
-  return undefined;
+  return { bullets: undefined };
 }
 
 async function fetchWithRetry(
@@ -230,7 +235,7 @@ export async function runGateComment(
   const runId = report?.run?.id ?? "";
   const decisionLevel = (report?.decision?.level ?? "warn") as "allow" | "block" | "warn";
   const mode: GateMode = env.ANCHR_GATE_MODE === "STRICT" ? "STRICT" : "ADVISORY";
-  const suggestionBullets = readSuggestionBullets(cwd);
+  const { bullets: suggestionBullets, source: suggestionSource } = readSuggestionBulletsAndSource(cwd);
 
   const newBody = buildGateComment(
     report ?? { status: "INCOMPLETE", decision: { level: "warn" } },
@@ -244,6 +249,7 @@ export async function runGateComment(
       decisionLevel: decisionLevel === "allow" || decisionLevel === "block" || decisionLevel === "warn" ? decisionLevel : "warn",
     },
     suggestionBullets,
+    suggestionSource,
   );
   const newMeta = parseArcsightV5Meta(newBody);
   if (!newMeta) {

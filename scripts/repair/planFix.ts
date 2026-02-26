@@ -83,11 +83,19 @@ function main(): number {
     return 1;
   }
 
+  const rawProofs = report.proofs as undefined | Array<{ source: string; target: string; rule: string }>;
+  const proofs = rawProofs?.map((p) => ({
+    type: "import_path" as const,
+    source: p.source,
+    target: p.target,
+    rule: p.rule as import("../../src/structural/types.js").ViolationKind,
+  }));
+
   const input = {
     status: (report.status as string) ?? "INCOMPLETE",
-    proofs: report.proofs as undefined | Array<{ source: string; target: string; rule: string }>,
+    proofs,
     minimalCut: (report.minimalCut as string[]) ?? [],
-    classification: (report.classification as { primaryCause: string | null }) ?? { primaryCause: null },
+    classification: ((report.classification as { primaryCause: string | null }) ?? { primaryCause: null }) as { primaryCause: import("../../src/structural/types.js").ViolationKind | null },
   };
 
   const result = planFix(input, root);

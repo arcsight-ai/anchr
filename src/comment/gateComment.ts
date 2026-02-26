@@ -4,7 +4,7 @@
  */
 
 import { createHash } from "crypto";
-import { parseMinimalCut } from "../repair/parseReport.js";
+import { parseMinimalCut, type ParsedViolation } from "../repair/parseReport.js";
 import { normalizeComment } from "./v5.js";
 
 const ANCHOR = "<!-- arcsight:comment -->";
@@ -216,6 +216,64 @@ function formatViolations(minimalCut: string[]): string[] {
   return lines;
 }
 
+/** Cross-domain causes that can yield a copy-paste fix (internal import → public surface). */
+const CROSS_DOMAIN_CAUSES = new Set<string>(["boundary_violation", "type_import_private_target"]);
+
+/** First cross-domain violation in canonical order (same as formatViolations). Deterministic. */
+function firstCrossDomainViolation(minimalCut: string[]): ParsedViolation | null {
+  const parsed = parseMinimalCut([...minimalCut].sort((a, b) => a.localeCompare(b, "en")));
+  const byCause = new Map<string, ParsedViolation[]>();
+  for (const v of parsed) {
+    if (!byCause.has(v.cause)) byCause.set(v.cause, []);
+    byCause.get(v.cause)!.push(v);
+  }
+  for (const cause of CATEGORY_ORDER) {
+    if (!CROSS_DOMAIN_CAUSES.has(cause)) continue;
+    const items = byCause.get(cause);
+    if (items && items.length > 0) return items[0]!;
+  }
+  return null;
+}
+
+/** Only these path segments count as "internal" for copy-paste snippet. No guessing. */
+const INTERNAL_PATH_REGEX = /\/src\/(internal|_internal|private|impl)(?:\/|\.|$)/;
+
+/** Pick index extension from original specifier. Deterministic: .ts/.tsx → index.ts, .js/.jsx/.mjs/.cjs → index.js, else index.ts. */
+function indexExtensionForSpecifier(norm: string): string {
+  const base = norm.slice(norm.lastIndexOf("/") + 1);
+  if (base.endsWith(".ts")) return "index.ts";
+  if (base.endsWith(".tsx")) return "index.ts";
+  if (base.endsWith(".js") || base.endsWith(".jsx") || base.endsWith(".mjs") || base.endsWith(".cjs")) return "index.js";
+  return "index.ts";
+}
+
+/**
+ * Derive a safe replacement for an internal import. Returns null if we cannot confidently derive one.
+ * Only uses specifier string; no filesystem. Allows only /src/internal, /src/_internal, /src/private, /src/impl.
+ * Replacement: same prefix up to /src/ + index.<ext> (ext from original: .ts/.tsx→index.ts, .js/…→index.js, else index.ts).
+ */
+function deriveCopyPasteSnippet(v: ParsedViolation): string[] | null {
+  const spec = v.specifier;
+  if (!spec || typeof spec !== "string") return null;
+  const norm = spec.replace(/\\/g, "/");
+  if (!INTERNAL_PATH_REGEX.test(norm)) return null;
+  const srcIdx = norm.indexOf("/src/");
+  if (srcIdx < 0) return null;
+  const indexFile = indexExtensionForSpecifier(norm);
+  const replacement = norm.slice(0, srcIdx + 5) + indexFile;
+  return [
+    "Copy-paste fix (example):",
+    "",
+    "Replace the internal import with the package's public surface.",
+    "",
+    "```diff",
+    `- import { … } from "${spec}";`,
+    `+ import { … } from "${replacement}";`,
+    "```",
+    "",
+  ];
+}
+
 /** Deterministic suggestions from minimalCut only. Order: Cycle, Cross-domain, Deleted, Relative. Max 5. */
 function buildSuggestionsFromMinimalCut(minimalCut: string[]): string[] {
   const parsed = parseMinimalCut([...minimalCut].sort((a, b) => a.localeCompare(b, "en")));
@@ -230,7 +288,12 @@ function buildSuggestionsFromMinimalCut(minimalCut: string[]): string[] {
   return bullets;
 }
 
-function buildVisibleBody(report: GateReport, mode: GateMode, suggestionBullets?: string[]): string[] {
+function buildVisibleBody(
+  report: GateReport,
+  mode: GateMode,
+  suggestionBullets?: string[],
+  suggestionSource?: "convergence" | "minimalCut",
+): string[] {
   const status = report.status ?? "INCOMPLETE";
   const decisionLevel = report.decision?.level ?? "warn";
   const minimalCut = report.minimalCut ?? [];
@@ -263,7 +326,7 @@ function buildVisibleBody(report: GateReport, mode: GateMode, suggestionBullets?
     ? "❌ Architectural drift detected. Merge blocked."
     : "⚠️ Architectural drift detected.";
   const explanation =
-    "This change introduces architectural coupling that violates defined repository boundaries.";
+    "This change introduces structural coupling that violates defined repository boundaries.";
   const lines: string[] = [headline, "", explanation, ""];
 
   if (scopeExceededOnly && report.scopeExceeded) {
@@ -310,11 +373,26 @@ function buildVisibleBody(report: GateReport, mode: GateMode, suggestionBullets?
         : [];
   const previewBullets = suggestionBulletsList.slice(0, MAX_SUGGESTION_BULLETS);
   if (showSuggestions && previewBullets.length > 0) {
-    lines.push("Structural improvement preview:");
+    lines.push("Suggested structural correction:");
+    lines.push("");
+    lines.push("Apply the following structural correction.");
     lines.push("");
     for (const b of previewBullets) lines.push(`• ${b}`);
     if (suggestionBulletsList.length > MAX_SUGGESTION_BULLETS) {
       lines.push(`… and ${suggestionBulletsList.length - MAX_SUGGESTION_BULLETS} additional structural adjustments`);
+    }
+    if (suggestionSource === "convergence") {
+      lines.push("");
+      lines.push("Source: convergence");
+    } else if (suggestionSource === "minimalCut") {
+      lines.push("");
+      lines.push("Source: minimalCut fallback");
+    }
+    const firstCross = firstCrossDomainViolation(minimalCut);
+    const snippetLines = firstCross ? deriveCopyPasteSnippet(firstCross) : null;
+    if (snippetLines && snippetLines.length > 0) {
+      lines.push("");
+      lines.push(...snippetLines);
     }
     lines.push("");
   }
@@ -354,8 +432,9 @@ export function buildGateComment(
   mode: GateMode,
   meta: GateCommentMeta,
   suggestionBullets?: string[],
+  suggestionSource?: "convergence" | "minimalCut",
 ): string {
-  const visibleLines = buildVisibleBody(report, mode, suggestionBullets);
+  const visibleLines = buildVisibleBody(report, mode, suggestionBullets, suggestionSource);
   const hashPlaceholder = "<!-- arcsight:hash: -->";
   const metadataLinesForHash = [
     ANCHOR,

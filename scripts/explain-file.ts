@@ -204,7 +204,7 @@ export async function explainFile(
         );
       }
 
-      if (spec.startsWith("../") && !spec.includes(fromPkg)) {
+      if (spec.startsWith("../") && fromPkg !== null && !spec.includes(fromPkg)) {
         record(
           spec + ":rel",
           "block",
@@ -226,7 +226,7 @@ export async function explainFile(
     else if (v.level === "warn" && level !== "block") level = "warn";
   }
 
-  if (confidence === "uncertain" && level === "block") {
+  if (("uncertain" as Confidence) === confidence && level === "block") {
     level = "warn";
   }
 

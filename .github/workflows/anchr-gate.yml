@@ -65,6 +65,18 @@ jobs:
         continue-on-error: true
         timeout-minutes: 1
 
+      - name: Read report status
+        id: report_status
+        if: steps.gate.outputs.has_report == 'true'
+        run: |
+          STATUS=$(jq -r '.status // ""' artifacts/anchr-report.json)
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+
+      - name: Run anchr suggest
+        if: steps.gate.outputs.has_report == 'true' && (steps.report_status.outputs.status == 'BLOCKED' || steps.report_status.outputs.status == 'INDETERMINATE')
+        run: npx anchr@1 suggest
+        continue-on-error: true
+
       - name: Post ANCHR internal error comment
         if: steps.gate.outputs.has_report != 'true'
         env:

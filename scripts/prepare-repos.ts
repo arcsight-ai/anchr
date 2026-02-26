@@ -94,12 +94,14 @@ async function getDefaultBranch(token: string, owner: string, repo: string): Pro
 
 function run(cmd: string, args: string[], cwd: string): Promise<{ ok: boolean; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
-    const c = spawn(cmd, args, { cwd, encoding: "utf8", shell: false });
+    const c = spawn(cmd, args, { cwd, shell: false, stdio: ["pipe", "pipe", "pipe"] });
     let out = "";
     let err = "";
-    c.stdout?.on("data", (d) => { out += d; });
-    c.stderr?.on("data", (d) => { err += d; });
-    c.on("close", (code) => resolve({ ok: code === 0, stdout: out.trim(), stderr: err.trim() }));
+    c.stdout?.setEncoding("utf8");
+    c.stderr?.setEncoding("utf8");
+    c.stdout?.on("data", (d: string | Buffer) => { out += typeof d === "string" ? d : d.toString(); });
+    c.stderr?.on("data", (d: string | Buffer) => { err += typeof d === "string" ? d : d.toString(); });
+    c.on("close", (code: number | null) => resolve({ ok: code === 0, stdout: out.trim(), stderr: err.trim() }));
   });
 }
 

@@ -51,7 +51,7 @@ function getDiffStats(cwd: string, baseSha: string, headSha: string): { linesCha
   } catch {
     return { linesChanged: 0, filesChanged: 0, paths: [] };
   }
-  const match = out.match(/(\d+)\s+files? changed(?:,\s*(\d+)\s+insertions?\(\+\\))?(?:,\s*(\d+)\s+deletions?\(-\))?/);
+  const match = out.match(/(\d+)\s+files? changed(?:,\s*(\d+)\s+insertions?\(\+\))?(?:,\s*(\d+)\s+deletions?\(-\))?/);
   const filesChanged = match ? parseInt(match[1]!, 10) : 0;
   const insertions = match && match[2] ? parseInt(match[2], 10) : 0;
   const deletions = match && match[3] ? parseInt(match[3], 10) : 0;
@@ -88,10 +88,11 @@ export function captureOne(
   baseSha: string,
   headSha: string
 ): Phase1Record | null {
+  type ReportShape = { decision?: { level?: string }; confidence?: { coverageRatio?: number }; classification?: { primaryCause?: string | null }; minimalCut?: string[] };
   const raw = runAudit(cwd, baseSha, headSha);
-  let report: { decision?: { level?: string }; confidence?: { coverageRatio?: number }; classification?: { primaryCause?: string | null }; minimalCut?: string[] } | null = null;
+  let report: ReportShape | null = null;
   try {
-    if (raw) report = JSON.parse(raw) as typeof report;
+    if (raw) report = JSON.parse(raw) as ReportShape;
   } catch {
     // ignore
   }

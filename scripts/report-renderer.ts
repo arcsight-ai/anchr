@@ -208,8 +208,9 @@ export function renderReport(summary: unknown, repoRoot: string): string {
     isValidSummary(summary) && typeof summary.narrative === "string"
       ? escapeMd(summary.narrative)
       : "";
-  const whyBullets = Array.isArray(summary?.why_this_matters)
-    ? (summary.why_this_matters as unknown[])
+  const summaryRecord = summary as Record<string, unknown> | undefined;
+  const whyBullets = Array.isArray(summaryRecord?.why_this_matters)
+    ? (summaryRecord.why_this_matters as unknown[])
         .filter((x): x is string => typeof x === "string")
         .slice(0, 6)
         .map((s) => escapeMd(s))

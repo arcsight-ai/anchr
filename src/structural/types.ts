@@ -11,7 +11,8 @@ export type ProofType =
   | "export_path"
   | "deleted_file"
   | "relative_escape_path"
-  | "circular_import";
+  | "circular_import"
+  | "runtime_signal";
 
 export interface Proof {
   type: ProofType;

@@ -78,7 +78,7 @@ async function main(): Promise<void> {
     runId,
     scopeMode,
     coverageRatio,
-    explanationViolations: classification?.violations ?? null,
+    explanationViolations: (classification?.violations ?? null) as import("./render-comment.js").RenderInput["explanationViolations"],
     downgradeReasons,
   });
   const whySection = generateExplanationSection(rawReport);

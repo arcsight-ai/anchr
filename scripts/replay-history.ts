@@ -473,13 +473,14 @@ async function main(): Promise<void> {
 
       if (report) replayDebug.totals.cli_reports_received++;
       if (report?.status === "BLOCKED") replayDebug.totals.cli_status_blocked++;
-      if ((report?.proofs as unknown[] | undefined)?.length > 0) replayDebug.totals.cli_has_proofs++;
+      const proofArr = report?.proofs as unknown[] | undefined;
+      if (proofArr !== undefined && proofArr !== null && proofArr.length > 0) replayDebug.totals.cli_has_proofs++;
       if (((report?.minimalCut as string[]) ?? []).length > 0) replayDebug.totals.cli_has_minimal_cut++;
 
       const hasStructural =
         report &&
         report.status === "BLOCKED" &&
-        (report.proofs as unknown[] | undefined)?.length > 0 &&
+        ((report?.proofs as unknown[] | undefined)?.length ?? 0) > 0 &&
         ((report.minimalCut as string[]) ?? []).length > 0;
       if (hasStructural) {
         replayDebug.totals.structural_events++;

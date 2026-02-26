@@ -13,6 +13,9 @@ const distCli = path.join(pkgRoot, "dist", "scripts", "cli.js");
 const tsxPath = path.join(pkgRoot, "node_modules", ".bin", "tsx");
 const scriptCli = path.join(pkgRoot, "scripts", "cli.ts");
 const useDist = fs.existsSync(distCli);
+/** Commands that must run from source so they stay current when dist is stale. */
+const useSourceFor = new Set(["gate", "suggest", "comment"]);
+const preferSource = args.length > 0 && useSourceFor.has(args[0]);
 
 if (args.length === 0) {
   const trustSafePath = path.join(pkgRoot, "scripts", "cli-trust-safe.ts");
@@ -23,7 +26,7 @@ if (args.length === 0) {
   process.exit(out.status !== null ? out.status : 2);
 }
 
-if (useDist) {
+if (useDist && !preferSource) {
   const out = spawnSync(process.execPath, [distCli, ...args], {
     stdio: "inherit",
     cwd: pkgRoot,

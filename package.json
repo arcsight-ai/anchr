@@ -26,6 +26,8 @@
     "set-pr-status": "npx tsx scripts/set-pr-status.ts",
     "post-inline-review": "npx tsx scripts/post-inline-review.ts",
     "demo": "bash scripts/demo.sh",
+    "demo:break": "bash scripts/demo-break.sh",
+    "demo:fix": "bash scripts/demo-fix.sh",
     "demo-report": "npx tsx scripts/demo-report.ts",
     "report-render": "npx tsx scripts/report-renderer.ts",
     "share": "npx tsx scripts/anchr-share.ts",

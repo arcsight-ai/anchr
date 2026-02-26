@@ -87,15 +87,20 @@ function Hero() {
           alignItems: 'flex-start',
         }}>
           <div className="hero-sub" style={{ flex: '1 1 380px', minWidth: 0 }}>
+            <p style={{ fontSize: '1rem', color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              AI writes. ANCHR enforces.
+            </p>
             <h1 style={{ marginBottom: 14, lineHeight: 1.2 }}>
-              The merge-time structural gate for TypeScript monorepos.
+              Move at AI speed. Keep architectural control.
             </h1>
             <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', maxWidth: 520, marginBottom: 12, lineHeight: 1.6 }}>
-              ANCHR builds the graph from each PR diff, computes the minimal cut, and posts one decision — VERIFIED or BLOCKED — on the PR.
+              ANCHR is the architectural firewall for AI-generated code. If a PR introduces structural drift, ANCHR blocks the merge and shows the exact structural fix.
             </p>
-            <p style={{ fontSize: 14, color: 'var(--text-muted)', maxWidth: 520, marginBottom: 20 }}>
-              For teams with layered or bounded architectures. Enforcement before merge.
-            </p>
+            <ul style={{ fontSize: 15, color: 'var(--text-secondary)', maxWidth: 520, marginBottom: 20, paddingLeft: 20, lineHeight: 1.7 }}>
+              <li>Architectural authority in CI</li>
+              <li>Exact structural corrections</li>
+              <li>Deterministic enforcement</li>
+            </ul>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
               <a href="#install" className="btn btn-primary">Add ANCHR to my repo</a>
               <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">View on GitHub</a>
@@ -153,15 +158,13 @@ function OneDecisionSection() {
   )
 }
 
-function NotALinterSection() {
+function OneProductSection() {
   return (
     <section className="section">
       <div className="container">
-        <h2>Not a linter.</h2>
+        <h2>One product. One loop. One promise.</h2>
         <p style={{ color: 'var(--text-secondary)', maxWidth: 560, lineHeight: 1.8, fontSize: '1.05rem' }}>
-          Linters analyze. ANCHR decides.<br />
-          Linters report. ANCHR gates.<br />
-          One decision per PR.
+          Add the workflow. Open a PR. ANCHR blocks structural drift and shows the fix. You apply it. Merge passes.
         </p>
       </div>
     </section>
@@ -399,7 +402,7 @@ function Demo() {
       <div className="container">
         <h2>Demo</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
-          Real monorepo: branch protection, required check, three outcomes.
+          See ANCHR block structural drift in real time.
         </p>
         <ul style={{ color: 'var(--text-secondary)', marginBottom: 20, paddingLeft: 20, lineHeight: 1.7 }}>
           <li><strong style={{ color: 'var(--text)' }}>VERIFIED</strong> — PR that respects boundaries.</li>
@@ -590,7 +593,7 @@ function Footer() {
         <a href={ISSUES_URL} target="_blank" rel="noopener noreferrer">Issues</a>
         <span>Open source · </span>
         <a href={LICENSE_URL} target="_blank" rel="noopener noreferrer">MIT</a>
-        <span>Stop architecture drift before it becomes a rewrite.</span>
+        <span>Move at AI speed. Keep architectural control.</span>
       </div>
     </footer>
   )
@@ -603,7 +606,7 @@ export default function App() {
       <main id="main-content">
         <Hero />
         <OneDecisionSection />
-        <NotALinterSection />
+        <OneProductSection />
         <DeterminismSection />
         <WhatItCatches />
         <HowItWorks />

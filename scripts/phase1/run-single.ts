@@ -140,14 +140,15 @@ function runCertification(
   } catch {
     // ignore
   }
-  let report: {
+  type LegacyReportShape = {
     certification_status?: string;
     confidence_score?: number;
     violation_classification?: string | null;
     attack_vectors_triggered?: string[];
-  } | null = null;
+  };
+  let report: LegacyReportShape | null = null;
   try {
-    if (raw) report = JSON.parse(raw) as typeof report;
+    if (raw) report = JSON.parse(raw) as LegacyReportShape;
   } catch {
     // ignore
   }
@@ -207,14 +208,15 @@ function runStructuralAudit(
   } catch {
     // ignore
   }
-  let report: {
+  type StructuralReportShape = {
     decision?: { level?: string };
     confidence?: { coverageRatio?: number };
     classification?: { primaryCause?: string | null };
     minimalCut?: string[];
-  } | null = null;
+  };
+  let report: StructuralReportShape | null = null;
   try {
-    if (raw) report = JSON.parse(raw) as typeof report;
+    if (raw) report = JSON.parse(raw) as StructuralReportShape;
   } catch {
     // ignore
   }

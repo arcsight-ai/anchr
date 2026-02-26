@@ -58,7 +58,7 @@ function main(): void {
 
   if (!report || typeof report !== "object") {
     const fallback = {
-      decision: "INVESTIGATE",
+      decision: "INVESTIGATE" as const,
       explanation: "Analysis could not complete.",
       reasoning: "The tool could not reliably evaluate the architectural effect of this change.",
       guidance: "Re-run analysis or inspect manually.",

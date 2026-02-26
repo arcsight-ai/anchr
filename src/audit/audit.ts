@@ -10,7 +10,11 @@ import { canonicalPath } from "../structural/canonicalPath.js";
 import { detectViolations } from "../structural/violations.js";
 import type { Proof, Violation, ViolationKind } from "../structural/types.js";
 import type { IFileSystem } from "../virtual/virtualFs.js";
-import { runRuntimeSignals } from "../detection/runtime-signals.js";
+import { runRuntimeSignals, type RuntimeSignalKind } from "../detection/runtime-signals.js";
+
+function runtimeSignalKindToViolationKind(k: RuntimeSignalKind): ViolationKind {
+  return "boundary_violation";
+}
 
 const PKG_SRC_RE = /^packages\/([^/]+)\/src\//;
 
@@ -88,7 +92,11 @@ export function runAudit(input: AuditInput): Violation[] {
   });
 
   const runtimeViolations: Violation[] = signals.map((s) =>
-    runtimeSignalToViolation(repoRoot, { kind: s.kind, evidence: s.evidence, filePath: s.filePath }),
+    runtimeSignalToViolation(repoRoot, {
+      kind: runtimeSignalKindToViolationKind(s.kind),
+      evidence: s.evidence,
+      filePath: s.filePath,
+    }),
   );
 
   const merged = [...dependencyViolations, ...runtimeViolations].sort((a, b) => {

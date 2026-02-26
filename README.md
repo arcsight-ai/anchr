@@ -1,17 +1,17 @@
 # ANCHR
 
-**AI writes. ANCHR enforces.**
+**Move at AI speed. Keep architectural control.**
 
-Cursor (or any AI) writes code. ANCHR protects your architecture at merge time. When a PR breaks boundaries, ANCHR blocks, shows the minimal cut, and suggests the fix. You apply it. Merge passes.
+ANCHR is the architectural firewall for AI-generated code.
 
-You don't have to babysit AI anymore.
+AI lets you ship faster than ever. ANCHR ensures that speed doesn't erode your architecture. If a pull request introduces structural drift, ANCHR blocks the merge and shows the exact structural fix. Deterministic boundary enforcement, one decision per PR.
 
 ---
 
 ## One decision per PR
 
 **VERIFIED** — Safe. No boundary violations.  
-**BLOCKED** — Violation. Minimal cut + suggested structural fix in the comment.
+**BLOCKED** — Violation. Minimal cut + suggested structural fix (including copy-paste snippet) in the comment.
 
 Deterministic: same base + head → same result. Every time.
 
@@ -123,10 +123,11 @@ Same repo snapshot and refs → same verdict. No flaky checks. The pipeline can 
 
 ## Demo
 
-**Install → open PR → see the comment.**  
+**See ANCHR block structural drift in real time.**
+
 [Screenshot: BLOCK with minimal cut and suggested fix](docs/media/screenshot-block-pr-comment.png).
 
-Flow: open a PR with a messy AI change → ANCHR blocks → show comment and suggestion → apply minimal rewrite → push → green check.
+Flow: open a PR with a messy AI change → ANCHR blocks → show comment and suggestion → apply minimal rewrite (or copy-paste fix) → push → green check.
 
 **60-second live script** (meetups, DevRel, Product Hunt, Loom): [docs/60-SECOND-DEMO-SCRIPT.md](docs/60-SECOND-DEMO-SCRIPT.md).
 

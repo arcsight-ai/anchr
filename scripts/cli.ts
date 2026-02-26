@@ -14,6 +14,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const REPORT_PATH = process.env.ANCHR_REPORT_PATH ?? "artifacts/anchr-report.json";
 const LARGE_CHANGE_THRESHOLD = 120;
+const MAX_FILES = 400;
 
 function safeExec(cmd: string): string | null {
   try {
@@ -371,6 +372,7 @@ async function main(): Promise<void> {
   const args = getArgs();
   if (args[0] === "--help" || args[0] === "-h") {
     console.log("anchr gate    — [CANONICAL] CI enforcement. Structural report only. Exit 0|1|2.");
+    console.log("anchr suggest — generate fix suggestions from report (BLOCKED/INDETERMINATE). Writes artifacts/anchr-fix-suggestions.json.");
     console.log("anchr comment — post or update PR gate comment from artifacts (use after gate in CI).");
     console.log("anchr audit   — machine-readable certification result (non-canonical for enforcement)");
     console.log("anchr foresee — human-readable predicted impact (Aftermath narrated by Dina)");
@@ -402,6 +404,11 @@ async function main(): Promise<void> {
     await runGateComment(process.cwd(), process.env);
     process.exit(0);
   }
+  if (args[0] === "suggest") {
+    const { runSuggest } = await import("../src/suggest/runSuggest.js");
+    const code = await runSuggest(process.cwd());
+    process.exit(code);
+  }
   ensureRepo();
 
   // ─── Gate (Prompt 1 — canonical CI enforcement). Structural report only; no convergence. ───
@@ -412,7 +419,7 @@ async function main(): Promise<void> {
       process.exit(2);
     }
     const cwd = process.cwd();
-    let config: { enforcement: "STRICT" | "ADVISORY"; ignore: string[] };
+    let config: { enforcement: "STRICT" | "ADVISORY"; ignore: string[]; maxFiles: number; timeoutMs: number };
     try {
       const { getRepoRoot } = await import("../src/structural/git.js");
       const { loadAnchrConfig } = await import("../src/config/anchrYaml.js");
@@ -439,7 +446,7 @@ async function main(): Promise<void> {
       const runId = (result.report?.run as { id?: string } | undefined)?.id ?? "";
       console.log("ANCHR gate — VERIFIED");
       console.log(runId ? `run.id: ${runId}` : "run.id: —");
-      console.log("No TypeScript changes in diff.");
+      console.log("No architectural drift detected.");
       process.exit(0);
     }
     if (result.noReportReason === "too_large") {
@@ -461,7 +468,7 @@ async function main(): Promise<void> {
     if (status === "BLOCKED") {
       console.log("ANCHR gate — BLOCKED");
       console.log(runId ? `run.id: ${runId}` : "run.id: —");
-      console.log("Proven structural violation. Resolve before merge.");
+      console.log("Architectural drift detected.");
       process.exit(1);
     }
 
@@ -469,7 +476,7 @@ async function main(): Promise<void> {
       if (isStrict) {
         console.log("ANCHR gate — BLOCKED");
         console.log(runId ? `run.id: ${runId}` : "run.id: —");
-        console.log("Indeterminate (proof missing). Resolve before merge.");
+        console.log("Architectural drift detected.");
         process.exit(1);
       }
       console.log("ANCHR gate — WARN (advisory)");
@@ -481,6 +488,7 @@ async function main(): Promise<void> {
     // VERIFIED
     console.log("ANCHR gate — VERIFIED");
     console.log(runId ? `run.id: ${runId}` : "run.id: —");
+    console.log("No architectural drift detected.");
     process.exit(0);
   }
 
@@ -613,7 +621,7 @@ async function main(): Promise<void> {
       console.log("No architectural impact detected.");
       process.exit(0);
     }
-    runStructuralAuditWithTimeout(cwd, refs.base, refs.head, false);
+    runStructuralAuditWithTimeout(cwd, refs.base, refs.head, false, 8000);
     const raw = readJson(join(cwd, REPORT_PATH));
     const report =
       raw && typeof raw === "object"

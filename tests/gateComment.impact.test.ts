@@ -134,7 +134,7 @@ describe("Gate comment Impact section (Prompt B)", () => {
   });
 });
 
-describe("Gate comment Structural improvement preview (Prompt C)", () => {
+describe("Gate comment Suggested structural correction (Prompt C)", () => {
   it("suggestionBullets from fix-suggestions style renders preview", () => {
     const report: GateReport = {
       status: "BLOCKED",
@@ -143,7 +143,7 @@ describe("Gate comment Structural improvement preview (Prompt C)", () => {
     };
     const bullets = ["Break cycle between packages/auth and packages/core"];
     const body = visibleBody(buildGateComment(report, "STRICT" as GateMode, meta, bullets));
-    expect(body).toContain("Structural improvement preview:");
+    expect(body).toContain("Suggested structural correction:");
     expect(body).toContain("• Break cycle between packages/auth and packages/core");
   });
 
@@ -155,7 +155,7 @@ describe("Gate comment Structural improvement preview (Prompt C)", () => {
     };
     const bullets = ["Add export in packages/foo/src/index.ts"];
     const body = visibleBody(buildGateComment(report, "STRICT" as GateMode, meta, bullets));
-    expect(body).toContain("Structural improvement preview:");
+    expect(body).toContain("Suggested structural correction:");
     expect(body).toContain("• Add export in packages/foo/src/index.ts");
   });
 
@@ -167,7 +167,7 @@ describe("Gate comment Structural improvement preview (Prompt C)", () => {
     };
     const bullets = ["A", "B", "C", "D", "E", "F", "G"];
     const body = visibleBody(buildGateComment(report, "STRICT" as GateMode, meta, bullets));
-    expect(body).toContain("Structural improvement preview:");
+    expect(body).toContain("Suggested structural correction:");
     expect(body).toContain("• A");
     expect(body).toContain("• E");
     expect(body).not.toContain("• F");
@@ -181,7 +181,7 @@ describe("Gate comment Structural improvement preview (Prompt C)", () => {
       minimalCut: [],
     };
     const body = visibleBody(buildGateComment(report, "STRICT" as GateMode, meta, ["Fix something"]));
-    expect(body).not.toContain("Structural improvement preview:");
+    expect(body).not.toContain("Suggested structural correction:");
   });
 
   it("no suggestions → no preview", () => {
@@ -191,7 +191,7 @@ describe("Gate comment Structural improvement preview (Prompt C)", () => {
       minimalCut: [],
     };
     const body = visibleBody(buildGateComment(report, "STRICT" as GateMode, meta));
-    expect(body).not.toContain("Structural improvement preview:");
+    expect(body).not.toContain("Suggested structural correction:");
   });
 
   it("identical artifact input → identical output", () => {
@@ -213,9 +213,85 @@ describe("Gate comment Structural improvement preview (Prompt C)", () => {
       minimalCut: ["pkg:path:circular_import:spec", "pkg2:path2:boundary_violation:spec2"],
     };
     const body = visibleBody(buildGateComment(report, "STRICT" as GateMode, meta));
-    expect(body).toContain("Structural improvement preview:");
+    expect(body).toContain("Suggested structural correction:");
     expect(body).toContain("Remove one dependency in the cycle chain");
     expect(body).toContain("Route dependency through target package public API");
+  });
+
+  it("suggestionSource convergence shows Source: convergence", () => {
+    const report: GateReport = {
+      status: "BLOCKED",
+      decision: { level: "block" },
+      minimalCut: ["pkg:path:boundary_violation:spec"],
+    };
+    const bullets = ["Route dependency through target package public API"];
+    const body = visibleBody(buildGateComment(report, "STRICT" as GateMode, meta, bullets, "convergence"));
+    expect(body).toContain("Suggested structural correction:");
+    expect(body).toContain("Source: convergence");
+  });
+
+  it("suggestionSource minimalCut shows Source: minimalCut fallback", () => {
+    const report: GateReport = {
+      status: "BLOCKED",
+      decision: { level: "block" },
+      minimalCut: ["pkg:path:boundary_violation:spec"],
+    };
+    const bullets = ["Route dependency through target package public API"];
+    const body = visibleBody(buildGateComment(report, "STRICT" as GateMode, meta, bullets, "minimalCut"));
+    expect(body).toContain("Source: minimalCut fallback");
+  });
+
+  it("cross-domain internal import violation → Copy-paste fix (example) section with diff", () => {
+    const report: GateReport = {
+      status: "BLOCKED",
+      decision: { level: "block" },
+      minimalCut: ["api:packages/api/src/index.ts:boundary_violation:../../core/src/internal.js"],
+    };
+    const bullets = ["Route dependency through target package public API"];
+    const body = visibleBody(buildGateComment(report, "STRICT" as GateMode, meta, bullets, "minimalCut"));
+    expect(body).toContain("Copy-paste fix (example):");
+    expect(body).toContain("Replace the internal import with the package's public surface.");
+    expect(body).toContain("```diff");
+    expect(body).toContain('from "../../core/src/internal.js"');
+    expect(body).toContain('from "../../core/src/index.js"');
+    const fences = body.match(/```/g);
+    expect(fences).not.toBeNull();
+    expect(fences!.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("cross-domain /src/private violation → snippet with index.ts when specifier ends in .ts", () => {
+    const report: GateReport = {
+      status: "BLOCKED",
+      decision: { level: "block" },
+      minimalCut: ["pkg:path:boundary_violation:../../core/src/private/foo.ts"],
+    };
+    const bullets = ["Route dependency through target package public API"];
+    const body = visibleBody(buildGateComment(report, "STRICT" as GateMode, meta, bullets, "minimalCut"));
+    expect(body).toContain("Copy-paste fix (example):");
+    expect(body).toContain('from "../../core/src/private/foo.ts"');
+    expect(body).toContain('from "../../core/src/index.ts"');
+  });
+
+  it("cross-domain /src/internal.tsx → snippet uses index.ts", () => {
+    const report: GateReport = {
+      status: "BLOCKED",
+      decision: { level: "block" },
+      minimalCut: ["pkg:path:boundary_violation:packages/core/src/internal.tsx"],
+    };
+    const bullets = ["Route dependency through target package public API"];
+    const body = visibleBody(buildGateComment(report, "STRICT" as GateMode, meta, bullets, "minimalCut"));
+    expect(body).toContain('from "packages/core/src/index.ts"');
+  });
+
+  it("cross-domain violation without allowed internal pattern → no Copy-paste fix section", () => {
+    const report: GateReport = {
+      status: "BLOCKED",
+      decision: { level: "block" },
+      minimalCut: ["pkg:path:boundary_violation:some-other-spec"],
+    };
+    const bullets = ["Route dependency through target package public API"];
+    const body = visibleBody(buildGateComment(report, "STRICT" as GateMode, meta, bullets, "minimalCut"));
+    expect(body).not.toContain("Copy-paste fix (example):");
   });
 });
 

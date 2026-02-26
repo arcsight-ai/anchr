@@ -304,6 +304,51 @@ Surface existing repair suggestions when available. Uses existing artifact files
 
 ---
 
+## PART 10b — Copy-paste fix (example)
+
+When the report contains at least one cross-domain/internal import violation and the Structural improvement preview is shown, the comment may include a single **Copy-paste fix (example):** section directly under the suggestion bullets and Source line. This section is display-only; it does not affect enforcement.
+
+### Rendering conditions
+
+- Render only when **suggestions are shown** (BLOCKED or INDETERMINATE with at least one suggestion) **and** the first cross-domain violation (in canonical order) has a specifier that matches one of these path patterns only: `/src/internal`, `/src/_internal`, `/src/private`, `/src/impl` (with optional trailing path or extension).
+- If the specifier does not match one of these patterns, or a safe replacement cannot be derived, **omit the entire section**. No guessing.
+
+### Replacement rule
+
+- For any matching specifier, replacement = **same prefix up to and including `/src/`** + `index.<ext>`. Extension is chosen from the original specifier: `.ts` or `.tsx` → `index.ts`; `.js`, `.jsx`, `.mjs`, `.cjs` → `index.js`; else default `index.ts`. No extra parsing; pure string rewrite.
+- Example: `../../core/src/internal.js` → `../../core/src/index.js`; `../../core/src/private/foo.ts` → `../../core/src/index.ts`.
+
+### Format
+
+- **Header:** `Copy-paste fix (example):` (colon consistent in docs and render).
+- One sentence: `Replace the internal import with the package's public surface.`
+- A fenced **```diff** block (newline after the opening fence), then `- import ...` and `+ import ...` lines, then closing **```** on its own.
+
+### Example
+
+```
+Structural improvement preview:
+
+• Route dependency through target package public API
+
+Source: minimalCut fallback
+
+Copy-paste fix (example):
+
+Replace the internal import with the package's public surface.
+
+```diff
+- import { … } from "../../core/src/internal.js";
++ import { … } from "../../core/src/index.js";
+```
+```
+
+### Determinism
+
+- Same report + mode → same presence/absence and content of the section. Derivation uses only `report.minimalCut` (parsed specifier); no filesystem, no new analysis.
+
+---
+
 ## PART 11 — Structural signature (Prompt D)
 
 Deterministic identity line at the bottom of the gate comment. Reuses existing structural identity; no new hashing. Presentation-only; not part of enforcement. Authority remains: report.status → exit code → check conclusion.

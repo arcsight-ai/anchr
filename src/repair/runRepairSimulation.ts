@@ -3,8 +3,9 @@
  * No file writes; overlay-only simulation.
  */
 
-import { readFileSync } from "fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "fs";
 import { resolve } from "path";
+import type { IFileSystem } from "../virtual/virtualFs.js";
 import { sha256 } from "../structural/report.js";
 import { discoverPackages } from "../structural/packages.js";
 import { computePublicFiles } from "../structural/publicSurface.js";
@@ -77,7 +78,15 @@ function runtimeGraphHash(
   pkgDirByName: Map<string, string>,
   fileSystem: { readFile(path: string): string | null },
 ): string {
-  const ctx: ResolverContext = { repoRoot, pkgDirByName, fileSystem };
+  const fullFs: IFileSystem = {
+    readFile: (path) => fileSystem.readFile(path),
+    fileExists: (path) => existsSync(path) && (statSync(path, { throwIfNoEntry: false })?.isFile() ?? false),
+    directoryExists: (path) => existsSync(path) && (statSync(path, { throwIfNoEntry: false })?.isDirectory() ?? false),
+    getDirectories: (path) =>
+      readdirSync(path, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name),
+    readDirectory: (path) => readdirSync(path),
+  };
+  const ctx: ResolverContext = { repoRoot, pkgDirByName, fileSystem: fullFs };
   const edges: string[] = [];
   const root = resolve(repoRoot);
   for (const f of files.sort((a, b) => a.localeCompare(b, "en"))) {
@@ -104,7 +113,15 @@ function evaluationOrderHash(
   pkgDirByName: Map<string, string>,
   fileSystem: { readFile(path: string): string | null },
 ): string {
-  const ctx: ResolverContext = { repoRoot, pkgDirByName, fileSystem };
+  const fullFs: IFileSystem = {
+    readFile: (path) => fileSystem.readFile(path),
+    fileExists: (path) => existsSync(path) && (statSync(path, { throwIfNoEntry: false })?.isFile() ?? false),
+    directoryExists: (path) => existsSync(path) && (statSync(path, { throwIfNoEntry: false })?.isDirectory() ?? false),
+    getDirectories: (path) =>
+      readdirSync(path, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name),
+    readDirectory: (path) => readdirSync(path),
+  };
+  const ctx: ResolverContext = { repoRoot, pkgDirByName, fileSystem: fullFs };
   const root = resolve(repoRoot);
   const edges = new Map<string, string[]>();
   const allNodes = new Set<string>();

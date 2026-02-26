@@ -101,14 +101,15 @@ function runStructuralForEntry(entry: PrListEntry): ResultRow {
   } catch {
     // ignore
   }
-  let report: {
+  type ReportShape = {
     decision?: { level?: string };
     confidence?: { coverageRatio?: number };
     classification?: { primaryCause?: string | null };
     minimalCut?: string[];
-  } | null = null;
+  };
+  let report: ReportShape | null = null;
   try {
-    if (raw) report = JSON.parse(raw) as typeof report;
+    if (raw) report = JSON.parse(raw) as ReportShape;
   } catch {
     // ignore
   }

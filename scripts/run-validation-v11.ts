@@ -8,7 +8,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from "fs
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { createHash } from "crypto";
-import { writeDiagnostics, type DiagnosticsSnapshot, type DiagnosticsPerRepo } from "./validation-diagnostics";
+import { writeDiagnostics, type DiagnosticsSnapshot, type DiagnosticsPerRepo } from "./validation-diagnostics.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ANCHR_ROOT = join(__dirname, "..");
