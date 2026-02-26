@@ -96,24 +96,28 @@ function Hero() {
             <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', maxWidth: 520, marginBottom: 12, lineHeight: 1.6 }}>
               Move at AI speed. Keep architectural control.
             </p>
-            <p style={{ fontSize: 15, color: 'var(--text-muted)', maxWidth: 520, marginBottom: 20, lineHeight: 1.6 }}>
-              AI can change your architecture faster than your team can review it. ANCHR enforces architecture at merge time.
+            <p style={{ fontSize: 15, color: 'var(--text-muted)', maxWidth: 520, marginBottom: 12, lineHeight: 1.6 }}>
+              AI can change your architecture faster than your team can review it.
             </p>
-            <ul style={{ fontSize: 15, color: 'var(--text-secondary)', maxWidth: 520, marginBottom: 20, paddingLeft: 20, lineHeight: 1.7 }}>
-              <li>Architectural authority in CI</li>
-              <li>Exact structural corrections</li>
-              <li>Deterministic enforcement</li>
-            </ul>
+            <p style={{ fontSize: 15, color: 'var(--text-secondary)', maxWidth: 520, marginBottom: 12, lineHeight: 1.6 }}>
+              ANCHR enforces repository boundaries in CI.
+            </p>
+            <p style={{ fontSize: 15, color: 'var(--text-secondary)', maxWidth: 520, marginBottom: 12, lineHeight: 1.6 }}>
+              On every PR, it builds the dependency graph, detects structural violations (cycles, cross-package imports, deleted public APIs), and makes one decision: VERIFIED or BLOCKED.
+            </p>
+            <p style={{ fontSize: 15, color: 'var(--text-secondary)', maxWidth: 520, marginBottom: 12, lineHeight: 1.6 }}>
+              If blocked, it shows the exact structural correction in the PR comment.
+            </p>
+            <p style={{ fontSize: 14, color: 'var(--text-muted)', maxWidth: 520, marginBottom: 8, lineHeight: 1.5 }}>
+              Deterministic. One required check. No dashboard.
+            </p>
+            <p style={{ fontSize: 14, color: 'var(--text-muted)', maxWidth: 520, marginBottom: 20, lineHeight: 1.5 }}>
+              Built for TypeScript monorepos (<code className="mono">packages/&lt;name&gt;/src</code>).
+            </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
               <a href="#install" className="btn btn-primary">Add ANCHR to my repo</a>
               <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">View on GitHub</a>
             </div>
-            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 12 }}>
-              One workflow file. One required check.
-            </p>
-            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>
-              Deterministic. No heuristics. No scoring. Same input → same decision.
-            </p>
           </div>
           <figure className="hero-figure" style={{
             flex: '1 1 380px',
@@ -121,10 +125,10 @@ function Hero() {
             margin: 0,
           }}>
             <img
-              src="/screenshot-block-pr-comment.png"
-              alt="What ANCHR posts on a violating PR."
-              width={2912}
-              height={1440}
+              src="/hero-comment.svg"
+              alt="What ANCHR posts on a violating PR: architectural drift detected, suggested structural correction, copy-paste fix."
+              width={1200}
+              height={600}
               fetchPriority="high"
               decoding="async"
               style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)' }}
@@ -226,12 +230,11 @@ function HowItWorks() {
       <div className="container">
         <h2>How it works</h2>
         <p style={{ color: 'var(--text-secondary)', maxWidth: 640, marginBottom: 16 }}>
-          Architecture drift doesn't reach main. ANCHR analyzes each PR, detects cycles and boundary violations, and blocks with precise corrections — or passes.
+          On every PR, it builds the dependency graph, detects structural violations (cycles, cross-package imports, deleted public APIs), and makes one decision: VERIFIED or BLOCKED. If blocked, it shows the exact structural correction in the PR comment.
         </p>
         <ol style={{ paddingLeft: 20, color: 'var(--text-secondary)', maxWidth: 640 }}>
           <li style={{ marginBottom: 12 }}>Add the workflow (one YAML file).</li>
-          <li style={{ marginBottom: 12 }}>On each PR, ANCHR builds the graph for <code className="mono">packages/&lt;name&gt;/src</code>.</li>
-          <li style={{ marginBottom: 12 }}>One decision: VERIFIED or BLOCKED. Require the check in branch protection.</li>
+          <li style={{ marginBottom: 12 }}>Require the ANCHR check in branch protection.</li>
         </ol>
       </div>
     </section>
@@ -245,13 +248,7 @@ function ScopeContract() {
         <h2>Scope is a feature</h2>
         <div className="card" style={{ maxWidth: 640 }}>
           <p style={{ margin: 0 }}>
-            Enforces boundaries in monorepos under <code className="mono">packages/&lt;name&gt;/src</code>. Other layouts are out of scope by design. No guessing.
-          </p>
-          <p style={{ margin: '12px 0 0', color: 'var(--text-secondary)' }}>
-            Opinionated. Deterministic.
-          </p>
-          <p style={{ margin: '8px 0 0', fontSize: 14, color: 'var(--text-muted)' }}>
-            TypeScript monorepos first. More ecosystems later.
+            Built for TypeScript monorepos (<code className="mono">packages/&lt;name&gt;/src</code>). Other layouts are out of scope by design. Deterministic.
           </p>
         </div>
       </div>
@@ -428,7 +425,7 @@ function Demo() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20, marginTop: 8, alignItems: 'stretch' }}>
           <figure className="demo-card-cell" style={{ margin: 0, display: 'flex', flexDirection: 'column', minHeight: 320 }}>
             <div style={{ height: 240, background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <img src="/screenshot-block-pr-comment.png" alt="ANCHR PR comment: Architectural drift detected. Merge blocked. Minimal cut and suggested structural correction." width={2912} height={1440} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <img src="/hero-comment.svg" alt="ANCHR PR comment: Architectural drift detected. Merge blocked. Minimal cut and suggested structural correction." width={1200} height={600} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, flexShrink: 0 }}>BLOCKED — Architectural drift detected. Minimal cut and fix.</figcaption>
           </figure>
