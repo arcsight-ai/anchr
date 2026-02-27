@@ -1,5 +1,5 @@
 /**
- * Zero-config runner for npx anchr.
+ * Zero-config runner for npx @arcsight-ai/anchr@1 (or npx anchr after install).
  * Always exit 0. Never modify files. Output order STRICT. Memory anchor for risky results.
  */
 

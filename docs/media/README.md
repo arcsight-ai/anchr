@@ -4,17 +4,26 @@ Use these in README, DevHunt listing, and website as needed.
 
 ---
 
+## Hero + social
+
+| File | Use |
+|------|-----|
+| `website/public/og.png` | Open Graph / Twitter card (1200×630). Headline: "Architectural authority for AI-generated code." Subline: "Move at AI speed. Keep architectural control." Uses repo logo (anchor A). |
+| `website/public/og.svg` | Source for OG card (exact logo from `logo.svg`). To regenerate PNG: `rsvg-convert -w 1200 -h 630 website/public/og.svg -o website/public/og.png` (requires `librsvg`). |
+| `website/public/hero-comment.svg` | Hero + Demo BLOCK card: PR comment mockup using **repo logo** (exact anchor path from `logo.svg`). Copy: Architectural drift detected. Merge blocked.; Repository boundary violation; Suggested structural correction. Correct spelling. |
+| `website/public/screenshot-block-pr-comment.png` | Optional PNG fallback; hero uses SVG for crisp logo. |
+
+---
+
 ## 3 screenshots (Blueprint)
 
 | File | Use |
 |------|-----|
-| `screenshot-block-pr-comment.png` | BLOCK case — PR comment with minimal cut visible. DevHunt + README. |
+| `screenshot-block-pr-comment.png` | BLOCK case — PR comment with minimal cut visible. DevHunt + README. Live in `website/public/` (mockup aligned to current product copy). |
 | `screenshot-verified-green.png` | VERIFIED case — green check / success state. DevHunt + README. |
 | `screenshot-branch-protection-anchr.png` | Branch protection — ANCHR required check. DevHunt + README. |
 
-**Website:** Copies of these three files live in `website/public/` and are used in the site (Demo section grid + Install workflow tab). Edit the originals here; refresh the copies in `website/public/` when you replace with real screenshots.
-
-These are placeholder/mockup assets. Replace with real screenshots from your repo (anchr-demo-monorepo or main repo) when you have them; crop tightly, no scrolling.
+**Website:** Hero and og.png in `website/public/` are updated to match current positioning. For the BLOCK screenshot, replace with a real screenshot from anchr-demo-monorepo when you have one; crop tightly, no scrolling. Comment should show: "Architectural drift detected. Merge blocked.", "violates repository boundaries", "Repository boundary violation", "Suggested structural correction".
 
 ---
 

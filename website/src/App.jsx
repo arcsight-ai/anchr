@@ -69,7 +69,7 @@ function Nav() {
           <a href={DOCS_URL} target="_blank" rel="noopener noreferrer" onClick={closeMenu} style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Docs</a>
           <a href="#install" onClick={closeMenu} style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Install</a>
           <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" onClick={closeMenu} style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>GitHub</a>
-          <a href="#install" className="btn btn-primary" onClick={closeMenu}>Add ANCHR to my repo</a>
+          <a href="#install" className="btn btn-primary nav-cta" onClick={closeMenu}>Add ANCHR to my repo</a>
         </div>
       </div>
     </nav>
@@ -94,12 +94,17 @@ function Hero() {
               Architectural authority at merge time.
             </h1>
             <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', maxWidth: 520, marginBottom: 24, lineHeight: 1.5 }}>
-              Blocks structural violations before merge and shows the exact fix.
+              Blocks structural violations and shows the exact fix.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
               <a href="#install" className="btn btn-primary">Add ANCHR to my repo</a>
               <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">View on GitHub</a>
             </div>
+            <p style={{ marginTop: 20, marginBottom: 0 }}>
+              <a href="https://www.producthunt.com/products/anchr?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-anchr" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block' }}>
+                <img alt="ANCHR - Architectural authority at merge time. | Product Hunt" width={250} height={54} src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1086656&theme=dark&t=1772152279899" style={{ display: 'block' }} />
+              </a>
+            </p>
           </div>
           <figure className="hero-figure" style={{
             flex: '1 1 380px',
@@ -140,7 +145,7 @@ function OneDecisionSection() {
           No config. No dashboards. No scoring. One decision.
         </p>
         <p style={{ marginTop: 12, color: 'var(--text-muted)', fontSize: 14 }}>
-          BLOCKED = no structural violation passed the gate. Fix shown in comment. Re-push.
+          BLOCKED = a structural violation was detected. Fix shown in comment. Re-push.
         </p>
         <p style={{ marginTop: 24 }}>
           <a href="#install" className="btn btn-primary">Add ANCHR to my repo</a>
@@ -155,21 +160,8 @@ function OneProductSection() {
     <section className="section one-loop-section">
       <div className="container" style={{ textAlign: 'center', maxWidth: 640 }}>
         <h2 className="section-title">One product. One loop. One promise.</h2>
-        <p style={{ margin: 0, fontSize: '1.15rem', color: 'var(--text-secondary)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{'PR opened  →  ANCHR runs  →  VERIFIED ✓  or  BLOCKED ✗'}</p>
-        <p style={{ margin: '12px 0 0', fontSize: '1rem', color: 'var(--text-muted)' }}>If BLOCKED → copy-paste fix → re-push → merge passes.</p>
-      </div>
-    </section>
-  )
-}
-
-function DeterminismSection() {
-  return (
-    <section className="section" style={{ background: 'var(--bg-alt)' }}>
-      <div className="container">
-        <p className="mechanism-line">Graph → Cut → Decide.</p>
-        <p style={{ color: 'var(--text-secondary)', maxWidth: 560, margin: 0 }}>
-          Same input → same output. Enforcement at merge time.
-        </p>
+        <p className="one-loop-flow" style={{ margin: 0, fontSize: '1.35rem', color: 'var(--text-secondary)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{'PR opened  →  ANCHR runs  →  VERIFIED ✓  or  BLOCKED ✗'}</p>
+        <p className="one-loop-flow" style={{ margin: '14px 0 0', fontSize: '1.15rem', color: 'var(--text-muted)' }}>If BLOCKED → copy-paste fix → re-push → merge passes.</p>
       </div>
     </section>
   )
@@ -206,8 +198,11 @@ function HowItWorks() {
     <section id="how" className="section" style={{ background: 'var(--bg-alt)' }}>
       <div className="container">
         <h2 className="section-title">How it works</h2>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: 640, marginBottom: 12 }}>
+          On every PR, ANCHR builds the dependency graph.
+        </p>
         <p style={{ color: 'var(--text-secondary)', maxWidth: 640, marginBottom: 16 }}>
-          On every PR, it builds the dependency graph, detects structural violations (cycles, cross-package imports, deleted public APIs), and makes one decision: VERIFIED or BLOCKED. If blocked, it shows the exact structural correction in the PR comment.
+          It detects structural violations (cycles, cross-package imports, deleted public APIs) and makes one decision: VERIFIED or BLOCKED. If blocked, it shows the exact structural correction in the PR comment.
         </p>
         <ol style={{ paddingLeft: 20, color: 'var(--text-secondary)', maxWidth: 640 }}>
           <li style={{ marginBottom: 12 }}>Add the workflow (one YAML file).</li>
@@ -222,7 +217,7 @@ function ScopeContract() {
   return (
     <section id="scope" className="section">
       <div className="container">
-        <h2 className="section-title">Scope is a feature</h2>
+        <h2 className="section-title section-title-sm">Scope is a feature</h2>
         <div className="card" style={{ maxWidth: 640 }}>
           <p style={{ margin: 0 }}>
             Built for TypeScript monorepos (<code className="mono">packages/&lt;name&gt;/src</code>). Other layouts are out of scope by design. Deterministic.
@@ -233,6 +228,7 @@ function ScopeContract() {
   )
 }
 
+const ZERO_INSTALL_CMD = 'npx @arcsight-ai/anchr@1 gate'
 const WORKFLOW_YAML = `name: ANCHR
 on: pull_request
 jobs:
@@ -240,130 +236,98 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npx anchr@1 gate`
+      - run: npx @arcsight-ai/anchr@1 gate`
 
-const CLI_CMD = 'npx anchr@1 gate'
+const TAB_STYLE = (active) => ({
+  padding: '10px 18px',
+  borderRadius: 'var(--radius-btn)',
+  border: '1px solid var(--border)',
+  background: active ? 'var(--surface-hover)' : 'transparent',
+  color: 'var(--text)',
+  fontFamily: 'inherit',
+  fontSize: 14,
+  fontWeight: 500,
+  cursor: 'pointer',
+})
 
 function Install() {
-  const [installTab, setInstallTab] = useState('workflow')
-  const [copyFeedback, setCopyFeedback] = useState(null) // 'workflow' | 'cli' | null
-  const handleCopyWorkflow = () => {
-    navigator.clipboard.writeText(WORKFLOW_YAML).then(() => {
-      setCopyFeedback('workflow')
+  const [tab, setTab] = useState('quick')
+  const [copyFeedback, setCopyFeedback] = useState(null)
+  const copy = (text, key) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopyFeedback(key)
       setTimeout(() => setCopyFeedback(null), 2000)
     })
   }
-  const handleCopyCli = () => {
-    navigator.clipboard.writeText(CLI_CMD).then(() => {
-      setCopyFeedback('cli')
-      setTimeout(() => setCopyFeedback(null), 2000)
-    })
+  const preStyle = {
+    background: 'var(--bg)', padding: 14, borderRadius: 8, overflow: 'auto',
+    fontSize: 13, fontFamily: 'JetBrains Mono', margin: 0, border: '1px solid var(--border)'
   }
+  const INSTALL_BLOCK = 'npm install -D @arcsight-ai/anchr\nnpx anchr gate'
   return (
-    <section id="install" className="section" style={{ background: 'var(--bg-alt)' }}>
+    <section id="install" className="section section-install" style={{ background: 'var(--bg-alt)' }}>
       <div className="container">
         <h2 className="section-title">Install (under 60 seconds)</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: 8 }}>
           Add one workflow. Require the ANCHR check.
         </p>
-        <p style={{ color: 'var(--text-muted)', marginBottom: 16, fontSize: 15 }}>
+        <p style={{ color: 'var(--text-muted)', marginBottom: 20, fontSize: 15 }}>
           One workflow file. One required check.
         </p>
-        <div className="install-tabs" style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-          <button
-            type="button"
-            onClick={() => setInstallTab('workflow')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 'var(--radius-btn)',
-              border: '1px solid var(--border)',
-              background: installTab === 'workflow' ? 'var(--surface-hover)' : 'transparent',
-              color: 'var(--text)',
-              fontFamily: 'inherit',
-              fontSize: 14,
-              cursor: 'pointer',
-            }}
-          >
-            Workflow
-          </button>
-          <button
-            type="button"
-            onClick={() => setInstallTab('cli')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 'var(--radius-btn)',
-              border: '1px solid var(--border)',
-              background: installTab === 'cli' ? 'var(--surface-hover)' : 'transparent',
-              color: 'var(--text)',
-              fontFamily: 'inherit',
-              fontSize: 14,
-              cursor: 'pointer',
-            }}
-          >
-            Local run
-          </button>
+
+        <div className="install-tabs" role="tablist" aria-label="Install options" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+          <button type="button" role="tab" aria-selected={tab === 'quick'} aria-controls="install-panel-quick" id="install-tab-quick" onClick={() => setTab('quick')} style={TAB_STYLE(tab === 'quick')}>Quick start</button>
+          <button type="button" role="tab" aria-selected={tab === 'workflow'} aria-controls="install-panel-workflow" id="install-tab-workflow" onClick={() => setTab('workflow')} style={TAB_STYLE(tab === 'workflow')}>Workflow</button>
+          <button type="button" role="tab" aria-selected={tab === 'local'} aria-controls="install-panel-local" id="install-tab-local" onClick={() => setTab('local')} style={TAB_STYLE(tab === 'local')}>Local run</button>
         </div>
-        {installTab === 'workflow' && (
-          <>
-            <div className="card" style={{ maxWidth: 560 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>.github/workflows/anchr.yml</p>
-                <button
-                  type="button"
-                  onClick={handleCopyWorkflow}
-                  className="btn btn-primary"
-                  style={{ fontSize: 13, padding: '8px 14px' }}
-                  aria-label={copyFeedback === 'workflow' ? 'Copied to clipboard' : 'Copy workflow YAML to clipboard'}
-                >
-                  {copyFeedback === 'workflow' ? 'Copied!' : 'Copy workflow'}
-                </button>
-              </div>
-              <pre style={{
-                background: 'var(--bg)', padding: 16, borderRadius: 8, overflow: 'auto',
-                fontSize: 13, fontFamily: 'JetBrains Mono', margin: 0, border: '1px solid var(--border)'
-              }}>
-{WORKFLOW_YAML}
-              </pre>
+
+        {/* Quick start */}
+        <div id="install-panel-quick" role="tabpanel" aria-labelledby="install-tab-quick" hidden={tab !== 'quick'} style={tab !== 'quick' ? { display: 'none' } : undefined}>
+          <div className="card" style={{ maxWidth: 560 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 8 }}>One command. No install required.</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <pre style={{ flex: '1 1 280px', minWidth: 0, ...preStyle }}>{ZERO_INSTALL_CMD}</pre>
+              <button type="button" onClick={() => copy(ZERO_INSTALL_CMD, 'quick')} className="btn btn-primary" style={{ fontSize: 13, padding: '8px 14px' }}>{copyFeedback === 'quick' ? 'Copied!' : 'Copy'}</button>
             </div>
-            <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 16 }}>
-              Require the <strong>ANCHR</strong> check in branch protection.
-            </p>
-            <figure style={{ margin: '20px 0 0', maxWidth: 560 }}>
-              <img src="/screenshot-branch-protection-anchr.png" alt="Branch protection: ANCHR required. Merge only when VERIFIED." width={2528} height={1696} loading="lazy" decoding="async" style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)' }} />
-              <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>Require ANCHR before merge</figcaption>
-            </figure>
-          </>
-        )}
-        {installTab === 'cli' && (
-          <>
-            <div className="card" style={{ maxWidth: 560 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>Terminal</p>
-                <button
-                  type="button"
-                  onClick={handleCopyCli}
-                  className="btn btn-primary"
-                  style={{ fontSize: 13, padding: '8px 14px' }}
-                  aria-label={copyFeedback === 'cli' ? 'Copied to clipboard' : 'Copy npx command to clipboard'}
-                >
-                  {copyFeedback === 'cli' ? 'Copied!' : 'Copy command'}
-                </button>
-              </div>
-              <pre style={{
-                background: 'var(--bg)', padding: 16, borderRadius: 8, overflow: 'auto',
-                fontSize: 13, fontFamily: 'JetBrains Mono', margin: 0, border: '1px solid var(--border)'
-              }}>
-{CLI_CMD}
-              </pre>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 10, marginBottom: 0 }}>Version-pinned. Run from repo root or drop into CI (see Workflow tab).</p>
+          </div>
+        </div>
+
+        {/* Workflow */}
+        <div id="install-panel-workflow" role="tabpanel" aria-labelledby="install-tab-workflow" hidden={tab !== 'workflow'} style={tab !== 'workflow' ? { display: 'none' } : undefined}>
+          <div className="card" style={{ maxWidth: 640 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>.github/workflows/anchr.yml</p>
+              <button type="button" onClick={() => copy(WORKFLOW_YAML, 'workflow')} className="btn btn-primary" style={{ fontSize: 13, padding: '8px 14px' }}>{copyFeedback === 'workflow' ? 'Copied!' : 'Copy workflow'}</button>
             </div>
-            <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 16 }}>
-              Run from repo root. Same decision as CI.
-            </p>
-            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>
-              For local audits/diffs: <code className="mono">npx anchr@1 audit --base &lt;base&gt; --head &lt;head&gt;</code>
-            </p>
-          </>
-        )}
+            <pre style={{ ...preStyle, padding: 16 }}>{WORKFLOW_YAML}</pre>
+          </div>
+          <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 12 }}>Require the <strong>ANCHR</strong> check in branch protection.</p>
+          <figure style={{ margin: '16px 0 0', maxWidth: 560 }}>
+            <img src="/screenshot-branch-protection-anchr.png" alt="Branch protection: ANCHR required. Merge only when VERIFIED." width={2528} height={1696} loading="lazy" decoding="async" style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)' }} />
+            <figcaption style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>Require ANCHR before merge</figcaption>
+          </figure>
+        </div>
+
+        {/* Local run */}
+        <div id="install-panel-local" role="tabpanel" aria-labelledby="install-tab-local" hidden={tab !== 'local'} style={tab !== 'local' ? { display: 'none' } : undefined}>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16 }}>Two ways to run from your machine:</p>
+          <div className="card" style={{ maxWidth: 560, marginBottom: 16 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>Option A — No install</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <pre style={{ flex: '1 1 260px', minWidth: 0, ...preStyle }}>{ZERO_INSTALL_CMD}</pre>
+              <button type="button" onClick={() => copy(ZERO_INSTALL_CMD, 'local-a')} className="btn btn-primary" style={{ fontSize: 13, padding: '8px 14px' }}>{copyFeedback === 'local-a' ? 'Copied!' : 'Copy'}</button>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, marginBottom: 0 }}>Same as Quick start. Run from repo root.</p>
+          </div>
+          <div className="card" style={{ maxWidth: 560 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>Option B — Installed</p>
+            <pre style={{ ...preStyle, marginBottom: 8 }}>{INSTALL_BLOCK}</pre>
+            <button type="button" onClick={() => copy(INSTALL_BLOCK, 'local-b')} className="btn btn-primary" style={{ fontSize: 13, padding: '8px 14px' }}>{copyFeedback === 'local-b' ? 'Copied!' : 'Copy'}</button>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 10, marginBottom: 0 }}>After install, <code className="mono">npx anchr gate</code> runs the binary.</p>
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 16 }}>Audit with base/head: <code className="mono">npx @arcsight-ai/anchr@1 audit --base &lt;base&gt; --head &lt;head&gt;</code></p>
+        </div>
       </div>
     </section>
   )
@@ -380,7 +344,7 @@ function Demo() {
       <div className="container">
         <h2 className="section-title">Demo</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>
-          See ANCHR block structural drift and show the fix in real time.
+          See ANCHR block structural drift — and show the exact fix.
         </p>
         <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>
           When BLOCKED: minimal cut, suggested structural correction, and a copy-paste snippet in the comment.
@@ -473,7 +437,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Do I need to install dependencies or a build system?',
-    a: 'No. npx anchr@1 gate in CI. No Nx, Turborepo, or extra installs.',
+    a: 'No. npx @arcsight-ai/anchr@1 gate in CI. No Nx, Turborepo, or extra installs.',
   },
   {
     q: 'Is it a linter or AI?',
@@ -589,16 +553,16 @@ function Footer() {
 export default function App() {
   return (
     <>
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       <Nav />
       <main id="main-content">
         <Hero />
+        <Install />
         <OneDecisionSection />
         <OneProductSection />
-        <DeterminismSection />
         <WhatItCatches />
         <HowItWorks />
         <ScopeContract />
-        <Install />
         <Demo />
         <FAQ />
       </main>

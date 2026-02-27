@@ -44,7 +44,7 @@ Launch blueprint recommends zero variance on **3 PRs**. This document currently 
 **To complete the 3-PR proof:**
 
 1. Pick two more PRs (e.g. different repos or same repo, different PRs; ideally one small, one larger).
-2. For each: get `base_sha` and `head_sha`, run ANCHR 3 times (e.g. via `scripts/hardening/day1-determinism.ts` with a different `PR` config, or run `npx anchr audit` manually with `GITHUB_BASE_SHA` / `GITHUB_HEAD_SHA` set).
+2. For each: get `base_sha` and `head_sha`, run ANCHR 3 times (e.g. via `scripts/hardening/day1-determinism.ts` with a different `PR` config, or run `npx @arcsight-ai/anchr@1 audit` manually with `GITHUB_BASE_SHA` / `GITHUB_HEAD_SHA` set).
 3. Confirm same decision and same `explanationHash` across all 3 runs per PR.
 4. Add a section below (or append to this file) with PR identifier, SHAs, and "Zero variance: YES".
 

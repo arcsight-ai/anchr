@@ -48,7 +48,7 @@ jobs:
           export GITHUB_HEAD_SHA="${{ github.event.pull_request.head.sha }}"
           export HEAD_SHA="${{ github.event.pull_request.head.sha }}"
           export BASE_SHA="${{ github.event.pull_request.base.sha }}"
-          npx anchr@1 gate
+          npx @arcsight-ai/anchr@1 gate
           EXIT=$?
           echo "exit_code=$EXIT" >> $GITHUB_OUTPUT
           if [ -f artifacts/anchr-report.json ]; then
@@ -74,7 +74,7 @@ jobs:
 
       - name: Run anchr suggest
         if: steps.gate.outputs.has_report == 'true' && (steps.report_status.outputs.status == 'BLOCKED' || steps.report_status.outputs.status == 'INDETERMINATE')
-        run: npx anchr@1 suggest
+        run: npx @arcsight-ai/anchr@1 suggest
         continue-on-error: true
 
       - name: Post ANCHR internal error comment
@@ -103,7 +103,7 @@ jobs:
           if [ -f scripts/arcsight-pr-comment.ts ]; then
             npx tsx scripts/arcsight-pr-comment.ts
           else
-            npx anchr@1 comment
+            npx @arcsight-ai/anchr@1 comment
           fi
         continue-on-error: true
 

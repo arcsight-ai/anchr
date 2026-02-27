@@ -106,7 +106,7 @@ Only `anchr gate` reads `.anchr.yml`. Unknown keys or invalid values → exit 2 
 | File | Change |
 |------|--------|
 | `scripts/cli.ts` | Added `gate` command; enforcement from report only; exit 0/1/2. Updated `--help`; noted audit as non-canonical for enforcement. |
-| `README.md` | CI step: `npx anchr@latest audit` → `npx anchr@latest gate`; added strict and local-run examples. |
+| `README.md` | CI step: `npx @arcsight-ai/anchr@1 gate`; added strict and local-run examples. |
 | `docs/GATE-AUTHORITY-LOCK.md` | This document. |
 
 **Not modified:** Graph logic, structural hashing, `buildReport()`, run.id semantics, proof contract, convergence internals. No new abstraction layers, no duplicated enforcement logic.
@@ -117,19 +117,19 @@ Only `anchr gate` reads `.anchr.yml`. Unknown keys or invalid values → exit 2 
 
 **CI (recommended):**
 ```bash
-npx anchr@latest gate
+npx @arcsight-ai/anchr@1 gate
 ```
 With env: `GITHUB_BASE_SHA`, `GITHUB_HEAD_SHA` (e.g. from `github.event.pull_request.base.sha` / `head.sha`).
 
 **Strict (block on any violation):**
 ```bash
-npx anchr gate --strict
+npx @arcsight-ai/anchr@1 gate --strict
 ```
 
 **Explicit refs:**
 ```bash
-npx anchr gate --base <base-sha> --head <head-sha>
-npx anchr gate --strict --base <base-sha> --head <head-sha>
+npx @arcsight-ai/anchr@1 gate --base <base-sha> --head <head-sha>
+npx @arcsight-ai/anchr@1 gate --strict --base <base-sha> --head <head-sha>
 ```
 
 **Advisory (default):** Omit `--strict`. Violations produce WARN output but exit 0.

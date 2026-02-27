@@ -1,14 +1,10 @@
 import { mkdirSync, readdirSync, statSync } from "fs";
 import { dirname, join, resolve } from "path";
 import { minimatch } from "minimatch";
-import { buildGraph } from "../src/graph/buildGraph.js";
-import { detectCycles } from "../src/graph/detectCycles.js";
 import { canonicalPath } from "../src/structural/canonicalPath.js";
 import { getRepoRoot, getBaseHead, getDiff, getDiffCached } from "../src/structural/git.js";
-import { computePublicFiles } from "../src/structural/publicSurface.js";
-import { detectViolations } from "../src/structural/violations.js";
-import { cyclesToViolations } from "../src/structural/cycleViolations.js";
 import { buildDeterministicReport } from "../src/structural/buildReport.js";
+import { getBrainReport, brainOutputToViolations } from "../src/brain/index.js";
 import { stableStringify } from "../src/structural/report.js";
 import { writeFileSync } from "fs";
 import { computeBoundaryFingerprints } from "../src/pressure/fingerprint.js";
@@ -91,7 +87,7 @@ function logStructured(obj: Record<string, unknown>): void {
   }
 }
 
-function main(): number {
+async function main(): Promise<number> {
   const t0 = Date.now();
   const mem0 = process.memoryUsage();
   logStructured({ event: "analysis_start", ts: t0, rss: mem0.rss });
@@ -132,8 +128,6 @@ function main(): number {
     }
   }
 
-  const pkgDirByName = discoverPackages(repoRoot);
-
   // If all changed files were ignored, structural surface is empty → VERIFIED; report still written.
   // Same buildDeterministicReport(VERIFIED, [], baseSha, headSha, []) as normal no-violation path; run.id and shape identical.
   if (diffEntries.length === 0) {
@@ -146,28 +140,16 @@ function main(): number {
     return 0;
   }
 
-  const graph = buildGraph(repoRoot);
+  const brainInput = {
+    repoRoot,
+    baseSha,
+    headSha,
+    changedFiles: diffEntries.map((e) => ({ path: e.path, status: e.status })),
+  };
+  const brainOutput = await getBrainReport(brainInput);
+  const violations = brainOutputToViolations(brainOutput, repoRoot);
   const t1 = Date.now();
-  logStructured({ event: "graph_built", ts: t1, elapsed_ms: t1 - t0 });
-
-  const cycles = detectCycles(graph);
-  const cycleViolations = cyclesToViolations(repoRoot, graph, cycles);
-
-  let boundaryViolations: import("../src/structural/types.js").Violation[] = [];
-  if (pkgDirByName.size > 0) {
-    const publicFiles = computePublicFiles(repoRoot, pkgDirByName);
-    boundaryViolations = detectViolations(
-      repoRoot,
-      diffEntries,
-      pkgDirByName,
-      publicFiles,
-      baseSha,
-    );
-  }
-
-  const violations = [...cycleViolations, ...boundaryViolations];
-  const t2 = Date.now();
-  logStructured({ event: "minimalcut_done", ts: t2, elapsed_ms: t2 - t1 });
+  logStructured({ event: "brain_done", ts: t1, elapsed_ms: t1 - t0 });
 
   const hasBlock = violations.some(
     (v) =>
@@ -177,7 +159,7 @@ function main(): number {
   );
 
   const status = hasBlock ? "BLOCKED" : violations.length > 0 ? "BLOCKED" : "VERIFIED";
-  const canonicalPaths = collectCanonicalPaths(repoRoot, diffEntries);
+  const canonicalPaths = brainOutput.canonicalPaths;
 
   const report = buildDeterministicReport(
     status,
@@ -187,7 +169,7 @@ function main(): number {
     canonicalPaths,
   );
   const t3 = Date.now();
-  logStructured({ event: "decision_made", ts: t3, elapsed_ms: t3 - t2 });
+  logStructured({ event: "decision_made", ts: t3, elapsed_ms: t3 - t1 });
   logStructured({ event: "total_runtime_ms", ms: t3 - t0, rss: process.memoryUsage().rss });
 
   const boundaryViolationDetails =
@@ -244,22 +226,21 @@ function main(): number {
   return exitCode;
 }
 
-try {
-  const code = main();
-  process.exit(code);
-} catch (err) {
-  const report = {
-    status: "INCOMPLETE",
-    classification: { primaryCause: null },
-    minimalCut: [],
-    decision: { level: "warn" as const, reason: "unexpected_error" },
-    confidence: { coverageRatio: 0 },
-    scope: { mode: "structural-audit" },
-    run: { id: "incomplete" },
-    headSha: "",
-    baseSha: "",
-  };
-  const outPath = resolve(process.cwd(), OUT_PATH);
-  writeReport(report, outPath);
-  process.exit(0);
-}
+main()
+  .then((code) => process.exit(code))
+  .catch((err) => {
+    const report = {
+      status: "INCOMPLETE",
+      classification: { primaryCause: null },
+      minimalCut: [],
+      decision: { level: "warn" as const, reason: "unexpected_error" },
+      confidence: { coverageRatio: 0 },
+      scope: { mode: "structural-audit" },
+      run: { id: "incomplete" },
+      headSha: "",
+      baseSha: "",
+    };
+    const outPath = resolve(process.cwd(), OUT_PATH);
+    writeReport(report, outPath);
+    process.exit(0);
+  });

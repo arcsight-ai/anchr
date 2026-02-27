@@ -2,9 +2,13 @@
 
 **Move at AI speed. Keep architectural control.**
 
-ANCHR is the architectural firewall for AI-generated code.
+ANCHR enforces repository boundaries in CI.
 
-AI lets you ship faster than ever. ANCHR ensures that speed doesn't erode your architecture. If a pull request introduces structural drift, ANCHR blocks the merge and shows the exact structural fix. Deterministic boundary enforcement, one decision per PR.
+If a pull request introduces architectural drift, ANCHR blocks the merge and shows the exact structural correction.
+
+Deterministic. One decision per PR.
+
+**Architecture is no longer a code review opinion. It's enforced.**
 
 ---
 
@@ -30,7 +34,7 @@ Deterministic: same base + head → same result. Every time.
 
 3. **Open a PR** — See the ANCHR comment and the **ANCHR — Architectural Firewall** check.
 
-For stability pin to `npx anchr@1.0.0 gate`; or use `anchr@1` for latest 1.x.
+For stability pin to `npx @arcsight-ai/anchr@1.0.0 gate`; or use `@arcsight-ai/anchr@1` for latest 1.x.
 
 ---
 
@@ -57,7 +61,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - run: npx anchr@latest gate
+      - run: npx @arcsight-ai/anchr@latest gate
         env:
           GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -66,9 +70,9 @@ jobs:
 Commit. Open a PR. You get a check named **ANCHR**.  
 To enforce: **Settings → Branch protection → Require status checks → Add "ANCHR"**.
 
-**Strict mode (block on any violation):** `enforcement: STRICT` in `.anchr.yml` or `npx anchr gate --strict`
+**Strict mode (block on any violation):** `enforcement: STRICT` in `.anchr.yml` or `npx @arcsight-ai/anchr gate --strict`
 
-**Local run:** `npx anchr gate` or `npx anchr gate --base <base-sha> --head <head-sha>`
+**Local run:** `npx @arcsight-ai/anchr gate` or `npx @arcsight-ai/anchr gate --base <base-sha> --head <head-sha>`
 
 [![CI](https://github.com/arcsight-ai/anchr/actions/workflows/anchr.yml/badge.svg)](https://github.com/arcsight-ai/anchr/actions/workflows/anchr.yml) [![Deterministic](https://img.shields.io/badge/deterministic-by__construction-2ea043)](.)
 

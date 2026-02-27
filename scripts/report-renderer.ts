@@ -324,7 +324,7 @@ export function renderReport(summary: unknown, repoRoot: string): string {
   lines.push("---");
   lines.push("");
   lines.push("Reproduce locally:");
-  lines.push("`npx anchr analyze`");
+  lines.push("`npx @arcsight-ai/anchr@1 analyze`");
   lines.push("");
   lines.push(`Analysis Hash: ${analysisHash}`);
 

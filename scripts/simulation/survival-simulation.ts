@@ -28,7 +28,7 @@ function discoverEntrypoint(): { command: string; reason: string } {
   }
   if (pkg.bin && (pkg.bin.anchr || pkg.bin.arcsight)) {
     return {
-      command: "npx anchr",
+      command: "npx @arcsight-ai/anchr@1",
       reason: "package.json bin.anchr — developer would run via npx (e.g. in CI or locally)",
     };
   }

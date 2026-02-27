@@ -21,8 +21,8 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Run ANCHR audit
-        run: npx anchr@latest audit
+      - name: Run ANCHR gate
+        run: npx @arcsight-ai/anchr@1 gate
         env:
           # Optional: point at base/head for PR diff; omit for full-branch audit
           GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}

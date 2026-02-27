@@ -50,7 +50,7 @@ Use it as a **standalone repo**: copy or clone that folder into its own Git repo
    enforcement: STRICT
    ```
 2. Add workflow: copy **`.github/workflows/anchr-gate.yml`** from this repo (or the minimal gate workflow from the README).
-3. Pin to **`npx anchr@1.0.0 gate`** in the workflow.
+3. Pin to **`npx @arcsight-ai/anchr@1 gate`** in the workflow.
 4. Push to `main`. Confirm **green baseline** (no drift on current state).
 
 No fumbling on stage.

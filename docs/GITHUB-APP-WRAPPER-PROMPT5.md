@@ -35,8 +35,8 @@ No new top-level folder. No backend, no dashboard, no database.
 
 - **Trigger:** `pull_request_target` with `opened`, `synchronize`, `reopened`, `ready_for_review`. No push, no schedule.
 - **Refs:** `GITHUB_BASE_SHA` and `GITHUB_HEAD_SHA` (and `HEAD_SHA`, `BASE_SHA`) set from the PR event; never computed manually.
-- **Gate step:** Runs `npx anchr@latest gate` with 1-minute timeout; `continue-on-error: true` so the job continues; exit code and `has_report` written to step outputs.
-- **Comment step:** If report exists, runs local `npx tsx scripts/arcsight-pr-comment.ts` when script exists, else `npx anchr@latest comment`.
+- **Gate step:** Runs `npx @arcsight-ai/anchr@1 gate` with 1-minute timeout; `continue-on-error: true` so the job continues; exit code and `has_report` written to step outputs.
+- **Comment step:** If report exists, runs local `npx tsx scripts/arcsight-pr-comment.ts` when script exists, else `npx @arcsight-ai/anchr@1 comment`.
 - **Internal error:** If no report, posts a single comment with body `<!-- ANCHR:GATE:V1 -->` + "ANCHR internal error. No report produced."
 - **Check run:** Name `"ANCHR — Architectural Firewall"`. Find by name and PATCH if present, else POST. Conclusion: 0 → success, 1 → failure, 2 → neutral.
 - **Version:** Workflow comment notes `anchr@latest`; pin to e.g. `anchr@1.0.0` in repo if desired.
@@ -60,7 +60,7 @@ No new top-level folder. No backend, no dashboard, no database.
 ### 5. STRICT configuration flow
 
 - **App/workflow does not interpret policy.** It does not read `.anchr.yml` or override enforcement.
-- Gate is invoked as `npx anchr@latest gate` (no `--strict` in the workflow). STRICT resolution is entirely inside the gate: 1) CLI `--strict` if present, 2) `.anchr.yml` enforcement, 3) default ADVISORY.
+- Gate is invoked as `npx @arcsight-ai/anchr@1 gate` (no `--strict` in the workflow). STRICT resolution is entirely inside the gate: 1) CLI `--strict` if present, 2) `.anchr.yml` enforcement, 3) default ADVISORY.
 - To force STRICT from the workflow, the repo can add a step that runs gate with `--strict` or set an env that the workflow passes through; the current workflow leaves that to gate and `.anchr.yml`.
 
 ---
@@ -106,4 +106,4 @@ No new top-level folder. No backend, no dashboard, no database.
 
 2. **Comment command standalone** — `anchr comment` runs in-process via `src/comment/runGateComment.ts` (no spawn of tsx). Bin uses `dist/scripts/cli.js` when present so published package works with `node` only; no tsx dependency for consumers. Publish with `npm run build` so `dist/` is included. Build outputs ESM (`module: node16`); all dist imports use `.js` (no `.ts` in emitted code). Node 20 runs dist end-to-end.
 
-3. **Workflow** — Node locked to 20 in `setup-node`. anchr pinned to `@1` (latest 1.x). **Recommended pin for absolute stability:** `npx anchr@1.0.0 gate` (and same for `comment`). Package deps use strict semver ranges (no `*`).
+3. **Workflow** — Node locked to 20 in `setup-node`. anchr pinned to `@1` (latest 1.x). **Recommended pin for absolute stability:** `npx @arcsight-ai/anchr@1 gate` (or `@1.0.0` for strict pin; same for `comment`). Package deps use strict semver ranges (no `*`).

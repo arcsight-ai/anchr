@@ -97,7 +97,7 @@ function formatArchitecturalDelta(minimalCut: string[], status: string): string[
 const IMPACT_ORDER: string[] = ["cycle", "cross-domain", "deleted_public_api", "relative_escape"];
 const IMPACT_MAP: Record<string, string> = {
   cycle: "Hidden coupling introduced",
-  "cross-domain": "Repository boundary erosion",
+  "cross-domain": "Repository boundary violation",
   deleted_public_api: "Public contract instability",
   relative_escape: "Layer boundary bypass",
 };
@@ -326,7 +326,7 @@ function buildVisibleBody(
     ? "❌ Architectural drift detected. Merge blocked."
     : "⚠️ Architectural drift detected.";
   const explanation =
-    "This change introduces structural coupling that violates defined repository boundaries.";
+    "This change introduces structural coupling that violates repository boundaries.";
   const lines: string[] = [headline, "", explanation, ""];
 
   if (scopeExceededOnly && report.scopeExceeded) {

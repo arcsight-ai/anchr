@@ -18,7 +18,7 @@
   --max-width: 1160px;
   --max-width-prose: 56ch;
   --space-section: 64px;
-  --space-section-lg: 96px;
+  --space-section-lg: 120px;
   --gap-section: 28px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   line-height: 1.5;
@@ -35,6 +35,24 @@
 
 body { margin: 0; min-height: 100vh; padding-bottom: env(safe-area-inset-bottom, 0); }
 
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 24px;
+  z-index: 100;
+  padding: 10px 16px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  border-radius: var(--radius-btn);
+  transition: top 0.15s;
+}
+.skip-link:focus {
+  top: 16px;
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
 a { color: var(--accent); text-decoration: none; }
 a:hover { color: var(--accent-hover); }
 
@@ -48,6 +66,11 @@ code, .mono { font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Men
 }
 main > .section:first-child { border-top: none; }
 
+/* Install: primary action — thin accent bar so it reads as "do this next" */
+.section-install {
+  border-top: 2px solid var(--accent);
+}
+
 .hero-section { padding-top: var(--space-section); }
 @media (min-width: 1024px) {
   .hero-section { padding-top: var(--space-section-lg); }
@@ -59,6 +82,7 @@ main > .section:first-child { border-top: none; }
 #root h1 { font-size: 2.75rem; font-weight: 700; line-height: 1.2; margin: 0 0 0.5rem; }
 #root h2 { font-size: 2rem; font-weight: 600; margin: 0 0 1.25rem; color: var(--text); letter-spacing: -0.02em; }
 #root h2.section-title { margin-bottom: 1.5rem; }
+#root h2.section-title-sm { font-size: 1.5rem; margin-bottom: 1rem; }
 #root h3 { font-size: 1.2rem; font-weight: 600; margin: 0 0 0.5rem; color: var(--text); }
 .section:has(> .container > h2) { padding-top: var(--space-section); }
 .one-loop-section { padding-top: var(--space-section-lg); padding-bottom: var(--space-section-lg); }
@@ -81,6 +105,8 @@ main > .section:first-child { border-top: none; }
   border-color: var(--accent);
 }
 .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.nav-cta { padding: 12px 22px; font-size: 1rem; }
+.nav-cta:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
 .btn-secondary { background: var(--surface); color: var(--text); }
 .btn-secondary:hover { background: var(--surface-hover); }
 
@@ -94,7 +120,7 @@ button:focus-visible {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  padding: 1.25rem 1.5rem;
+  padding: 1.35rem 1.5rem;
 }
 
 /* One decision per PR: GitHub Check–style mock */
@@ -118,12 +144,6 @@ button:focus-visible {
 .check-mock-row strong { color: var(--text); font-weight: 600; }
 .check-mock-status { color: var(--danger); font-weight: 600; }
 .check-mock-cut { margin-top: 8px; overflow-wrap: anywhere; }
-.mechanism-line {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 8px;
-}
 
 /* DevHunt banner (static in index.html; no third-party script) */
 .devhunt-banner {
@@ -264,8 +284,10 @@ button:focus-visible {
   #root h1 { font-size: 1.75rem; }
 }
 
-/* Desktop: comfortable reading width and spacing */
+/* Desktop: comfortable reading width and spacing (120px section rhythm, extra breathing room) */
 @media (min-width: 1024px) {
   .section { padding: var(--space-section-lg) 0; }
   .hero-sub { max-width: 540px; }
+  .one-loop-flow { font-size: 1.4rem !important; }
+  .one-loop-flow + .one-loop-flow { font-size: 1.2rem !important; }
 }

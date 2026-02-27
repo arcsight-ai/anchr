@@ -45,7 +45,7 @@ def5678
 ```
 ❌ Architectural drift detected. Merge blocked.
 
-This change introduces architectural coupling that violates defined repository boundaries.
+This change introduces structural coupling that violates repository boundaries.
 
 Architectural delta:
 
@@ -202,7 +202,7 @@ Labels and order are fixed. All four categories are always shown. Count &gt; 0 �
 ```
 ❌ Architectural drift detected. Merge blocked.
 
-This change introduces architectural coupling that violates defined repository boundaries.
+This change introduces structural coupling that violates repository boundaries.
 
 Architectural delta:
 
@@ -229,7 +229,7 @@ Each entry in `report.minimalCut` is a string parsed to yield a **type** (cause)
 ```ts
 IMPACT_MAP: Record<string, string> = {
   cycle: "Hidden coupling introduced",
-  "cross-domain": "Repository boundary erosion",
+  "cross-domain": "Repository boundary violation",
   deleted_public_api: "Public contract instability",
   relative_escape: "Layer boundary bypass"
 }
@@ -268,14 +268,14 @@ Architectural delta:
 
 Impact:
 • Hidden coupling introduced
-• Repository boundary erosion
+• Repository boundary violation
 
 <violation detail sections follow>
 ```
 
 ---
 
-## PART 10 — Structural improvement preview (Prompt C)
+## PART 10 — Suggested structural correction (Prompt C)
 
 Surface existing repair suggestions when available. Uses existing artifact files only; no re-run of repair or convergence. No effect on enforcement, report, or run.id. Deterministic, bounded, presentation-only.
 
@@ -386,7 +386,7 @@ Structural signature: 7a9f3e12
 
 ---
 
-## PART 12 — Large-repo guardrails (Prompt E)
+## PART 12 — Large-repo scope (Prompt E)
 
 When analysis is skipped due to scope (too many changed files or timeout), the report is INCOMPLETE and may include **scopeExceeded**. The comment surfaces this so the user sees an intentional message instead of a silent neutral.
 

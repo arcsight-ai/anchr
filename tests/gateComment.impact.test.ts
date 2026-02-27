@@ -30,7 +30,7 @@ describe("Gate comment Impact section (Prompt B)", () => {
     const body = visibleBody(buildGateComment(report, "STRICT" as GateMode, meta));
     expect(body).toContain("Impact:");
     expect(body).toContain("• Hidden coupling introduced");
-    expect(body).not.toContain("Repository boundary erosion");
+    expect(body).not.toContain("Repository boundary violation");
     expect(body).not.toContain("Public contract instability");
     expect(body).not.toContain("Layer boundary bypass");
   });
@@ -69,7 +69,7 @@ describe("Gate comment Impact section (Prompt B)", () => {
     const afterImpact = body.slice(impactIdx);
     const order = [
       "Hidden coupling introduced",
-      "Repository boundary erosion",
+      "Repository boundary violation",
       "Public contract instability",
       "Layer boundary bypass",
     ];

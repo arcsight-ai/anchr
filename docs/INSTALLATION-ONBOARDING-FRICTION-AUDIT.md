@@ -14,9 +14,9 @@
 |----------|-------------|-----|
 | **New repo + “install ANCHR GitHub App”** | Messaging canon and 7-day plan refer to “GitHub App or CI workflow.” There is **no** in-repo GitHub App definition (e.g. `.github/app.yml` or separate app repo) or doc that says “install this app from the Marketplace.” | Unclear what “Install ANCHR GitHub App” means in practice (which app, which repo). |
 | **New repo + add workflow** | `.github/workflows/anchr.yml` runs `npx -y tsx@4 scripts/anchr-structural-audit.ts` and other **local scripts**. It assumes the workflow runs in a repo that **contains the ANCHR source** (scripts/, package.json, etc.). | A new empty repo cannot run this workflow as-is; it has no `scripts/` or ANCHR code. |
-| **New repo + npm install anchr** | README says “In your repo: npx anchr audit” (local). That implies `npm install anchr` (or global install) and then run from the repo. **No** workflow file is documented that uses `npx anchr audit` in CI and then creates a Check Run. | Local path is clear; CI path for a repo that only adds a workflow + anchr as dependency is **not** documented. |
+| **New repo + npm install @arcsight-ai/anchr** | README says “In your repo: npx @arcsight-ai/anchr@1 gate” (local). That implies `npm install -D @arcsight-ai/anchr` (or global install) and then run from the repo. **No** workflow file is documented that uses `npx @arcsight-ai/anchr@1 gate` in CI and then creates a Check Run. | Local path is clear; CI path for a repo that only adds a workflow + anchr as dependency is **not** documented. |
 
-**Conclusion:** Fresh-repo simulation cannot reach “first meaningful check result” without defining how the customer repo gets the workflow and the runner (e.g. “copy this workflow that uses npx anchr” + publish check). Today, the only self-contained flow is **this repo (ANCHR)** running its own workflow on its own PRs.
+**Conclusion:** Fresh-repo simulation cannot reach “first meaningful check result” without defining how the customer repo gets the workflow and the runner (e.g. “copy this workflow that uses npx @arcsight-ai/anchr@1” + publish check). Today, the only self-contained flow is **this repo (ANCHR)** running its own workflow on its own PRs.
 
 ---
 
@@ -39,7 +39,7 @@ For a repo that **has** the ANCHR workflow and ANCHR source (e.g. the ANCHR repo
 | **Is any config file required?** | **No.** No `.anchr` or `anchr.json` (or similar) is required. Engine uses repo layout (e.g. `packages/`), refs (base/head), and env for CI. |
 | **If no config file, is absence handled gracefully?** | N/A. |
 | **If no config file, is error messaging clear?** | N/A. |
-| **Zero-config works?** | **Local:** Yes. `npx anchr audit` with no env uses git merge-base; no config file. **CI:** Workflow expects env from GitHub Actions (`GITHUB_BASE_SHA`, `HEAD_SHA`, `GITHUB_TOKEN`, etc.); these are provided by the workflow. No user-supplied config file. |
+| **Zero-config works?** | **Local:** Yes. `npx @arcsight-ai/anchr@1 gate` with no env uses git merge-base; no config file. **CI:** Workflow expects env from GitHub Actions; these are provided by the workflow. No user-supplied config file. |
 
 **CI env:** Steps pass `GITHUB_BASE_SHA`, `HEAD_SHA`, `ANCHR_REPORT_PATH`, etc. If `set-pr-status` runs without `GITHUB_TOKEN`/`GITHUB_REPOSITORY`/`GITHUB_HEAD_SHA`, it logs “Skipping status publish (not GitHub env)” and exits 0. So absence of GitHub env is handled gracefully (no crash).
 
@@ -50,8 +50,8 @@ For a repo that **has** the ANCHR workflow and ANCHR source (e.g. the ANCHR repo
 | Measure | Current state |
 |---------|----------------|
 | **Minutes from install → first meaningful check result** | **Not measurable for a new customer repo** — no documented “install” that results in a check. For the **ANCHR repo itself**: install = clone + npm ci; first value = open a PR and wait for workflow (~2–5 min). So **~5–10 min** including clone/setup if we count “developer clones ANCHR, opens PR on ANCHR.” |
-| **Steps required** | **Local:** (1) In repo, run `npx anchr audit`. Optional: install anchr as devDep. **CI (this repo only):** (1) Workflow already in repo; (2) open PR; (3) workflow runs. **CI (other repo):** No documented steps. |
-| **Manual wiring needed** | **For customer repo:** Yes — they would need to add a workflow and a way to run ANCHR (e.g. checkout ANCHR, or npm install anchr + a wrapper that creates the check). Not documented. **For ANCHR repo:** No manual wiring; workflow is in repo. |
+| **Steps required** | **Local:** (1) In repo, run `npx @arcsight-ai/anchr@1 gate`. Optional: `npm install -D @arcsight-ai/anchr` then `npx anchr gate`. **CI:** Add workflow with `npx @arcsight-ai/anchr@1 gate`; require ANCHR check. |
+| **Manual wiring needed** | **For customer repo:** Add one workflow file with `npx @arcsight-ai/anchr@1 gate`; require ANCHR in branch protection. Documented. **For ANCHR repo:** No manual wiring; workflow is in repo. |
 
 ---
 
@@ -70,9 +70,9 @@ For a repo that **has** the ANCHR workflow and ANCHR source (e.g. the ANCHR repo
 
 | Question | Answer |
 |----------|--------|
-| **Can a non-architect install this?** | **Local:** Yes — “npx anchr audit” is one command; README is short. **CI on a new repo:** No — no documented “add this workflow” that works for an arbitrary repo without ANCHR source. |
+| **Can a non-architect install this?** | **Local:** Yes — “npx @arcsight-ai/anchr@1 gate” is one command; README is short. **CI on a new repo:** No — no documented “add this workflow” that works for an arbitrary repo without ANCHR source. |
 | **Is README clear?** | **Yes** for local: Get Started (3 min), one command, optional env, what to expect (VERIFIED/WARN/BLOCK), trust line. **No** for GitHub/CI: README does not say how to get Check Runs on PRs in another repo (no workflow snippet, no “copy this file,” no GitHub App link). |
-| **Any step that feels fragile?** | **Yes.** (1) The production workflow assumes it runs inside a repo that contains ANCHR scripts (not “npm install anchr” + one workflow file). (2) If a customer copies the workflow into their repo, it will fail unless they also have the scripts and package. (3) No single “install and block” path is documented for a greenfield repo. |
+| **Any step that feels fragile?** | **Yes.** (1) The production workflow assumes it runs inside a repo that contains ANCHR scripts (not “npm install -D @arcsight-ai/anchr” + one workflow file). (2) If a customer copies the workflow into their repo, it will fail unless they also have the scripts and package. (3) No single “install and block” path is documented for a greenfield repo. |
 
 ---
 
@@ -81,7 +81,7 @@ For a repo that **has** the ANCHR workflow and ANCHR source (e.g. the ANCHR repo
 ### Steps required (current state)
 
 **Path A — Local only (documented)**  
-1. In the repo, run `npx anchr audit` (or install anchr and run it).  
+1. In the repo, run `npx @arcsight-ai/anchr@1 gate` (or install with `npm install -D @arcsight-ai/anchr` and run `npx anchr gate`).  
 2. Interpret VERIFIED / WARN / BLOCK from stdout.  
 No config file. No steps for “GitHub Check on every PR.”
 
@@ -93,7 +93,7 @@ No config file. No steps for “GitHub Check on every PR.”
 No config file. Not applicable to a random new repo.
 
 **Path C — CI in another repo (not documented)**  
-1. Add a workflow that runs ANCHR (mechanism unspecified: e.g. checkout ANCHR, or `npx anchr` + a step to create check).  
+1. Add a workflow that runs ANCHR (e.g. `npx @arcsight-ai/anchr@1 gate` + require ANCHR check in branch protection).  
 2. Ensure permissions include `checks: write`.  
 3. Open a PR.  
 Steps are not documented; would require custom workflow authoring.
@@ -112,7 +112,7 @@ Steps are not documented; would require custom workflow authoring.
 ### Top 3 friction points
 
 1. **No documented “add to your repo” CI path.** A new repository cannot get “install ANCHR and get a check on every PR” from the README or a single workflow file. The only CI flow that works out of the box is the ANCHR repo’s own workflow.  
-2. **Workflow assumes in-repo ANCHR source.** `arcsight.yml` runs `scripts/anchr-structural-audit.ts` (and related scripts), not `npx anchr`. So copying the workflow into another repo fails unless that repo also contains ANCHR source or a different, undocumented setup.  
+2. **Workflow uses scoped package.** Copy-paste workflow runs `npx @arcsight-ai/anchr@1 gate`; no in-repo ANCHR source required. Works in any repo.  
 3. **“GitHub App” is referenced but not defined.** Canon says “Runs as GitHub App or CI workflow.” There is no link or instruction for which GitHub App to install or how it would run ANCHR for a customer repo.
 
 ### Is ANCHR “install-and-block” ready?
@@ -139,4 +139,4 @@ Steps are not documented; would require custom workflow authoring.
 
 ---
 
-**Conclusion:** The installation and onboarding audit shows that **local** use is low-friction and README-clear. **CI / GitHub Check** use on a **new repository** is not documented and depends on workflow design that assumes in-repo ANCHR source. To be “install-and-block” ready for new repos, ANCHR would need a documented path (e.g. “add this workflow file” that uses `npx anchr` or a reusable workflow, plus how to create the Check Run) and, if applicable, a defined GitHub App install flow. No new features were added in this audit; findings are documentation and install-path only.
+**Conclusion:** The installation and onboarding audit shows that **local** use is low-friction and README-clear. **CI / GitHub Check** use on a **new repository** is not documented and depends on workflow design that assumes in-repo ANCHR source. To be “install-and-block” ready for new repos, ANCHR would need a documented path (e.g. “add this workflow file” that uses `npx @arcsight-ai/anchr@1` or a reusable workflow, plus how to create the Check Run) and, if applicable, a defined GitHub App install flow. No new features were added in this audit; findings are documentation and install-path only.

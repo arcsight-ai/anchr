@@ -9,9 +9,9 @@ Run this in order. Prep once; then A → B → C. Binary outcomes only. If any s
 - **Demo repo:** `arcsight-ai/anchr-demo-monorepo` (or your chosen repo).
 - **`.anchr.yml`** exists with `enforcement: STRICT` for the main demo loop.
 - **Workflow** in the demo repo is the canonical `.github/workflows/anchr-gate.yml` and uses:
-  - `npx anchr@1 gate`
-  - `npx anchr@1 comment` (when no local `scripts/arcsight-pr-comment.ts`)
-  - Runs `npx anchr@1 suggest` **only when** `BLOCKED` or `INDETERMINATE` (report status).
+  - `npx @arcsight-ai/anchr@1 gate`
+  - `npx @arcsight-ai/anchr@1 comment` (when no local `scripts/arcsight-pr-comment.ts`)
+  - Runs `npx @arcsight-ai/anchr@1 suggest` **only when** `BLOCKED` or `INDETERMINATE` (report status).
 
 ---
 
@@ -79,7 +79,7 @@ Run this in order. Prep once; then A → B → C. Binary outcomes only. If any s
    - `.anchr.yml` (e.g. `enforcement: STRICT`)
 3. Create a trivial PR.
 4. Confirm:
-   - [ ] Workflow runs successfully using only `npx anchr@1 …`
+   - [ ] Workflow runs successfully using only `npx @arcsight-ai/anchr@1 …`
    - [ ] Comment posts
    - [ ] Check run appears with correct conclusion
    - [ ] No extra permissions beyond: `contents: read`, `pull-requests: write`, `checks: write`
@@ -88,7 +88,7 @@ Run this in order. Prep once; then A → B → C. Binary outcomes only. If any s
 
 ### B — PASS if
 
-- Workflow completes using only `npx anchr@1` (no local scripts, no tsx in repo).
+- Workflow completes using only `npx @arcsight-ai/anchr@1` (no local scripts, no tsx in repo).
 - Comment posts and check run appears with correct conclusion.
 - Permissions are exactly: `contents: read`, `pull-requests: write`, `checks: write`.
 
@@ -102,7 +102,7 @@ Run this in order. Prep once; then A → B → C. Binary outcomes only. If any s
 
 ---
 
-## C) Large-repo guardrail smoke (10–15 min)
+## C) Large-repo scope smoke (10–15 min)
 
 1. In `.anchr.yml` set:
    ```yaml

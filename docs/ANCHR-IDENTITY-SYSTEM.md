@@ -9,7 +9,7 @@ Single source for brand casing, check name, CLI behavior, and vocabulary. No dri
 | Context | Casing | Example |
 |--------|--------|---------|
 | **Brand** (site, copy, docs, headers) | **ANCHR** (all caps) | "ANCHR enforces structure." |
-| **CLI** (command, binary, repo name) | **anchr** (lowercase) | `npx anchr audit` |
+| **CLI** (command, binary, repo name) | **anchr** (lowercase) | `npx @arcsight-ai/anchr@1 gate` (after install: `npx anchr gate`) |
 | **GitHub Check** (workflow name, required status) | **ANCHR** | Require status checks: ☑ ANCHR |
 | **Workflow file** | `anchr.yml` | `.github/workflows/anchr.yml` |
 | **Domain** | anchr.sh | Footer, OG |

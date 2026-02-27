@@ -10,23 +10,24 @@ const { spawnSync } = require("child_process");
 const pkgRoot = path.resolve(__dirname, "..");
 const args = process.argv.slice(2);
 const distCli = path.join(pkgRoot, "dist", "scripts", "cli.js");
+const distTrustSafe = path.join(pkgRoot, "dist", "scripts", "cli-trust-safe.js");
 const tsxPath = path.join(pkgRoot, "node_modules", ".bin", "tsx");
 const scriptCli = path.join(pkgRoot, "scripts", "cli.ts");
+const scriptTrustSafe = path.join(pkgRoot, "scripts", "cli-trust-safe.ts");
 const useDist = fs.existsSync(distCli);
-/** Commands that must run from source so they stay current when dist is stale. */
-const useSourceFor = new Set(["gate", "suggest", "comment"]);
-const preferSource = args.length > 0 && useSourceFor.has(args[0]);
+const useDistTrustSafe = fs.existsSync(distTrustSafe);
 
 if (args.length === 0) {
-  const trustSafePath = path.join(pkgRoot, "scripts", "cli-trust-safe.ts");
-  const out = spawnSync(process.execPath, [tsxPath, trustSafePath], {
+  const trustSafePath = useDistTrustSafe ? distTrustSafe : scriptTrustSafe;
+  const execArgv = useDistTrustSafe ? [trustSafePath] : [tsxPath, trustSafePath];
+  const out = spawnSync(process.execPath, execArgv, {
     stdio: "inherit",
     cwd: process.cwd(),
   });
   process.exit(out.status !== null ? out.status : 2);
 }
 
-if (useDist && !preferSource) {
+if (useDist) {
   const out = spawnSync(process.execPath, [distCli, ...args], {
     stdio: "inherit",
     cwd: pkgRoot,

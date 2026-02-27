@@ -74,7 +74,7 @@ So you are **not** building a new product. You are **extracting the “gate laye
 | Question | Answer | Evidence |
 |----------|--------|----------|
 | **Can it take two commit SHAs and compare structure?** | **Yes** | `--base <sha> --head <sha>` or `GITHUB_BASE_SHA` / `GITHUB_HEAD_SHA`. `scripts/cli.ts` `getRefs()`, `runStructuralAuditWithTimeout(cwd, refs.base, refs.head, false)`. `anchr-structural-audit.ts` uses `getBaseHead()` / env for base/head, `getDiff(repoRoot, base, head)`. |
-| **Can it run headless in CI?** | **Yes** | CI uses env vars; no TTY. `anchr audit --all --json` or workflow runs `anchr-structural-audit.ts` then `anchr-decision.ts`, `set-pr-status`. README: `npx anchr@latest audit` with `GITHUB_BASE_SHA` / `GITHUB_HEAD_SHA`. |
+| **Can it run headless in CI?** | **Yes** | CI uses env vars; no TTY. `anchr audit --all --json` or workflow runs `anchr-structural-audit.ts` then `anchr-decision.ts`, `set-pr-status`. README: `npx @arcsight-ai/anchr@1 gate` with `GITHUB_BASE_SHA` / `GITHUB_HEAD_SHA`. |
 | **Does it already output machine-readable JSON?** | **Yes** | Report written to `artifacts/anchr-report.json` (or `ANCHR_REPORT_PATH`). `anchr audit --json` prints report to stdout. Schema: status, decision, minimalCut, proofs, run.id, baseSha, headSha, etc. |
 | **Does it support repo path injection cleanly?** | **Partial** | Repo = git root from `getRepoRoot()` (or cwd). No `--repo-root` flag. In CI, checkout sets cwd to repo; injection = “run from repo root.” Clean for CI; add `--repo-root` if needed for other hosts. |
 | **Is drift detection deterministic across machines?** | **Yes** | Stable sorts, sha256 for run.id, no timestamps in report. Same base+head → same report. |
@@ -107,7 +107,7 @@ So you are **not** building a new product. You are **extracting the “gate laye
 
 ### Entrypoints
 
-- **CI gate:** `npx anchr audit` (or `anchr check`) with `GITHUB_BASE_SHA` / `GITHUB_HEAD_SHA` (or `--base` / `--head`).  
+- **CI gate:** `npx @arcsight-ai/anchr@1 gate` (or `audit` with `--base` / `--head`).  
 - **Report generation:** `scripts/anchr-structural-audit.ts` (invoked by CLI or by workflow).  
 - **Status + comment:** workflow runs `set-pr-status`, `arcsight-pr-comment.ts` after report.
 
@@ -131,7 +131,7 @@ So you are **not** building a new product. You are **extracting the “gate laye
 
 ### How CI is wired
 
-- **README (simple):** One job: checkout, setup-node, `npx anchr@latest audit` with `GITHUB_BASE_SHA` / `GITHUB_HEAD_SHA`. Require “ANCHR” in branch protection.  
+- **README (simple):** One job: checkout, setup-node, `npx @arcsight-ai/anchr@1 gate` with `GITHUB_BASE_SHA` / `GITHUB_HEAD_SHA`. Require “ANCHR” in branch protection.  
 - **Repo’s own workflow (full):** `.github/workflows/anchr.yml`: checkout base, fetch head, run `anchr-structural-audit.ts`, `anchr-decision.ts`, `anchr-fix-suggestions.ts`, then publish status, post/update comment (arcsight-pr-comment), create/update Check Run “ANCHR.”  
 - **Status:** `set-pr-status` uses Checks API; conclusion = success/failure from report/policy.
 
@@ -147,7 +147,7 @@ You **don’t rewrite**. You:
    - Ensure one canonical “gate” command (e.g. `anchr audit` with env or `anchr check`).
 
 2. **Wrap in GitHub Action (optional).**  
-   - Already runnable via `npx anchr@latest audit` in a single step.  
+   - Already runnable via `npx @arcsight-ai/anchr@1 gate` in a single step.  
    - Optional: publish a dedicated `anchr/action` that sets env and runs that.
 
 3. **PR comment:** Already there; keep `arcsight-pr-comment.ts` (or thin wrapper). No rewrite.

@@ -1,8 +1,8 @@
 # 60-Second Live Demo Script
 
-**One line:** AI writes. ANCHR enforces. You don't have to babysit AI anymore.
+**One line:** Move at AI speed. Keep architectural control. AI writes. ANCHR enforces.
 
-**Purpose:** Meetup stage, DevRel talk, YC-style demo day, Product Hunt video, Twitter/X clip, Loom. Simple, repeatable, emotionally clear. One turning point. End with silence.
+**Purpose:** Meetup stage, DevRel talk, YC-style demo day, Product Hunt video, Twitter/X clip, Loom. Simple, repeatable, one turning point. End with silence.
 
 ---
 
@@ -118,9 +118,8 @@
 
 **Say slowly:**
 
-> “AI writes code.  
-> ANCHR protects your architecture.  
-> You don’t have to babysit AI anymore.”
+> “Move at AI speed. Keep architectural control.  
+> AI writes. ANCHR enforces.”
 
 - **Stop talking.**  
 - **Let it sit.**
@@ -129,8 +128,7 @@
 
 ## Why this works
 
-- Shows: AI capability → invisible damage → deterministic detection → minimal correction → green merge → psychological relief.
-- It’s not about hashing. Not about graph theory. It’s about **trust**.
+- Shows: AI capability → structural drift → deterministic detection → exact correction → green merge. One product. One loop. One promise.
 
 ---
 
@@ -140,8 +138,8 @@ After the silence:
 
 **Say:**
 
-> “Install. Open a PR. Break your architecture.  
-> Watch ANCHR stop it.”
+> “Install. Open a PR. Introduce structural drift.  
+> ANCHR blocks the merge and shows the fix.”
 
 That line is sticky.
 

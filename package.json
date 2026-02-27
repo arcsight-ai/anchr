@@ -1,9 +1,12 @@
 {
-  "name": "anchr",
-  "version": "1.0.0",
+  "name": "@arcsight-ai/anchr",
+  "version": "1.0.3",
   "description": "Structural gate for TypeScript monorepos. One decision per PR: VERIFIED or BLOCKED.",
   "license": "MIT",
-  "repository": { "type": "git", "url": "https://github.com/arcsight-ai/anchr.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arcsight-ai/anchr.git"
+  },
   "type": "module",
   "scripts": {
     "test": "jest",
@@ -35,7 +38,10 @@
     "uninstall:hook": "npx tsx scripts/anchr-uninstall.ts",
     "doctor": "npx tsx scripts/anchr-doctor.ts",
     "anchr": "npx tsx scripts/cli.ts",
-    "simulation:conviction": "npx tsx scripts/simulation/conviction-simulation.ts","simulation:survival":"npx tsx scripts/simulation/survival-simulation.ts","simulation:stress":"npx tsx scripts/simulation/institutional-stress-simulation.ts","simulation:stress:run":"npx tsx scripts/simulation/execute-stress-protocol.ts"
+    "simulation:conviction": "npx tsx scripts/simulation/conviction-simulation.ts",
+    "simulation:survival": "npx tsx scripts/simulation/survival-simulation.ts",
+    "simulation:stress": "npx tsx scripts/simulation/institutional-stress-simulation.ts",
+    "simulation:stress:run": "npx tsx scripts/simulation/execute-stress-protocol.ts"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
@@ -51,6 +57,13 @@
   "bin": {
     "anchr": "bin/anchr.cjs"
   },
+  "files": [
+    "bin",
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "prepublishOnly": "npm run build",
   "dependencies": {
     "@octokit/rest": "^22.0.1",
     "minimatch": "^10.0.0",

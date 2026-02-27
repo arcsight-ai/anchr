@@ -16,7 +16,7 @@
    ```yaml
    enforcement: STRICT
    ```
-3. Add the canonical **`.github/workflows/anchr-gate.yml`** (from this repo). Pin `npx anchr@1.0.0 gate`.
+3. Add the canonical **`.github/workflows/anchr-gate.yml`** (from this repo). Pin `npx @arcsight-ai/anchr@1 gate` (or `@1.0.0` for strict pin).
 4. Open a **no-op PR** (e.g. typo in README, or whitespace).
 
 **You want to see:**
@@ -85,7 +85,7 @@ What makes this powerful isn’t the block. It’s the **correction loop**.
 
 After the block:
 
-1. Scroll to **Structural improvement** (suggestion block).
+1. Scroll to **Suggested structural correction** (suggestion block).
 2. Apply the minimal rewrite:
    - Replace internal import with public one, **or**
    - Remove reverse dependency (for cycle).
@@ -102,7 +102,7 @@ Run through once **privately** before demoing:
 
 - [ ] Does **minimalCut** output cleanly show package-level violations?
 - [ ] Are **suggestions** readable?
-- [ ] Does the **scope guardrail** (maxFiles/timeout) interfere?
+- [ ] Does the **scope limit** (maxFiles/timeout) interfere?
 - [ ] Is **run.id** stable between re-runs?
 - [ ] Does the **comment** update cleanly (no duplicate)?
 

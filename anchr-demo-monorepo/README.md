@@ -17,8 +17,10 @@ Blocked: `api` → `core` internal; `core` → `api` (cycle).
 From this repo root:
 
 ```bash
-npx anchr audit
+npx @arcsight-ai/anchr@1 gate
 ```
+
+For local audit with base/head: `npx @arcsight-ai/anchr@1 audit --base <base> --head <head>`.
 
 If ANCHR is not yet published, run from the anchr repo: `node /path/to/anchr/bin/anchr.cjs audit` (or `npm run anchr -- audit` from the anchr repo root).
 

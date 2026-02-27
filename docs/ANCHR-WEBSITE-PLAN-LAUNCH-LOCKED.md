@@ -42,7 +42,7 @@ Assumes Vite + React in `/website`. Defines theme tokens, layout hierarchy, hero
 
 **Saved:** `docs/ANCHR-LAUNCH-COPY-V6.md`
 
-Single source of truth for landing and DevHunt. Copy is frozen for launch unless a critical issue is discovered. Public CLI: `npx anchr audit`.
+Single source of truth for landing and DevHunt. Copy is frozen for launch unless a critical issue is discovered. Public CLI: `npx @arcsight-ai/anchr@1 gate`.
 
 ---
 
@@ -107,4 +107,4 @@ Before DevHunt:
 
 ## 11. Status
 
-Launch copy: locked. Brand system: defined. Install: workflow-based, documented. Website: ready for implementation. CLI: `npx anchr audit`. Stack: Vite + React in `/website`.
+Launch copy: locked. Brand system: defined. Install: workflow-based, documented. Website: ready for implementation. CLI: `npx @arcsight-ai/anchr@1 gate`. Stack: Vite + React in `/website`.

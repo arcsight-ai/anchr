@@ -12,7 +12,7 @@ Infra product audit. No feature suggestions; only gaps that reduce infra-grade p
 |----------|--------|
 | Install flow production-ready? | **YES.** README has "Add ANCHR to your repo" with copy-paste workflow. No GitHub App required; workflow-based install is explicit. |
 | Can it be required as a GitHub Check? | **YES.** Job name `ANCHR`; branch protection can require it. |
-| Does it block a real PR? | **YES.** `npx anchr@latest audit` exits 1 on BLOCKED; job fails; check fails. |
+| Does it block a real PR? | **YES.** `npx @arcsight-ai/anchr@1 gate` exits 1 on BLOCKED; job fails; check fails. |
 | Permissions minimal? | **YES.** Workflow uses `contents: read`, `pull-requests: read`. |
 
 **Public language:** "Add the ANCHR workflow" (not "Install GitHub App"). Launch copy and README aligned.
